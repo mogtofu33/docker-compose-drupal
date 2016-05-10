@@ -1,0 +1,13 @@
+ldap:
+  image: osixia/openldap:1.1.2
+  ports:
+    - "389:389"
+  environment:
+    - LDAP_ADMIN_PASSWORD=admin
+
+ldapadmin:
+  image: osixia/phpldapadmin:0.6.8
+  ports:
+    - "6443:443"
+  environment:
+    - PHPLDAPADMIN_LDAP_HOSTS=ldap

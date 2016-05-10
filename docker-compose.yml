@@ -1,0 +1,66 @@
+apache:
+  image: mogtofu33/docker-alpine-php-apache
+  ports:
+    - "80:80"
+  links:
+    - mysql
+    - pgsql
+    - memcache
+    - mailhog
+    - solr
+  volumes_from:
+    - data
+  volumes:
+    - ./config/apache:/etc/apache2/vhost
+    - ./config/php/conf.d:/etc/php/conf.d
+    - ./data/logs:/var/log/apache2
+    - ./data/logs:/var/log/php
+mysql:
+  image: k0st/alpine-mariadb
+  expose:
+    - "3306"
+  volumes_from:
+    - db
+  volumes:
+    - ./config/mysql:/etc/mysql
+    - ./data/logs:/var/log/mysql
+  environment:
+    - MYSQL_DATABASE=drupal
+    - MYSQL_USER=drupal
+    - MYSQL_PASSWORD=drupal
+    - MYSQL_ROOT_PASSWORD=root
+pgsql:
+  image: mogtofu33/docker-alpine-postgres
+  expose:
+    - "5432"
+  volumes_from:
+    - db
+  environment:
+    - POSTGRES_USER=drupal
+    - POSTGRES_PASSWORD=drupal
+    - POSTGRES_DB=drupal
+memcache:
+  image: bpressure/alpine-memcached
+  expose:
+    - "11211"
+solr:
+  image : mogtofu33/docker-alpine-solr
+  ports:
+    - "8983:8983"
+  volumes:
+    - ./data/logs:/var/log/solr
+mailhog:
+  image: diyan/mailhog
+  expose:
+    - "8025"
+  ports:
+    - "1025:1025"
+data:
+  image: tianon/true
+  volumes:
+    - ./data/www:/www
+db:
+  image: tianon/true
+  volumes:
+    - ./data/database/mysql:/var/lib/mysql
+    - ./data/database/pgsql:/var/lib/postgresql/data
