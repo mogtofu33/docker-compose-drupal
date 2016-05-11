@@ -24,18 +24,11 @@ Solr core: drupal
 
 ## Quick launch existing Drupal project
 
-Clone this project.
-
-Copy and rename docker-compose.yml.MODEL to docker-compose.yml.
-
-Edit docker-compose.yml depending services you want, be carefull of links sections.
+Same as new project but:
 
 Put your drupal site in data/www/drupal folder.
 
 Put your database dump in data/www/TOOLS folder.
-
-<pre>docker-compose build</pre>
-<pre>docker-compose up -d</pre>
 
 Got to adminer to import your databse :
 
