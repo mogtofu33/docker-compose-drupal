@@ -1,5 +1,41 @@
+nginx:
+  image: mogtofu33/docker-alpine-nginx
+  ports:
+    - "81:80"
+  links:
+    - phpfpm
+    - mysql
+    - pgsql
+    - memcache
+    - mailhog
+    - solr
+  volumes_from:
+    - data
+  volumes:
+    - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+    - ./data/logs:/var/log/nginx
+phpfpm:
+  image: mogtofu33/docker-alpine-phpfpm
+#  image: mogtofu33/docker-alpine-phpfpm7
+  expose:
+    - "9000"
+  links:
+    - mysql
+    - pgsql
+    - memcache
+    - mailhog
+    - solr
+  volumes_from:
+    - data
+  volumes:
+   - ./config/php/php-fpm-nginx.conf:/etc/php/php-fpm.conf
+   - ./config/php/conf.d:/etc/php/conf.d
+#   - ./config/php7/php-fpm-nginx.conf:/etc/php/php-fpm.conf
+#   - ./config/php7/conf.d:/etc/php/conf.d
+   - ./data/logs:/var/log/php
 apache:
   image: mogtofu33/docker-alpine-php-apache
+#  image: mogtofu33/docker-alpine-php7-apache
   ports:
     - "80:80"
   links:
@@ -13,6 +49,7 @@ apache:
   volumes:
     - ./config/apache:/etc/apache2/vhost
     - ./config/php/conf.d:/etc/php/conf.d
+#    - ./config/php7/conf.d:/etc/php/conf.d
     - ./data/logs:/var/log/apache2
     - ./data/logs:/var/log/php
 mysql:

@@ -1,3 +1,4 @@
 data/database
 data/logs
 data/www/drupal
+tmp*
