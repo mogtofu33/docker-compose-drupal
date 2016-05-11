@@ -1,11 +1,25 @@
-# Quick setup from this dir
+# Full Drupal Docker dev stack
 
-docker-compose build
+## Quick launch
 
-docker-compose up -d
+<pre>docker-compose build</pre>
+<pre>docker-compose up -d</pre>
 
-# See logs
-docker-compose logs
+## See logs
+<pre>docker-compose logs</pre>
 
-# Destroy all
-docker-compose stop && docker-compose down
+## Destroy all
+<pre>docker-compose stop && docker-compose down</pre>
+
+## Recommended tools
+
+- PimpMyLog:
+
+  - git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog
+
+ - Copy config from config/pimpmylog
+
+
+- Adminer:
+  - https://www.adminer.org/#download
+  - Place it in data/www/TOOLS/
