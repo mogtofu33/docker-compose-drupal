@@ -1,7 +1,20 @@
+varnish:
+  image: thiagofigueiro/varnish-alpine-docker
+  container_name: varnish
+  ports:
+    - "80:80"
+    - "6082:6082"
+  links:
+    - apache
+  volumes:
+    - ./data/logs:/var/log/varnish
+  environment:
+    - VARNISH_MEMORY=128M
+#    - VARNISH_BACKEND_IP=apache
 nginx:
   image: mogtofu33/docker-alpine-nginx
   ports:
-    - "81:80"
+    - "80:80"
   links:
     - phpfpm
     - mysql
@@ -92,6 +105,18 @@ mailhog:
     - "8025"
   ports:
     - "1025:1025"
+ldap:
+  image: osixia/openldap:1.1.2
+  ports:
+    - "389:389"
+  environment:
+    - LDAP_ADMIN_PASSWORD=admin
+ldapadmin:
+  image: osixia/phpldapadmin:0.6.8
+  ports:
+    - "6443:443"
+  environment:
+#    - PHPLDAPADMIN_LDAP_HOSTS=ldap
 data:
   image: tianon/true
   volumes:
