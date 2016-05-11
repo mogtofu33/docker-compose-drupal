@@ -10,7 +10,6 @@ Edit docker-compose.yml depending services you want, be carefull of links sectio
 
 Download your drupal site in data/www/drupal folder.
 
-<pre>docker-compose build</pre>
 <pre>docker-compose up -d</pre>
 
 Got to Drupal install:
@@ -28,9 +27,9 @@ Same as new project but:
 
 Put your drupal site in data/www/drupal folder.
 
-Put your database dump in data/www/TOOLS folder.
+Put your database dump in data/www/TOOLS folder and rename in adminer.sql or adminer.sql.gz.
 
-Got to adminer to import your databse :
+Got to adminer to import your databse on the drupal table :
 
 <pre>http://localhost/TOOLS/adminer.php</pre>
 
@@ -61,4 +60,10 @@ Solr core: drupal
 
 ## Extra docs
 
-* Ldap, see https://github.com/osixia/docker-openldap#environment-variables
+* Mailhog access:
+<pre>http://localhost:8025</pre>
+* Solr access:
+<pre>http://localhost:8983</pre>
+* Ldap admin:
+<pre>http://localhost:6443</pre>
+* More ldap info, see https://github.com/osixia/docker-openldap#environment-variables
