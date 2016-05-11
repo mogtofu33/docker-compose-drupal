@@ -34,6 +34,8 @@ Got to adminer to import your databse :
 
 <pre>http://localhost/TOOLS/adminer.php</pre>
 
+Edit your settings.php to match settings below.
+
 Got to your Drupal:
 
 <pre>http://localhost/drupal</pre>
