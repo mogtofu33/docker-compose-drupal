@@ -1,5 +1,24 @@
 # Full Drupal Docker dev stack
 
+* see https://docs.docker.com/compose/
+
+Include (every service is optionnal)
+* Php5 or 7 with xdebug
+* Apache and/or Nginx
+* MySQL and/or PostgreSQL
+* Memcache
+* Mailhog
+* Solr
+* Ldap
+* Varnish
+
+Include Php Tools:
+* Drush
+* Drupal console
+* Composer
+* Adminer
+* (optionnal) PimpMyLog
+
 ## Quick launch new Drupal project
 
 Clone this project.
@@ -47,8 +66,19 @@ Solr core: drupal
 ## See logs
 <pre>docker-compose logs</pre>
 
+Some applications logs will be stored opn data/logs.
+
 ## Destroy all
 <pre>docker-compose stop && docker-compose down</pre>
+
+## See runing services
+<pre>docker-compose ps</pre>
+
+## Execute command on any service
+<pre>docker exec -it CONTAINER_NAME MY_CMD</pre>
+
+## Bash access on any service
+<pre>docker exec -it CONTAINER_NAME bash</pre>
 
 ## Recommended tools
 
@@ -58,7 +88,7 @@ Solr core: drupal
 
  - Copy config from config/pimpmylog
 
-## Extra docs
+## Services access
 
 * Mailhog access:
 <pre>http://localhost:8025</pre>

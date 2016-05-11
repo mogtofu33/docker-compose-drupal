@@ -1,24 +1,17 @@
-varnish:
-  image: thiagofigueiro/varnish-alpine-docker
-  container_name: varnish
-  ports:
-    - "80:80"
-    - "6082:6082"
-  links:
-    - apache
-  volumes:
-    - ./data/logs:/var/log/varnish
-  environment:
-    - VARNISH_MEMORY=128M
-#    - VARNISH_BACKEND_IP=apache
+# Docker compose Drupal full dev stack.
+# @see https://docs.docker.com/compose/
+
+# Choose Apache or Nginx, you can run both if you adapt ports (one on 80 other on 81).
+#
 nginx:
   image: mogtofu33/docker-alpine-nginx
   ports:
     - "80:80"
   links:
     - phpfpm
+# Choose one database or both.
     - mysql
-    - pgsql
+#    - pgsql
     - memcache
     - mailhog
     - solr
@@ -27,14 +20,18 @@ nginx:
   volumes:
     - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
     - ./data/logs:/var/log/nginx
+
+# Optionnal Php 5.6 or Php 7 images, uncomment as needed.
+#
 phpfpm:
   image: mogtofu33/docker-alpine-phpfpm
 #  image: mogtofu33/docker-alpine-phpfpm7
   expose:
     - "9000"
   links:
+# Choose one database or both.
     - mysql
-    - pgsql
+#    - pgsql
     - memcache
     - mailhog
     - solr
@@ -46,14 +43,19 @@ phpfpm:
 #   - ./config/php7/php-fpm-nginx.conf:/etc/php/php-fpm.conf
 #   - ./config/php7/conf.d:/etc/php/conf.d
    - ./data/logs:/var/log/php
+
+# Optionnal Php 5.6 or Php 7, uncomment as needed.
+#
 apache:
   image: mogtofu33/docker-alpine-php-apache
 #  image: mogtofu33/docker-alpine-php7-apache
   ports:
     - "80:80"
+#    - "8080:80" # w/o varnish
   links:
+# Choose one database or both.
     - mysql
-    - pgsql
+#    - pgsql
     - memcache
     - mailhog
     - solr
@@ -65,8 +67,14 @@ apache:
 #    - ./config/php7/conf.d:/etc/php/conf.d
     - ./data/logs:/var/log/apache2
     - ./data/logs:/var/log/php
+
+# Choose one of the database, you can run both.
+# Comments expose and uncomment ports for an access from host.
+#
 mysql:
   image: k0st/alpine-mariadb
+#  ports:
+#    - "3306:3306"
   expose:
     - "3306"
   volumes_from:
@@ -81,6 +89,8 @@ mysql:
     - MYSQL_ROOT_PASSWORD=root
 pgsql:
   image: mogtofu33/docker-alpine-postgres
+#  ports:
+#    - "5432:5432"
   expose:
     - "5432"
   volumes_from:
@@ -91,6 +101,9 @@ pgsql:
     - POSTGRES_DB=drupal
 memcache:
   image: bpressure/alpine-memcached
+# Comments expose and uncomment ports for an access from host.
+#  ports:
+#    - "11211:11211"
   expose:
     - "11211"
 solr:
@@ -102,21 +115,11 @@ solr:
 mailhog:
   image: diyan/mailhog
   expose:
-    - "8025"
+    - "1025"
   ports:
-    - "1025:1025"
-ldap:
-  image: osixia/openldap:1.1.2
-  ports:
-    - "389:389"
-  environment:
-    - LDAP_ADMIN_PASSWORD=admin
-ldapadmin:
-  image: osixia/phpldapadmin:0.6.8
-  ports:
-    - "6443:443"
-  environment:
-#    - PHPLDAPADMIN_LDAP_HOSTS=ldap
+    - "8025:8025"
+
+# Data and Db storage.
 data:
   image: tianon/true
   volumes:
@@ -126,3 +129,40 @@ db:
   volumes:
     - ./data/database/mysql:/var/lib/mysql
     - ./data/database/pgsql:/var/lib/postgresql/data
+
+# Optionnal Varnish.
+# Uncomment to use, be sure to change apache or nginx ports to 8080:80.
+#
+#varnish:
+#  image: thiagofigueiro/varnish-alpine-docker
+#  ports:
+#    - "80:80"
+#    - "6082:6082"
+#  links:
+#    - apache
+#  volumes:
+## Choose settings depending web server.
+##    - ./config/varnish/default-apache.vcl:/etc/varnish/default.vcl
+##    - ./config/varnish/default-nginx.vcl:/etc/varnish/default.vcl
+#    - ./config/varnish/secret:/etc/varnish/secret
+#    - ./data/logs:/var/log/varnish
+#  environment:
+#    - VARNISH_MEMORY=128M
+
+# Optionnal Ldap service with administration.
+#
+#ldap:
+#  image: osixia/openldap:1.1.2
+#  ports:
+#    - "389:389"
+#  environment:
+#    - LDAP_ADMIN_PASSWORD=admin
+#ldapadmin:
+#  image: osixia/phpldapadmin:0.6.8
+#  links:
+#    - ldap
+#  ports:
+#    - "6443:443"
+#  environment:
+#    - PHPLDAPADMIN_LDAP_HOSTS=ldap
+
