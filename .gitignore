@@ -1,4 +1,8 @@
+docker-compose.yml
+# ignore static files
 data/database
 data/logs
 data/www/drupal
+data/www/TOOLS/PimpMyLog/
+data/www/TOOLS/adminer.sql*
 tmp*
