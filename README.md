@@ -1,4 +1,6 @@
-# Full Drupal Docker dev stack
+# Full Drupal Docker development stack
+
+Focus on easy set-up and light images with Alpine Linux.
 
 * see https://docs.docker.com/compose/
 
@@ -17,7 +19,9 @@ Include Php Tools:
 * Drupal console
 * Composer
 * Adminer
-* (optionnal) PimpMyLog
+
+Suggested tools:
+* PimpMyLog
 
 ## Quick launch new Drupal project
 
@@ -77,8 +81,11 @@ Some applications logs will be stored opn data/logs.
 ## Execute command on any service
 <pre>docker exec -it CONTAINER_NAME MY_CMD</pre>
 
-## Bash access on any service
+## Bash access on services based on my images
 <pre>docker exec -it CONTAINER_NAME bash</pre>
+
+## Other images
+<pre>docker exec -it CONTAINER_NAME /bin/sh</pre>
 
 ## Recommended tools
 
