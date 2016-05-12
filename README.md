@@ -1,10 +1,10 @@
-# Full Drupal Docker development stack
-
-Focus on easy set-up and light images with Alpine Linux.
+# Full Drupal Docker development stack with Docker Compose
 
 * see https://docs.docker.com/compose/
 
-Include (every service is optionnal)
+Focus on easy set-up and light images with Alpine Linux.
+
+Include (every service is optionnal as declared in the yml file)
 * Php5 or 7 with xdebug
 * Apache and/or Nginx
 * MySQL and/or PostgreSQL
@@ -31,7 +31,9 @@ Copy and rename docker-compose.yml.MODEL to docker-compose.yml.
 
 Edit docker-compose.yml depending services you want, be carefull of links sections.
 
-Download your drupal site in data/www/drupal folder.
+More details on docker compose file: https://docs.docker.com/compose/compose-file/
+
+Download your drupal site in data/www/drupal folder:
 
 <pre>docker-compose up -d</pre>
 
@@ -40,9 +42,13 @@ Got to Drupal install:
 <pre>http://localhost/drupal</pre>
 
 Mysql / PostgreSQL :
+* Hostanme (from apache or nginx):
+ * mysql
+ * pgsql
 * database name / user / pass: drupal
 
-Solr core: drupal
+Solr core (from apache or nginx):
+* http://solr:8983/solr/drupal
 
 ## Quick launch existing Drupal project
 
@@ -62,11 +68,6 @@ Got to your Drupal:
 
 <pre>http://localhost/drupal</pre>
 
-Mysql / PostgreSQL :
-* database name / user / pass: drupal
-
-Solr core: drupal
-
 ## See logs
 <pre>docker-compose logs</pre>
 
@@ -75,16 +76,18 @@ Some applications logs will be stored opn data/logs.
 ## Destroy all
 <pre>docker-compose stop && docker-compose down</pre>
 
-## See runing services
+## Services access
+
+### See running services and get container names
 <pre>docker-compose ps</pre>
 
-## Execute command on any service
+### Execute command on any service
 <pre>docker exec -it CONTAINER_NAME MY_CMD</pre>
 
-## Bash access on services based on my images
+### Bash access on services based on my images
 <pre>docker exec -it CONTAINER_NAME bash</pre>
 
-## Other images
+### Other images
 <pre>docker exec -it CONTAINER_NAME /bin/sh</pre>
 
 ## Recommended tools
@@ -95,12 +98,20 @@ Some applications logs will be stored opn data/logs.
 
  - Copy config from config/pimpmylog
 
-## Services access
+## Services access from host
 
 * Mailhog access:
 <pre>http://localhost:8025</pre>
 * Solr access:
 <pre>http://localhost:8983</pre>
 * Ldap admin:
+ * login: cn=admin,dc=example,dc=org
+ * pass: admin
+
 <pre>http://localhost:6443</pre>
 * More ldap info, see https://github.com/osixia/docker-openldap#environment-variables
+
+## More features on next release
+
+* SSL on Apache / Nginx
+* Data permissions fix with gosu on base image: https://denibertovic.com/posts/handling-permissions-with-docker-volumes
