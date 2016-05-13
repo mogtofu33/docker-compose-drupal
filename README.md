@@ -27,7 +27,7 @@ Suggested tools:
 
 Clone this project.
 
-Copy and rename docker-compose.yml.MODEL to docker-compose.yml.
+Copy and rename docker-compose.tpl to docker-compose.yml.
 
 Edit docker-compose.yml depending services you want, be carefull of links sections.
 
@@ -114,4 +114,4 @@ Some applications logs will be stored opn data/logs.
 ## More features on next release
 
 * SSL on Apache / Nginx
-* Data permissions fix with gosu on base image: https://denibertovic.com/posts/handling-permissions-with-docker-volumes
+* Data permissions fix setting host user uid/gid to service owner.

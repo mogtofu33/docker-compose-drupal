@@ -85,7 +85,6 @@ apache:
     - ./config/php/conf.d:/etc/php/conf.d
 #    - ./config/php7/conf.d:/etc/php/conf.d
     - ./data/logs:/var/log/apache2
-    - ./data/logs:/var/log/php
 
 ##
 # Choose one of the database, you can run both if you want.
