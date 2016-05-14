@@ -3,6 +3,6 @@ docker-compose.yml
 data/database
 data/logs
 data/www/drupal
-data/www/TOOLS/PimpMyLog/
+data/www/TOOLS/*/
 data/www/TOOLS/adminer.sql*
 tmp*

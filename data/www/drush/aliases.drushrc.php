@@ -2,6 +2,6 @@
 
 $aliases['d'] = array(
   'uri' => 'http://localhost',
-  'root' => '/app/web/drupal',
+  'root' => '/www/drupal',
 );
 

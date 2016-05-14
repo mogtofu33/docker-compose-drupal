@@ -1,8 +1,8 @@
-##
+################################################################################
 # Docker compose Drupal full dev stack.
 #
 # A single Docker compose file that try to simply and quickly setup a full
-# Drupal development environement.
+# Drupal development environment.
 #
 # Project page:
 #   https://github.com/Mogtofu33/docker-compose-drupal
@@ -10,18 +10,19 @@
 # Check your config after editing this file with:
 #   docker-compose config
 #
-# All custom settings are in config/ folder, please check and adapt to your needs.
+# All custom settings are in config folder, check and adapt to your needs.
 #
 # For more information on docker compose file structure:
 # @see https://docs.docker.com/compose/
 #
-##
+################################################################################
 
 ##
 # Choose Apache or Nginx-PhpFpm, you can run both if you change host ports.
 ##
 nginx:
   image: mogtofu33/docker-alpine-nginx
+# Set host port to access your Drupal.
   ports:
     - "80:80"
   links:
@@ -68,6 +69,7 @@ phpfpm:
 apache:
   image: mogtofu33/docker-alpine-php-apache
 #  image: mogtofu33/docker-alpine-php7-apache
+# Set host port to access your Drupal, if running nginx choose a different port.
   ports:
     - "80:80"
 #    - "8080:80" # w/o varnish
@@ -168,7 +170,8 @@ db:
 
 ##
 # Optionnal Varnish.
-# Uncomment to use, be sure to change apache or nginx ports to 8080:80.
+# Uncomment to use, change apache or nginx ports to 8080:80 to get access w/o
+# Varnish.
 #
 # 6082 is used for Terminal, VARNISH_BACKEND_IP must be set to container ip as
 # reference 'apache' does not seems to work.
