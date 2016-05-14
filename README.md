@@ -5,8 +5,17 @@
 
 Focus on easy set-up and light images with Alpine Linux.
 
+## Features
+* Easy to launch, include all base tools for Drupal
+* Code and data persistence as mounted in data/www and data/database
+* All services logs in data/logs
+* Default config override from config folder
+* Base Php / Apache / Nginx images with bash and custom PS1 (docker exec -it CONTAINER_NAME bash)
+* Light images (based on Alpine Linux)
+* One service by containers
+
 Include (every service is optionnal as declared in the yml file)
-* Php5 or 7 with xdebug
+* Php 5.6 or 7 with Xdebug
 * Apache and/or Nginx
 * MySQL and/or PostgreSQL
 * Memcache
@@ -15,17 +24,11 @@ Include (every service is optionnal as declared in the yml file)
 * Ldap
 * Varnish
 
-Include Php Tools:
+Include Drupal/Php Tools:
 * Drush
 * Drupal console
 * Composer
 * Adminer
-
-Suggested tools:
-* PimpMyLog
-* phpMemcachedAdmin
-* opcache gui
-* Xdebug gui
 
 ## Quick launch new Drupal project
 
@@ -48,7 +51,7 @@ docker-compose ps
 </pre>
 
 <pre>
-# Download and install Drupal 7 with MySQL, replace WEB_CONTAINER_NAME with the one running.
+# Download and install Drupal 7 with MySQL, replace WEB_CONTAINER_NAME with the one running change drupal-7 to drupal for last 8.x release).
 docker exec -it WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --drupal-project-rename 
 docker exec -it WEB_CONTAINER_NAME drush @d si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
 </pre>
@@ -66,28 +69,10 @@ MySQL / PostgreSQL :
 Solr core (from apache or nginx):
 * http://solr:8983/solr/drupal
 
-## Quick launch existing Drupal project
-
-Same as new project but:
-
-Put your drupal site in data/www/drupal folder.
-
-Put your database dump in data/www/TOOLS folder and rename in adminer.sql or adminer.sql.gz.
-
-Got to adminer to import your databse on the drupal table :
-
-<pre>http://localhost/TOOLS/adminer.php</pre>
-
-Edit your settings.php to match settings below.
-
-Got to your Drupal:
-
-<pre>http://localhost/drupal</pre>
-
 ## See logs
 <pre>docker-compose logs</pre>
 
-Some applications logs will be stored opn data/logs.
+See data/logs for specific services logs.
 
 ## Destroy all
 <pre>docker-compose stop && docker-compose down</pre>
@@ -109,13 +94,24 @@ Some applications logs will be stored opn data/logs.
 ## Recommended tools
 
 - PimpMyLog:
-
   - git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog
 
  - Copy config from config/pimpmylog
 
+- phpMemcachedAdmin
+  - git clone https://github.com/wp-cloud/phpmemcacheadmin.git data/www/TOOLS/PhpMemcachedAdmin
+  - (Change config 127.0.0.1 to memcache)
+
+- opcache gui
+  - git clone https://github.com/amnuts/opcache-gui.git data/www/TOOLS/Opcache-gui
+
+- Xdebug gui
+  - git clone https://github.com/splitbrain/xdebug-trace-tree.git data/www/TOOLS/Xdebug-trace
+
 ## Services access from host
 
+* Adminer and other tools access:
+<pre>http://localhost/TOOLS</pre>
 * Mailhog access:
 <pre>http://localhost:8025</pre>
 * Solr access:
