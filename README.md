@@ -1,6 +1,7 @@
-# Full Drupal Docker development stack with Docker Compose
+# Drupal Docker development made easy
 
 * see https://docs.docker.com/compose/
+* More details on docker compose file: https://docs.docker.com/compose/compose-file
 
 Focus on easy set-up and light images with Alpine Linux.
 
@@ -22,27 +23,42 @@ Include Php Tools:
 
 Suggested tools:
 * PimpMyLog
+* phpMemcachedAdmin
+* opcache gui
+* Xdebug gui
 
 ## Quick launch new Drupal project
 
-Clone this project.
+<pre>
+# Clone this project.
+git clone https://github.com/Mogtofu33/docker-compose-drupal.git docker-drupal
+cd docker-drupal
 
-Copy and rename docker-compose.tpl to docker-compose.yml.
+# Create your compose file from template.
+cp docker-compose.tpl docker-compose.yml
 
-Edit docker-compose.yml depending services you want, be carefull of links sections.
+# Edit docker-compose.yml depending services you want.
+vi docker-compose.yml
 
-More details on docker compose file: https://docs.docker.com/compose/compose-file/
+# Launch the containers.
+docker-compose build && docker-compose up -d
 
-Download your drupal site in data/www/drupal folder:
+# Check your containers statuses and names.
+docker-compose ps
+</pre>
 
-<pre>docker-compose up -d</pre>
+<pre>
+# Download and install Drupal 7 with MySQL, replace WEB_CONTAINER_NAME with the one running.
+docker exec -it WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --drupal-project-rename 
+docker exec -it WEB_CONTAINER_NAME drush @d si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
+</pre>
 
-Got to Drupal install:
+Got to your Drupal:
 
-<pre>http://localhost/drupal</pre>
+* [http://localhost/drupal](http://localhost/drupal)
 
-Mysql / PostgreSQL :
-* Hostanme (from apache or nginx):
+MySQL / PostgreSQL :
+* Database host (from apache or nginx):
  * mysql
  * pgsql
 * database name / user / pass: drupal
