@@ -14,7 +14,7 @@ Focus on easy set-up and light images with Alpine Linux.
 * Light images (based on Alpine Linux)
 * One service by containers
 
-Include (every service is optionnal as declared in the yml file)
+###Include (every service is optionnal as declared in the yml file)
 * Php 5.6 or 7 with Xdebug
 * Apache and/or Nginx
 * MySQL and/or PostgreSQL
@@ -24,7 +24,7 @@ Include (every service is optionnal as declared in the yml file)
 * Ldap
 * Varnish
 
-Include Drupal/Php Tools:
+###Include Drupal/Php Tools:
 * Drush
 * Drupal console
 * Composer
@@ -56,20 +56,20 @@ docker exec -it WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --dru
 docker exec -it WEB_CONTAINER_NAME drush @d si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
 </pre>
 
-Got to your Drupal:
+#### Go to your Drupal, login with admin/password:
 
 * [http://localhost/drupal](http://localhost/drupal)
 
-MySQL / PostgreSQL :
-* Database host (from apache or nginx):
+#### MySQL / PostgreSQL :
+* Database host (from apache or nginx container):
  * mysql
  * pgsql
 * database name / user / pass: drupal
 
-Solr core (from apache or nginx):
-* http://solr:8983/solr/drupal
+#### Solr core (from apache or nginx container):
+* [http://solr:8983/solr/drupal](http://solr:8983/solr/drupal)
 
-## See logs
+## See containers logs
 <pre>docker-compose logs</pre>
 
 See data/logs for specific services logs.
@@ -77,7 +77,7 @@ See data/logs for specific services logs.
 ## Destroy all
 <pre>docker-compose stop && docker-compose down</pre>
 
-## Services access
+## Containers access
 
 ### See running services and get container names
 <pre>docker-compose ps</pre>
@@ -94,33 +94,31 @@ See data/logs for specific services logs.
 ## Recommended tools
 
 - PimpMyLog:
-  - git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog
-
+<pre>git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog</pre>
  - Copy config from config/pimpmylog
 
 - phpMemcachedAdmin
-  - git clone https://github.com/wp-cloud/phpmemcacheadmin.git data/www/TOOLS/PhpMemcachedAdmin
+<pre>git clone https://github.com/wp-cloud/phpmemcacheadmin.git data/www/TOOLS/PhpMemcachedAdmin</pre>
   - (Change config 127.0.0.1 to memcache)
 
 - opcache gui
-  - git clone https://github.com/amnuts/opcache-gui.git data/www/TOOLS/Opcache-gui
+<pre>git clone https://github.com/amnuts/opcache-gui.git data/www/TOOLS/Opcache-gui</pre>
 
 - Xdebug gui
-  - git clone https://github.com/splitbrain/xdebug-trace-tree.git data/www/TOOLS/Xdebug-trace
+<pre>git clone https://github.com/splitbrain/xdebug-trace-tree.git data/www/TOOLS/Xdebug-trace</pre>
 
 ## Services access from host
 
 * Adminer and other tools access:
-<pre>http://localhost/TOOLS</pre>
+ * [http://localhost/TOOLS](http://localhost/TOOLS)
 * Mailhog access:
-<pre>http://localhost:8025</pre>
+ * [http://localhost:8025](http://localhost:8025)
 * Solr access:
-<pre>http://localhost:8983</pre>
+ * [http://localhost:8983](http://localhost:8983)
 * Ldap admin:
  * login: cn=admin,dc=example,dc=org
  * pass: admin
-
-<pre>http://localhost:6443</pre>
+ * [http://localhost:6443](http://localhost:6443)
 * More ldap info, see https://github.com/osixia/docker-openldap#environment-variables
 
 ## More features on next release
