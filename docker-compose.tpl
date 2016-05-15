@@ -38,6 +38,10 @@ nginx:
   volumes:
     - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
     - ./data/logs:/var/log/nginx
+# Set your host user uid/gid to fix permissions.
+#  environment:
+#    - LOCAL_UID=1000
+#    - LOCAL_GID=1000
 
 ##
 # Optionnal Php-fpm 5.6 or Php-fpm 7 images, uncomment as needed.
@@ -62,6 +66,10 @@ phpfpm:
 #   - ./config/php7/php-fpm-nginx.conf:/etc/php/php-fpm.conf
 #   - ./config/php7/conf.d:/etc/php/conf.d
    - ./data/logs:/var/log/php
+# Set your host user uid/gid to fix permissions.
+#  environment:
+#    - LOCAL_UID=1000
+#    - LOCAL_GID=1000
 
 ##
 # Optionnal Php 5.6 or Php 7 with Apache, uncomment as needed.
@@ -87,13 +95,17 @@ apache:
     - ./config/php/conf.d:/etc/php/conf.d
 #    - ./config/php7/conf.d:/etc/php/conf.d
     - ./data/logs:/var/log/apache2
+# Set your host user uid/gid to fix permissions.
+#  environment:
+#    - LOCAL_UID=1000
+#    - LOCAL_GID=1000
 
 ##
 # Choose one of the database, you can run both if you want.
 # Comment 'expose' and uncomment 'ports' for an access from host.
 ##
 mysql:
-  image: k0st/alpine-mariadb
+  image: mogtofu33/docker-alpine-mariadb
 #  ports:
 #    - "3306:3306"
   expose:
@@ -108,6 +120,9 @@ mysql:
     - MYSQL_USER=drupal
     - MYSQL_PASSWORD=drupal
     - MYSQL_ROOT_PASSWORD=root
+# Set your host user uid/gid to fix permissions.
+#    - LOCAL_UID=1000
+#    - LOCAL_GID=1000
 pgsql:
   image: mogtofu33/docker-alpine-postgres
 #  ports:
@@ -120,6 +135,8 @@ pgsql:
     - POSTGRES_USER=drupal
     - POSTGRES_PASSWORD=drupal
     - POSTGRES_DB=drupal
+    - LOCAL_UID=1000
+    - LOCAL_GID=1000
 ##
 # Other optionnal images, if you remove them do not forget to remove links:.
 ##
