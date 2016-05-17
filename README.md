@@ -50,8 +50,10 @@ docker-compose build && docker-compose up -d
 docker-compose ps
 </pre>
 
+Download and install Drupal 7 with Apache and MySQL, replace WEB_CONTAINER_NAME with the one running from previous command.
+
+Change drupal-7 to drupal for last 8.x release.
 <pre>
-# Download and install Drupal 7 with Apache and MySQL, replace WEB_CONTAINER_NAME with the one running change drupal-7 to drupal for last 8.x release).
 docker exec -u apache:apache WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --drupal-project-rename 
 docker exec WEB_CONTAINER_NAME drush @d si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
 </pre>
