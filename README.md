@@ -126,6 +126,18 @@ See data/logs for specific services logs.
  * [http://localhost:6443](http://localhost:6443)
 * More ldap info, see https://github.com/osixia/docker-openldap#environment-variables
 
+## Using Drush within your container
+
+Using docker exec you can run a command directly in the container, for example:
+ docker exec -it CONTAINER_NAME drush --root=/www/drupal status
+
+You can find a script to set a Drush alias for your container, you must supply user, group and container name on first run:
+<pre>. scripts/drush-start.sh apache apache CONTAINER_NAME</pre>
+Every drush command will now run on this container.
+
+When you finish your work on this stack:
+<pre>. scripts/drush-end.sh</pre>
+
 ## More features on next release
 
 * SSL on Apache / Nginx
