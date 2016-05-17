@@ -1,6 +1,7 @@
-#Important must run with ". "! 
-#. scripts/drush-end.sh
-PS1="${PS1/ \[$CONTAINER\] /}"
+# Stop using Drush with this container.
+# . scripts/drush-end.sh
+PS1="${TMP_PS1}"
+unset DK_USER
+unset DK_GROUP
 unset CONTAINER
-unset ALIAS
 unalias drush
