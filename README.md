@@ -132,7 +132,7 @@ Using docker exec you can run a command directly in the container, for example:
  docker exec -it CONTAINER_NAME drush --root=/www/drupal status
 
 You can find a script to set a Drush alias for your container, you must supply user, group and container name on first run:
-<pre>. scripts/drush-start.sh apache apache CONTAINER_NAME</pre>
+<pre>. scripts/drush-start.sh apache:apache CONTAINER_NAME</pre>
 Every drush command will now run on this container.
 
 When you finish your work on this stack:
