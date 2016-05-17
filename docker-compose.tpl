@@ -19,9 +19,12 @@
 
 ##
 # Choose Apache or Nginx-PhpFpm, you can run both if you change host ports.
+# docker-alpine-nginx: NNginx 1.8.1
+# docker-alpine-edge-nginx: NNginx 1.10.0
 ##
 nginx:
   image: mogtofu33/docker-alpine-nginx
+#  image: mogtofu33/docker-alpine-edge-nginx
 # Set host port to access your Drupal.
   ports:
     - "80:80"
