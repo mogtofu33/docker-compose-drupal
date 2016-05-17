@@ -55,7 +55,7 @@ Download and install Drupal 7 with Apache and MySQL, replace WEB_CONTAINER_NAME 
 Change drupal-7 to drupal for last 8.x release.
 <pre>
 docker exec -u apache:apache WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --drupal-project-rename 
-docker exec WEB_CONTAINER_NAME drush @d si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
+docker exec -u apache:apache WEB_CONTAINER_NAME drush --root=/www/drupal si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
 </pre>
 
 #### Go to your Drupal, login with admin/password:
@@ -76,8 +76,11 @@ docker exec WEB_CONTAINER_NAME drush @d si -y --db-url=mysql://drupal:drupal@mys
 
 See data/logs for specific services logs.
 
-## Destroy all
+## Destroy containers
 <pre>docker-compose stop && docker-compose down</pre>
+
+## Remove your data (and lost everything !)
+<pre>sudo rm -rf data/database data/logs data/www/drupal</pre>
 
 ## Containers access
 
