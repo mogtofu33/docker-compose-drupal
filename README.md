@@ -18,17 +18,18 @@ Focus on easy set-up and light images with Alpine Linux.
 * Light images (based on Alpine Linux)
 * One service by containers
 
-###Include (every service is optionnal as declared in the yml file)
+### Include
+Every service is optionnal as declared in the yml file.
 * Php 5.6 or 7 with Xdebug
 * Apache and/or Nginx
-* MySQL and/or PostgreSQL
+* MySQL-MariaDB and/or PostgreSQL
 * Memcache
 * Mailhog
 * Solr
 * Ldap
 * Varnish
 
-###Include Drupal/Php Tools:
+### Include Drupal/Php Tools:
 * Drush
 * Drupal console
 * Composer
@@ -66,13 +67,14 @@ docker exec -u apache:apache WEB_CONTAINER_NAME drush --root=/www/drupal si -y -
 
 * [http://localhost/drupal](http://localhost/drupal)
 
-#### MySQL / PostgreSQL :
+#### MySQL-MariaDB / PostgreSQL:
 * Database host (from apache or nginx container):
  * mysql
  * pgsql
 * database name / user / pass: drupal
 
-#### Solr core (from apache or nginx container):
+#### Solr core:
+Access from apache or nginx container, "solr" resolve to container IP.
 * [http://solr:8983/solr/drupal](http://solr:8983/solr/drupal)
 
 ## See containers logs
