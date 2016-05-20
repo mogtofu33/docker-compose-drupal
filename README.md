@@ -1,13 +1,13 @@
 # Drupal Docker development made easy
 
-* See https://docs.docker.com/compose/
+* See https://docs.docker.com/compose
 * More details on docker compose file: https://docs.docker.com/compose/compose-file
 
 Focus on easy set-up and light images with Alpine Linux.
 
 ## Require
 * Docker engine: https://docs.docker.com/engine/installation
-* Docker Compose: https://docs.docker.com/compose/install/
+* Docker Compose: https://docs.docker.com/compose/install
 
 ## Features
 * Easy to launch, include basic tools for Drupal (Drush, Drupal console)
@@ -58,7 +58,7 @@ Download and install Drupal 7 with Apache and MySQL, replace WEB_CONTAINER_NAME 
 
 Change drupal-7 to drupal for last 8.x release.
 <pre>
-docker exec -u apache:apache WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --drupal-project-rename 
+docker exec -u apache:apache WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --drupal-project-rename
 docker exec -u apache:apache WEB_CONTAINER_NAME drush --root=/www/drupal si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
 </pre>
 
