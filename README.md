@@ -5,11 +5,15 @@
 
 Focus on easy set-up and light images with Alpine Linux.
 
+## Require
+* Docker engine: https://docs.docker.com/engine/installation
+* Docker Compose: https://docs.docker.com/compose/install/
+
 ## Features
-* Easy to launch, include all base tools for Drupal
+* Easy to launch, include basic tools for Drupal (Drush, Drupal console)
 * Code and data persistence as mounted in data/www and data/database
 * All services logs in data/logs
-* Default config override from config folder
+* Default config override from config folder (my.cnf, php.ini...)
 * Base Php / Apache / Nginx images with bash and custom PS1 (docker exec -it CONTAINER_NAME bash)
 * Light images (based on Alpine Linux)
 * One service by containers
