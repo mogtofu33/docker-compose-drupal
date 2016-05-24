@@ -1,28 +1,23 @@
 # Drupal Docker development made easy
 
-* See https://docs.docker.com/compose
+* See https://docs.docker.com/compose/
 * More details on docker compose file: https://docs.docker.com/compose/compose-file
 
 Focus on easy set-up and light images with Alpine Linux.
 
-## Require
-* Docker engine: https://docs.docker.com/engine/installation
-* Docker Compose: https://docs.docker.com/compose/install
-
 ## Features
-* Easy to launch, include basic tools for Drupal (Drush, Drupal console)
+* Easy to launch, include all base tools for Drupal
 * Code and data persistence as mounted in data/www and data/database
 * All services logs in data/logs
-* Default config override from config folder (my.cnf, php.ini...)
+* Default config override from config folder
 * Base Php / Apache / Nginx images with bash and custom PS1 (docker exec -it CONTAINER_NAME bash)
 * Light images (based on Alpine Linux)
 * One service by containers
 
-### Include
-Every service is optionnal as declared in the yml file.
+### Include (every service is optionnal as declared in the yml file)
 * Php 5.6 or 7 with Xdebug
 * Apache and/or Nginx
-* MySQL-MariaDB and/or PostgreSQL
+* MySQL and/or PostgreSQL
 * Memcache
 * Mailhog
 * Solr
@@ -67,14 +62,13 @@ docker exec -u apache:apache WEB_CONTAINER_NAME drush --root=/www/drupal si -y -
 
 * [http://localhost/drupal](http://localhost/drupal)
 
-#### MySQL-MariaDB / PostgreSQL:
+#### MySQL / PostgreSQL :
 * Database host (from apache or nginx container):
  * mysql
  * pgsql
 * database name / user / pass: drupal
 
-#### Solr core:
-Access from apache or nginx container, "solr" resolve to container IP.
+#### Solr core (from apache or nginx container):
 * [http://solr:8983/solr/drupal](http://solr:8983/solr/drupal)
 
 ## See containers logs
