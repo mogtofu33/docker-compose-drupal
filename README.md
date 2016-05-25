@@ -54,8 +54,8 @@ Download and install Drupal 7 with Apache and MySQL, replace WEB_CONTAINER_NAME 
 
 Change drupal-7 to drupal for last 8.x release.
 <pre>
-docker exec -u apache:apache WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --drupal-project-rename
-docker exec -u apache:apache WEB_CONTAINER_NAME drush --root=/www/drupal si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
+docker exec -u apache:www-data WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --drupal-project-rename
+docker exec -u apache:www-data WEB_CONTAINER_NAME drush --root=/www/drupal si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
 </pre>
 
 #### Go to your Drupal, login with admin/password:
@@ -93,7 +93,7 @@ See data/logs for specific services logs.
 ### Bash access on services based on my images
 <pre>docker exec -it CONTAINER_NAME bash</pre>
 
-### Other images
+### Other images (not from my base)
 <pre>docker exec -it CONTAINER_NAME /bin/sh</pre>
 
 ## Recommended tools
@@ -134,7 +134,7 @@ Using docker exec you can run a command directly in the container, for example:
  docker exec -it CONTAINER_NAME drush --root=/www/drupal status
 
 You can find a script to set a Drush alias for your container, you must supply user, group and container name on first run:
-<pre>. scripts/drush-start.sh apache:apache CONTAINER_NAME</pre>
+<pre>. scripts/drush-start.sh apache:www-data CONTAINER_NAME</pre>
 Every drush command will now run on this container.
 
 When you finish your work on this stack:
