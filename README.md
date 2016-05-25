@@ -100,10 +100,12 @@ See data/logs for specific services logs.
 
 - PimpMyLog:
 <pre>git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog</pre>
+
  - Copy config from config/pimpmylog
 
 - phpMemcachedAdmin
 <pre>git clone https://github.com/wp-cloud/phpmemcacheadmin.git data/www/TOOLS/PhpMemcachedAdmin</pre>
+
   - (Change config 127.0.0.1 to memcache)
 
 - opcache gui
