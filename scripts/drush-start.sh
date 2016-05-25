@@ -1,5 +1,5 @@
 # Run with source with arguments to use Drush with this container.
-# . scripts/drush-start.sh apache:apache drupaldockercompose_apache_1
+# . scripts/drush-start.sh apache:www-data drupaldockercompose_apache_1
 
 if [[ "$(basename -- "$0")" == "drush-start.sh" ]]; then
   echo "Don't run $0, source it." >&2
@@ -11,13 +11,13 @@ cat <<-HELP
 Drupal drush in container script, create alias so every drush cmd 
 will be executed on the Docker container.
  Arguments:
-  first argument               Container user and group as apache:apache
+  first argument               Container user and group as apache:www-data
   second argument              Container name from docker-compose ps
   third argument (optional)    Drupal folder on container, default /www/drupal
  Options:
   -h,  --help         Display this help and exit
 
-Usage: . drush-start.sh apache:apache dockercomposedrupal_apache_1
+Usage: . drush-start.sh apache:www-data dockercomposedrupal_apache_1
 
 Source . drush-end.sh to stop this Drush session.
 
@@ -25,8 +25,8 @@ HELP
 else
 
   if [ -z "$1" ]; then
-    echo "[i] Set default user 'apache:apache', set as first argument to override."
-    user="apache:apache"
+    echo "[i] Set default user 'apache:www-data', set as first argument to override."
+    user="apache:www-data"
   else
     user=$1
   fi
