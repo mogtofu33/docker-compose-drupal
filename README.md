@@ -1,7 +1,9 @@
 # Drupal Docker development made easy
 
-* See https://docs.docker.com/compose/
-* More details on docker compose file: https://docs.docker.com/compose/compose-file
+Require:
+
+* Docker engine: https://docs.docker.com/engine/installation/
+* Docker compose: https://docs.docker.com/compose/install/
 
 Focus on easy set-up and light images with Alpine Linux.
 
@@ -17,7 +19,7 @@ Focus on easy set-up and light images with Alpine Linux.
 ### Include (every service is optionnal as declared in the yml file)
 * Php 5.6 or 7 with Xdebug
 * Apache and/or Nginx
-* MySQL and/or PostgreSQL
+* MySQL/MariaDB and/or PostgreSQL
 * Memcache
 * Mailhog
 * Solr
@@ -41,6 +43,7 @@ cd docker-drupal
 cp docker-compose.tpl docker-compose.yml
 
 # Edit docker-compose.yml depending services you want.
+# More details on docker compose file: https://docs.docker.com/compose/compose-file
 vi docker-compose.yml
 
 # Launch the containers.
@@ -96,7 +99,7 @@ See data/logs for specific services logs.
 ### Other images (not from my base)
 <pre>docker exec -it CONTAINER_NAME /bin/sh</pre>
 
-## Recommended tools
+## Suggested tools
 
 - PimpMyLog:
 <pre>git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog</pre>
@@ -114,6 +117,9 @@ See data/logs for specific services logs.
 - Xdebug gui
 <pre>git clone https://github.com/splitbrain/xdebug-trace-tree.git data/www/TOOLS/Xdebug-trace</pre>
 
+- Adminer with plugins and design
+<pre>git clone https://github.com/dg/adminer-custom.git data/www/TOOLS/adminer</pre>
+
 ## Services access from host
 
 * Adminer and other tools access:
@@ -128,10 +134,15 @@ See data/logs for specific services logs.
  * [http://localhost:6443](http://localhost:6443)
 * More ldap info, see https://github.com/osixia/docker-openldap#environment-variables
 
-## Using Drush within your container
+## Using Drush with your web container
+
+An aliases file is availbale from data/drush, it contains a simple alias @d for the default Drupal in www/drupal.
 
 Using docker exec you can run a command directly in the container, for example:
- docker exec -it CONTAINER_NAME drush --root=/www/drupal status
+ docker exec -it CONTAINER_NAME drush @d st
+
+To avoid permissions issues you can run command as webserver user, for example with apache:
+ docker exec -it -u apache:www-data CONTAINER_NAME drush @d status
 
 You can find a script to set a Drush alias for your container, you must supply user, group and container name on first run:
 <pre>. scripts/drush-start.sh apache:www-data CONTAINER_NAME</pre>
@@ -143,4 +154,4 @@ When you finish your work on this stack:
 ## More features on next release
 
 * SSL on Apache / Nginx
-* Data permissions fix setting host user uid/gid to service owner.
+* Add script to ease Drupal full setup
