@@ -41,6 +41,7 @@ nginx:
   volumes:
     - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
     - ./data/logs:/var/log/nginx
+    - ./config/drush:/etc/drush
 # Set your host user uid/gid to fix permissions.
 #  environment:
 #    - LOCAL_UID=1000
@@ -97,6 +98,7 @@ apache:
     - ./config/php/conf.d:/etc/php/conf.d
 #    - ./config/php7/conf.d:/etc/php/conf.d
     - ./data/logs:/var/log/apache2
+    - ./config/drush:/etc/drush
 # Set your host user uid/gid to fix permissions.
 #  environment:
 #    - LOCAL_UID=1000
