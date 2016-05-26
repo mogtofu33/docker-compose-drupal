@@ -19,8 +19,8 @@
 
 ##
 # Choose Apache or Nginx-PhpFpm, you can run both if you change host ports.
-# docker-alpine-nginx: NNginx 1.8.1
-# docker-alpine-edge-nginx: NNginx 1.10.0
+# docker-alpine-nginx: Nginx 1.8.1
+# docker-alpine-edge-nginx: Nginx 1.10.0
 ##
 nginx:
   image: mogtofu33/docker-alpine-nginx
@@ -83,7 +83,6 @@ apache:
 # Set host port to access your Drupal, if running nginx choose a different port.
   ports:
     - "80:80"
-#    - "8080:80" # w/o varnish
   links:
 # Choose one database or both.
     - mysql
@@ -105,12 +104,12 @@ apache:
 
 ##
 # Choose one of the database, you can run both if you want.
-# Comment 'expose' and uncomment 'ports' for an access from host.
+# For a direct access from host, remove expose and add ports definition:
+# ports:
+#   - "3306:3306"
 ##
 mysql:
   image: mogtofu33/docker-alpine-mariadb
-#  ports:
-#    - "3306:3306"
   expose:
     - "3306"
   volumes_from:
@@ -126,10 +125,9 @@ mysql:
 # Set your host user uid/gid to fix permissions.
 #    - LOCAL_UID=1000
 #    - LOCAL_GID=1000
+
 pgsql:
   image: mogtofu33/docker-alpine-postgres
-#  ports:
-#    - "5432:5432"
   expose:
     - "5432"
   volumes_from:
@@ -138,8 +136,10 @@ pgsql:
     - POSTGRES_USER=drupal
     - POSTGRES_PASSWORD=drupal
     - POSTGRES_DB=drupal
-    - LOCAL_UID=1000
-    - LOCAL_GID=1000
+# Set your host user uid/gid to fix permissions.
+#    - LOCAL_UID=1000
+#    - LOCAL_GID=1000
+
 ##
 # Other optionnal images, if you remove them do not forget to remove links:.
 ##
@@ -155,6 +155,8 @@ memcache:
 #   http://localhost:8983
 #
 # Shipped with a drupal core with drupal configuration from solr module.
+# Solr core access from apache/nginx container:
+#   http://solr:8983/solr/drupal
 ##
 solr:
   image : mogtofu33/docker-alpine-solr
@@ -163,12 +165,11 @@ solr:
   volumes:
     - ./data/logs:/var/log/solr
 ##
-# Mailhog access from:
+# Mailhog access from host:
 #   http://localhost:8025
 #
-# Set-up your zz-php.ini to match sendmail settings:
-#   SMTP = mailhog
-#   smtp_port = 1025
+# config/zz-php.ini is set to use mailhog:
+#   sendmail_path = /usr/sbin/sendmail -t -i -S mailhog:1025
 ##
 mailhog:
   image: diyan/mailhog
@@ -193,8 +194,8 @@ db:
 # Uncomment to use, change apache or nginx ports to 8080:80 to get access w/o
 # Varnish.
 #
-# 6082 is used for Terminal, VARNISH_BACKEND_IP must be set to container ip as
-# reference 'apache' does not seems to work.
+# Optionnal: 6082 is used for Terminal, VARNISH_BACKEND_IP must be set to
+# container ip as reference 'apache' does not seems to work.
 ##
 #varnish:
 #  build: ./build/varnish
@@ -234,3 +235,4 @@ db:
 #    - "6443:443"
 #  environment:
 #    - PHPLDAPADMIN_LDAP_HOSTS=ldap
+
