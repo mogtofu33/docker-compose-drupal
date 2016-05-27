@@ -9,9 +9,8 @@ Focus on easy set-up and light images with Alpine Linux.
 
 ## Features
 * Easy to launch, include all base tools for Drupal
-* Code and data persistence as mounted in data/www and data/database
-* All services logs in data/logs
-* Default config override from config folder
+* Code, data and logs persistence
+* Simple config override for main services
 * Base Php / Apache / Nginx images with bash and custom PS1 (docker exec -it CONTAINER_NAME bash)
 * Light images (based on Alpine Linux)
 * One service by containers
@@ -39,12 +38,20 @@ Focus on easy set-up and light images with Alpine Linux.
 git clone https://github.com/Mogtofu33/docker-compose-drupal.git docker-drupal
 cd docker-drupal
 
-# Create your compose file from template.
-cp docker-compose.tpl docker-compose.yml
+# Create your docker compose file from template.
+cp docker-compose.tpl.yml docker-compose.yml
 
-# Edit docker-compose.yml depending services you want.
-# More details on docker compose file: https://docs.docker.com/compose/compose-file
+# Edit, remove or add services
 vi docker-compose.yml
+
+# Create your config file from template.
+cp config.env .env
+
+# Edit your configuration
+vi .env
+
+# Check the config
+docker-compose config
 
 # Launch the containers.
 docker-compose build && docker-compose up -d
@@ -53,12 +60,12 @@ docker-compose build && docker-compose up -d
 docker-compose ps
 </pre>
 
-Download and install Drupal 7 with Apache and MySQL, replace WEB_CONTAINER_NAME with the one running from previous command.
-
-Change drupal-7 to drupal for last 8.x release.
+Source drush script (see "section Using Drush with your web container")
+Download and install Drupal 7 with Apache and MySQL (when drush script sourced):
+(Change drupal-7 to drupal for last 8.x release)
 <pre>
-docker exec -u apache:www-data WEB_CONTAINER_NAME drush dl drupal-7 -y --destination=/www --drupal-project-rename
-docker exec -u apache:www-data WEB_CONTAINER_NAME drush --root=/www/drupal si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
+drush dl drupal-7 -y --destination=/www --drupal-project-rename
+drush @d si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
 </pre>
 
 #### Go to your Drupal, login with admin/password:
@@ -73,6 +80,23 @@ docker exec -u apache:www-data WEB_CONTAINER_NAME drush --root=/www/drupal si -y
 
 #### Solr core (from apache or nginx container):
 * [http://solr:8983/solr/drupal](http://solr:8983/solr/drupal)
+
+## Using Drush with your web container
+
+An aliases file is availbale from data/drush, it contains a simple alias @d for the default Drupal in www/drupal.
+
+Using docker exec you can run a command directly in the container, for example:
+ docker exec -it CONTAINER_NAME drush @d st
+
+To avoid permissions issues you can run command as webserver user, for example with apache:
+ docker exec -it -u apache:www-data CONTAINER_NAME drush @d status
+
+You can find a script to set a Drush alias for your container, you must supply user, group and container name on first run:
+<pre>. scripts/drush-start.sh apache:www-data CONTAINER_NAME</pre>
+Every drush command will now run on this container.
+
+When you finish your work on this stack:
+<pre>. scripts/drush-end.sh</pre>
 
 ## See containers logs
 <pre>docker-compose logs</pre>
@@ -134,24 +158,8 @@ See data/logs for specific services logs.
  * [http://localhost:6443](http://localhost:6443)
 * More ldap info, see https://github.com/osixia/docker-openldap#environment-variables
 
-## Using Drush with your web container
+## More features/fix on next release
 
-An aliases file is availbale from data/drush, it contains a simple alias @d for the default Drupal in www/drupal.
-
-Using docker exec you can run a command directly in the container, for example:
- docker exec -it CONTAINER_NAME drush @d st
-
-To avoid permissions issues you can run command as webserver user, for example with apache:
- docker exec -it -u apache:www-data CONTAINER_NAME drush @d status
-
-You can find a script to set a Drush alias for your container, you must supply user, group and container name on first run:
-<pre>. scripts/drush-start.sh apache:www-data CONTAINER_NAME</pre>
-Every drush command will now run on this container.
-
-When you finish your work on this stack:
-<pre>. scripts/drush-end.sh</pre>
-
-## More features on next release
-
+* Phpfpm permission
 * SSL on Apache / Nginx
-* Add script to ease Drupal full setup
+* Add script to ease Drupal full setup ?

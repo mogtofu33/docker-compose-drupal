@@ -1,4 +1,6 @@
+# Docker compose files
 docker-compose.yml
+.env
 # ignore static files
 data/database
 data/logs
@@ -6,3 +8,4 @@ data/www/drupal
 data/www/TOOLS/*/
 data/www/TOOLS/adminer.sql*
 tmp*
+myscripts*

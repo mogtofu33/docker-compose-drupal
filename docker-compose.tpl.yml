@@ -1,0 +1,156 @@
+################################################################################
+# Docker compose Drupal full dev stack.
+#
+# A single Docker compose file that try to simply and quickly setup a full
+# Drupal development environment.
+#
+# Project page:
+#   https://github.com/Mogtofu33/docker-compose-drupal
+#
+# Quick set-up:
+#  Copy this file, rename to docker-compose.yml, comment or remove services
+#  definition based on your needs.
+#  Copy and rename default.env to .env
+#  Launch:
+#    docker-compose up
+#
+# You can check your config after editing this file with:
+#   docker-compose config
+#
+# Services settings are in config folder, check and adapt to your needs.
+#
+# For more information on docker compose file structure:
+# @see https://docs.docker.com/compose/
+#
+################################################################################
+version: '2'
+services:
+  apache:
+    image: mogtofu33/apache-php:1.${PHP_VERSION}
+    ports:
+      - "${APACHE_HOST_PORT}:80"
+    links:
+      - mysql
+      - pgsql
+      - memcache
+      - mailhog
+      - solr
+    volumes:
+      - ${HOST_WEB_ROOT}:/www
+      - ./config/apache:/etc/apache2/vhost
+      - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
+      - ${HOST_LOGS_ROOT}:/var/log/apache2
+      - ./config/drush:/etc/drush
+    environment:
+      - LOCAL_UID=${HOST_UID}
+      - LOCAL_GID=${HOST_GID}
+    restart: always
+  nginx:
+    image: mogtofu33/nginx:${NGINX_VERSION}
+    ports:
+      - "${NGINX_HOST_PORT}:80"
+    links:
+      - phpfpm
+      - mysql
+      - pgsql
+      - memcache
+      - mailhog
+      - solr
+    volumes:
+      - ${HOST_WEB_ROOT}:/www
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${HOST_LOGS_ROOT}:/var/log/nginx
+      - ./config/drush:/etc/drush
+    environment:
+      - LOCAL_UID=${HOST_UID}
+      - LOCAL_GID=${HOST_GID}
+    restart: always
+  phpfpm:
+    image: mogtofu33/phpfpm:1.${PHP_VERSION}
+    expose:
+      - "9000"
+    links:
+      - mysql
+      - pgsql
+      - memcache
+      - mailhog
+      - solr
+    volumes:
+      - ${HOST_WEB_ROOT}:/www
+      - ./config/php${PHP_VERSION}/php-fpm-nginx.conf:/etc/php/php-fpm.conf
+      - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
+      - ${HOST_LOGS_ROOT}:/var/log/php
+    environment:
+      - LOCAL_UID=${HOST_UID}
+      - LOCAL_GID=${HOST_GID}
+    restart: always
+  mysql:
+    image: mogtofu33/mariadb:1.0
+    expose:
+      - "3306"
+    volumes:
+      - ${HOST_DATABASE_MYSQL}:/var/lib/mysql
+      - ./config/mysql:/etc/mysql
+      - ${HOST_LOGS_ROOT}:/var/log/mysql
+    environment:
+      - LOCAL_UID=${HOST_UID}
+      - LOCAL_GID=${HOST_GID}
+    restart: always
+  pgsql:
+    image: mogtofu33/postgres:1.0
+    expose:
+      - "5432"
+    volumes:
+      - ${HOST_DATABASE_POSTGRES}:/var/lib/postgresql/data
+    environment:
+      - LOCAL_UID=${HOST_UID}
+      - LOCAL_GID=${HOST_GID}
+    restart: always
+  memcache:
+    image: bpressure/alpine-memcached:latest
+    expose:
+      - "11211"
+    restart: always
+  solr:
+    image: mogtofu33/solr:1.${SOLR_VERSION}
+    ports:
+      - "${SOLR_HOST_PORT}:8983"
+    volumes:
+      - ${HOST_LOGS_ROOT}:/var/log/solr
+    restart: always
+  mailhog:
+    image: diyan/mailhog:latest
+    expose:
+      - "1025"
+    ports:
+      - "${MAILHOG_HOST_PORT}:8025"
+    restart: always
+  varnish:
+    build: ./build/varnish
+    ports:
+      - "${VARNISH_HOST_PORT}:80"
+      - "${VARNISH_HOST_TERMINAL_PORT}:6082"
+    links:
+      - apache
+    volumes:
+      - ${HOST_LOGS_ROOT}:/var/log/varnish
+    restart: always
+    environment:
+      - VARNISH_MEMORY=${VARNISH_MEMORY}
+      - VARNISH_BACKEND_IP=${VARNISH_BACKEND_IP}
+  ldap:
+    image: osixia/openldap:1.1.2
+    ports:
+      - "${LDAP_HOST_PORT}:389"
+    restart: always
+    environment:
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+  ldapadmin:
+    image: osixia/phpldapadmin:0.6.8
+    links:
+      - ldap
+    ports:
+      - "${PHPLDAPADMIN_HOST_PORT}:443"
+    restart: always
+    environment:
+      - PHPLDAPADMIN_LDAP_HOSTS=${PHPLDAPADMIN_LDAP_HOSTS}
