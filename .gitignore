@@ -7,5 +7,6 @@ data/logs
 data/www/drupal
 data/www/TOOLS/*/
 data/www/TOOLS/adminer.sql*
+# ignore tmp or specific files
 tmp*
 myscripts*

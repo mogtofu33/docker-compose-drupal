@@ -1,6 +1,10 @@
 # Run with source with arguments to use Drush with this container.
 # . scripts/drush-start.sh apache:www-data drupaldockercompose_apache_1
 
+RED='\033[0;31m'
+RED_BOLD='\033[1;31m'
+NC='\033[0m'
+
 if [[ "$(basename -- "$0")" == "drush-start.sh" ]]; then
   echo "Don't run $0, source it." >&2
   exit 1
@@ -11,31 +15,40 @@ cat <<-HELP
 Drupal drush in container script, create alias so every drush cmd 
 will be executed on the Docker container.
  Arguments:
-  first argument               Container user and group as apache:www-data
-  second argument              Container name from docker-compose ps
-  third argument (optional)    Drupal folder on container, default /www/drupal
+  first argument                 Container name from docker-compose ps
+  second argument (optional)     Container user and group, defaultapache:www-data
+  third argument (optional)      Drupal folder on container, default /www/drupal
  Options:
   -h,  --help         Display this help and exit
 
 Usage: . drush-start.sh apache:www-data dockercomposedrupal_apache_1
 
 Source . drush-end.sh to stop this Drush session.
-
 HELP
 else
-
   if [ -z "$1" ]; then
-    echo "[i] Set default user 'apache:www-data', set as first argument to override."
-    user="apache:www-data"
+    # Get first apache/nginx container running.
+    WEB_RUNNING=$(docker-compose ps | grep "apache\|phpfpm" | grep "Up" | cut -d' ' -f 1 | head -1 2> /dev/null)
+    if [ $? -eq 1 ]; then
+      echo "${RED}[error] No running Apache or Nginx/PhpFpm container found in this folder.${NC}"
+      container='';
+    else
+      container=$WEB_RUNNING
+    fi
   else
-    user=$1
+    container=$1
   fi
 
-  if [ -z "$2" ]; then
-    echo "[i] Set default container name 'dockercomposedrupal_apache_1', set as second argument to override."
-    container='dockercomposedrupal_apache_1'
+  if [[ !$2 ]]; then
+    # Detect if we are on apache or nginx.
+    if [[ $container == *"apache"* ]]
+    then
+      user="apache:www-data"
+    else
+      user="nginx:www-data"
+    fi
   else
-    container=$2
+    user=$2
   fi
 
   if [[ !$3 ]]; then
@@ -47,7 +60,8 @@ else
   # Check if this container exist.
   RUNNING=$(docker inspect --format="{{ .State.Running }}" $container 2> /dev/null)
   if [ $? -eq 1 ]; then
-    echo "[error] $container does not exist."
+    echo -e "${RED}[error] container $container does not exist, here is all running web containers:${NC}"
+    echo "$(docker-compose ps | grep "apache\|phpfpm" | grep 'Up' | cut -d' ' -f 1)"
   else
     export DK_USER=$user
     export DK_CONTAINER=$container
@@ -55,7 +69,7 @@ else
     export DK_TMP_PS1=$PS1
 
     alias drush="docker exec -u $DK_USER -it $DK_CONTAINER drush --root=$DK_DRUPAL_ROOT"
-    PS1="$PS1\[\e[1;31m\][$DK_CONTAINER]> \[\e[m\]"
+    PS1="$PS1\[${RED_BOLD}[$DK_CONTAINER]> ${NC}"
   fi
 
 fi
