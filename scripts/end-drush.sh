@@ -1,5 +1,5 @@
 # Stop using Drush with this container.
-# . scripts/drush-end.sh
+# . scripts/end-drush.sh
 
 if [[ "$(basename -- "$0")" == "drush-end.sh" ]]; then
   echo "Don't run $0, source it." >&2

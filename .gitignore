@@ -4,7 +4,7 @@ docker-compose.yml
 # ignore static files
 data/database
 data/logs
-data/www/drupal
+data/www/drupal*
 data/www/TOOLS/*/
 data/www/TOOLS/adminer.sql*
 # ignore tmp or specific files

@@ -1,5 +1,5 @@
 # Run with source with arguments to use Drush with this container.
-# . scripts/drush-start.sh apache:www-data drupaldockercompose_apache_1
+# . scripts/start-drush.sh
 
 RED='\033[0;31m'
 RED_BOLD='\033[1;31m'
@@ -14,14 +14,14 @@ if [ "$1" == "--help" ] || [ "$1" == "-h" ] ; then
 cat <<-HELP
 Drupal drush in container script, create alias so every drush cmd 
 will be executed on the Docker container.
- Arguments:
-  first argument                 Container name from docker-compose ps
-  second argument (optional)     Container user and group, defaultapache:www-data
-  third argument (optional)      Drupal folder on container, default /www/drupal
+ Arguments (optional):
+  first argument      Container name from docker-compose ps, default first web container running
+  second argument     Container user and group, default apache:www-data
+  third argument      Drupal alias, default @d
  Options:
   -h,  --help         Display this help and exit
 
-Usage: . drush-start.sh apache:www-data dockercomposedrupal_apache_1
+Usage: . drush-start.sh dockercomposedrupal_apache_1 apache:www-data
 
 Source . drush-end.sh to stop this Drush session.
 HELP
@@ -45,16 +45,16 @@ else
     then
       user="apache:www-data"
     else
-      user="nginx:www-data"
+      user="phpfpm:phpfpm"
     fi
   else
     user=$2
   fi
 
   if [[ !$3 ]]; then
-    drupal_root='/www/drupal'
+    drupal_alias='@d'
   else
-    drupal_root=$3
+    drupal_alias=$3
   fi
 
   # Check if this container exist.
@@ -65,10 +65,10 @@ else
   else
     export DK_USER=$user
     export DK_CONTAINER=$container
-    export DK_DRUPAL_ROOT=$drupal_root
+    export DK_DRUPAL_ROOT=$drupal_alias
     export DK_TMP_PS1=$PS1
 
-    alias drush="docker exec -u $DK_USER -it $DK_CONTAINER drush --root=$DK_DRUPAL_ROOT"
+    alias drush="docker exec -u $DK_USER -it $DK_CONTAINER drush $DK_DRUPAL_ROOT"
     PS1="$PS1\[${RED_BOLD}[$DK_CONTAINER]> ${NC}"
   fi
 
