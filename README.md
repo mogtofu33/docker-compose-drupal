@@ -55,17 +55,17 @@ docker-compose config
 
 # Launch the containers.
 docker-compose build && docker-compose up -d
-
-# Check your containers statuses and names.
-docker-compose ps
 </pre>
 
 Source drush script (see "section Using Drush with your web container")
+<pre>. scripts/start-drush.sh</pre>
+
 Download and install Drupal 7 with Apache and MySQL (when drush script sourced):
+
 (Change drupal-7 to drupal for last 8.x release)
 <pre>
 drush dl drupal-7 -y --destination=/www --drupal-project-rename
-drush @d si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
+drush si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
 </pre>
 
 #### Go to your Drupal, login with admin/password:
@@ -86,17 +86,20 @@ drush @d si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin 
 An aliases file is availbale from data/drush, it contains a simple alias @d for the default Drupal in www/drupal.
 
 Using docker exec you can run a command directly in the container, for example:
- docker exec -it CONTAINER_NAME drush @d st
+<pre>docker exec -it CONTAINER_NAME drush @d st</pre>
 
 To avoid permissions issues you can run command as webserver user, for example with apache:
- docker exec -it -u apache:www-data CONTAINER_NAME drush @d status
+<pre>docker exec -it -u apache:www-data CONTAINER_NAME drush @d st</pre>
 
-You can find a script to set a Drush alias for your container, you must supply user, group and container name on first run:
-<pre>. scripts/drush-start.sh apache:www-data CONTAINER_NAME</pre>
+with Nginx/Phpfpm, CONTAINER_NAME should be ending with phpfpm_1:
+<pre>docker exec -it -u phpfpm:phpfpm CONTAINER_NAME drush @d st</pre>
+
+You can find a script to set a Drush alias for your container :
+<pre>. scripts/start-drush.sh</pre>
 Every drush command will now run on this container.
 
 When you finish your work on this stack:
-<pre>. scripts/drush-end.sh</pre>
+<pre>. scripts/end-drush.sh</pre>
 
 ## See containers logs
 <pre>docker-compose logs</pre>
@@ -124,6 +127,8 @@ See data/logs for specific services logs.
 <pre>docker exec -it CONTAINER_NAME /bin/sh</pre>
 
 ## Suggested tools
+
+You can find a script in scripts/get-tools.sh folder to download or update all tools.
 
 - PimpMyLog:
 <pre>git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog</pre>
