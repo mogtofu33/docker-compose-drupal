@@ -41,9 +41,9 @@ services:
       - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
       - ${HOST_LOGS_ROOT}:/var/log/apache2
       - ./config/drush:/etc/drush
+    env_file: .env
     environment:
-      - LOCAL_UID=${HOST_UID}
-      - LOCAL_GID=${HOST_GID}
+      - CONTAINER_NAME=apache
     restart: always
   nginx:
     image: mogtofu33/nginx:${NGINX_VERSION}
@@ -61,9 +61,9 @@ services:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ${HOST_LOGS_ROOT}:/var/log/nginx
       - ./config/drush:/etc/drush
+    env_file: .env
     environment:
-      - LOCAL_UID=${HOST_UID}
-      - LOCAL_GID=${HOST_GID}
+      - CONTAINER_NAME=nginx
     restart: always
   phpfpm:
     image: mogtofu33/phpfpm:1.${PHP_VERSION}
@@ -80,9 +80,9 @@ services:
       - ./config/php${PHP_VERSION}/php-fpm-nginx.conf:/etc/php/php-fpm.conf
       - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
       - ${HOST_LOGS_ROOT}:/var/log/php
+    env_file: .env
     environment:
-      - LOCAL_UID=${HOST_UID}
-      - LOCAL_GID=${HOST_GID}
+      - CONTAINER_NAME=phpfpm
     restart: always
   mysql:
     image: mogtofu33/mariadb:1.0
@@ -92,9 +92,9 @@ services:
       - ${HOST_DATABASE_MYSQL}:/var/lib/mysql
       - ./config/mysql:/etc/mysql
       - ${HOST_LOGS_ROOT}:/var/log/mysql
+    env_file: .env
     environment:
-      - LOCAL_UID=${HOST_UID}
-      - LOCAL_GID=${HOST_GID}
+      - CONTAINER_NAME=mysql
     restart: always
   pgsql:
     image: mogtofu33/postgres:1.0
@@ -102,14 +102,16 @@ services:
       - "5432"
     volumes:
       - ${HOST_DATABASE_POSTGRES}:/var/lib/postgresql/data
+    env_file: .env
     environment:
-      - LOCAL_UID=${HOST_UID}
-      - LOCAL_GID=${HOST_GID}
+      - CONTAINER_NAME=pgsql
     restart: always
   memcache:
     image: bpressure/alpine-memcached:latest
     expose:
       - "11211"
+    environment:
+      - CONTAINER_NAME=memcache
     restart: always
   solr:
     image: mogtofu33/solr:1.${SOLR_VERSION}
@@ -117,6 +119,8 @@ services:
       - "${SOLR_HOST_PORT}:8983"
     volumes:
       - ${HOST_LOGS_ROOT}:/var/log/solr
+    environment:
+      - CONTAINER_NAME=solr
     restart: always
   mailhog:
     image: diyan/mailhog:latest
@@ -124,6 +128,8 @@ services:
       - "1025"
     ports:
       - "${MAILHOG_HOST_PORT}:8025"
+    environment:
+      - CONTAINER_NAME=mailhog
     restart: always
   varnish:
     build: ./build/varnish
@@ -134,23 +140,26 @@ services:
       - apache
     volumes:
       - ${HOST_LOGS_ROOT}:/var/log/varnish
-    restart: always
+    env_file: .env
     environment:
-      - VARNISH_MEMORY=${VARNISH_MEMORY}
-      - VARNISH_BACKEND_IP=${VARNISH_BACKEND_IP}
+      - CONTAINER_NAME=varnish
+    restart: always
   ldap:
     image: osixia/openldap:1.1.2
     ports:
       - "${LDAP_HOST_PORT}:389"
     restart: always
+    env_file: .env
     environment:
-      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+      - CONTAINER_NAME=ldap
+    restart: always
   ldapadmin:
     image: osixia/phpldapadmin:0.6.8
     links:
       - ldap
     ports:
       - "${PHPLDAPADMIN_HOST_PORT}:443"
-    restart: always
+    env_file: .env
     environment:
-      - PHPLDAPADMIN_LDAP_HOSTS=${PHPLDAPADMIN_LDAP_HOSTS}
+      - CONTAINER_NAME=ldapadmin
+    restart: always
