@@ -16,42 +16,54 @@
   $tools = array_diff(scandir($container_root . '/TOOLS'), array('..', '.', 'scripts'));
   // Define services.
   $services = array(
-    'apache' => array('list' => FALSE),
-    'nginx' => array('list' => FALSE),
-    'phpfpm' => array('list' => FALSE),
-    'mysql' => array('list' => FALSE),
-    'pgsql' => array('list' => FALSE),
-    'memcache' => array('list' => FALSE),
+    'apache' => array('list' => FALSE, 'port' => getenv('APACHE_HOST_PORT')),
+    'nginx' => array('list' => FALSE, 'port' => getenv('NGINX_HOST_PORT')),
+    'phpfpm' => array('list' => FALSE, 'port' => '9000'),
+    'mysql' => array(
+      'list' => TRUE,
+      'port' => '3306',
+      'guest_access' => TRUE,
+    ),
+    'pgsql' => array(
+      'list' => TRUE,
+      'port' => '5432',
+      'guest_access' => TRUE,
+    ),
+    'memcache' => array(
+      'list' => TRUE,
+      'port' => '11211',
+      'guest_access' => TRUE,
+    ),
     'solr' => array(
       'list' => TRUE,
       'port' => getenv('SOLR_HOST_PORT'),
-      'link' => 'http://' . $host . ':' . getenv('SOLR_HOST_PORT') . '/solr/#/drupal',
-      'extra' => 'Hostname: <code>http://solr:8983</code>
-                  Core: <code>/solr/drupal</code>',
+      'path' => '/solr/drupal',
+      'guest_access' => TRUE,
+      'host_access' => TRUE,
     ),
     'mailhog' => array(
       'list' => TRUE,
       'port' => getenv('MAILHOG_HOST_PORT'),
-      'link' => 'http://' . $host . ':' . getenv('MAILHOG_HOST_PORT'),
+      'host_access' => TRUE,
     ),
     'varnish' => array(
       'list' => TRUE,
       'port' => getenv('VARNISH_HOST_PORT'),
-      'link' => '',
     ),
     'ldap' => array(
       'list' => TRUE,
       'port' => getenv('LDAP_HOST_PORT'),
-      'link' => '',
       'extra' => 'Ldap Hostname: <code>http://ldap:389</code><br>
                   login: <code>cn=admin,dc=example,dc=org</code><br>
                   pass: <code>admin</code><br>
                   <a href="https://github.com/osixia/docker-openldap#environment-variables">More ldap info on GitHub project.</a>',
+      'guest_access' => TRUE,
+      'host_access' => TRUE,
     ),
     'ldapadmin' => array(
       'list' => TRUE,
       'port' => getenv('PHPLDAPADMIN_HOST_PORT'),
-      'link' => 'http://' . $host . ':' . getenv('PHPLDAPADMIN_HOST_PORT'),
+      'host_access' => TRUE,
     ),
   );
 
@@ -95,7 +107,7 @@
         from { transform: scale(1) rotate(0deg);}
         to { transform: scale(1) rotate(360deg);}
     }
-      
+
     @-webkit-keyframes spinw {
         from { -webkit-transform: rotate(0deg);}
         to { -webkit-transform: rotate(360deg);}
@@ -146,32 +158,7 @@
         </section>
 
         <section class="panel panel-default">
-          <div class="panel-heading">Services</div>
-          <div class="panel-body">
-            <div class="loader">
-              <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Loading...
-            </div>
-            <table class="table table-condensed">
-              <?php foreach ($services AS $id => $service): ?>
-                <?php if ($service['list']): ?>
-                  <tr class="hidden <?php print $id; ?>">
-                    <th><?php print ucfirst($id); ?></th>
-                    <td>http://<?php print $host . ':' . $service['port']; ?></td>
-                    <td class="text-right">
-                      <a href="<?php print $service['link']; ?>" class="btn btn-info btn-xs" role="button">Access</a>
-                    </td>
-                  </tr>
-                  <?php if (isset($service['extra'])): ?>
-                  <tr class="hidden <?php print $id; ?>"><td colspan="3"><?php print $service['extra']; ?></td></tr>
-                  <?php endif; ?>
-                <?php endif; ?>
-              <?php endforeach; ?>
-            </table>
-          </div>
-        </section>
-
-        <section class="panel panel-default">
-          <div class="panel-heading">Containers</div>
+          <div class="panel-heading">Containers running</div>
           <div class="panel-body">
             <div class="loader">
               <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Loading...
@@ -181,6 +168,7 @@
                 <tr>
                   <th></th>
                   <th>IP</th>
+                  <th>Service port</th>
                   <th>Container name/id</th>
               </thead>
               <tbody>
@@ -188,12 +176,60 @@
                 <tr class="hidden <?php print $id; ?>">
                   <th><?php print ucfirst($id); ?></th>
                   <td class="ip"></td>
+                  <td><?php print $service['port']; ?></td>
                   <td class="hostname"></td>
                 </tr>
               <?php endforeach; ?>
             </table>
           </div>
         </section>
+
+        <section class="panel panel-default">
+          <div class="panel-heading">Services details</div>
+          <div class="panel-body">
+            <div class="loader">
+              <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Loading...
+            </div>
+            <table class="table table-condensed">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Host access</th>
+                  <th>Container access</th>
+              </thead>
+              <tbody>
+              <?php foreach ($services AS $id => $service): ?>
+                <?php if ($service['list']): ?>
+                  <tr class="hidden <?php print $id; ?>">
+                    <th><?php print ucfirst($id); ?></th>
+                    <td>
+                      <?php if (isset($service['host_access'])): ?>
+                      <a href="http://<?php print $host . ':' . $service['port']; ?>">http://<?php print $host . ':' . $service['port']; ?></a>
+                      <?php else: ?>
+                      Container only
+                      <?php endif; ?>
+                    </td>
+                    <td>
+                      <?php if (isset($service['guest_access'])): ?>
+                      <?php print $id . ':' . $service['port']; ?><?php isset($service['path']) ? print $service['path'] : ''; ?>
+                      <?php else: ?>
+                      Host only
+                      <?php endif; ?>
+                      </td>
+                  </tr>
+                  <?php if (isset($service['extra'])): ?>
+                  <tr class="hidden <?php print $id; ?>"><td colspan="3"><?php print $service['extra']; ?></td></tr>
+                  <?php endif; ?>
+                <?php endif; ?>
+              <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="col-md-5">
 
         <section class="panel panel-default">
           <div class="panel-heading">Development tools</div>
@@ -211,15 +247,10 @@
           </div>
         </section>
 
-      </div>
-
-      <div class="col-md-5">
-
-        <section class="panel panel-default">
+        <section class="mysql hidden panel panel-default">
           <div class="panel-heading">MySQL connection information</div>
           <div class="panel-body">
             <table class="table table-condensed">
-              <?php if ($services['mysql']): ?>
               <tr>
                 <th>MySQL Hostname</th>
                 <td><code>mysql</code></td>
@@ -244,22 +275,20 @@
                 <th>MySQL ROOT Password</th>
                 <td><code><?php print getenv('MYSQL_ROOT_PASSWORD'); ?></code></td>
               </tr>
-                <?php if (in_array('adminer.php', $tools)): ?>
-                <tr>
-                  <td class="text-center" colspan="2">
-                    <a href="http://<?php print $web_host . '/TOOLS/adminer.php'; ?>?server=mysql&username=<?php print getenv('MYSQL_USER'); ?>&db=<?php print getenv('MYSQL_DATABASE'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
-                  </td>
-                </tr>
-                <?php endif; ?>
+              <?php if (in_array('adminer.php', $tools)): ?>
+              <tr>
+                <td class="text-center" colspan="2">
+                  <a href="http://<?php print $web_host . '/TOOLS/adminer.php'; ?>?server=mysql&username=<?php print getenv('MYSQL_USER'); ?>&db=<?php print getenv('MYSQL_DATABASE'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+                </td>
+              </tr>
               <?php endif; ?>
             </table>
           </div>
         </section>
-        <section class="panel panel-default">
-          <div class="panel-heading">MySQL connection information</div>
+        <section class="pgsql hidden panel panel-default">
+          <div class="panel-heading">PostgreSQL connection information</div>
           <div class="panel-body">
             <table class="table table-condensed">
-              <?php if ($services['pgsql']): ?>
               <tr>
                 <th>PostgreSQL Hostname</th>
                 <td><code>pgsql</code></td>
@@ -280,13 +309,12 @@
                 <th>PostgreSQL Password</th>
                 <td><code><?php print getenv('POSTGRES_PASSWORD'); ?></code></td>
               </tr>
-                <?php if (in_array('adminer.php', $tools)): ?>
-                <tr>
-                  <td class="text-center" colspan="2">
-                    <a href="http://<?php print $web_host . '/TOOLS/adminer.php'; ?>?pgsql=pgsql&username=<?php print getenv('POSTGRES_USER'); ?>&db=<?php print getenv('POSTGRES_DB'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
-                  </td>
-                </tr>
-                <?php endif; ?>
+              <?php if (in_array('adminer.php', $tools)): ?>
+              <tr>
+                <td class="text-center" colspan="2">
+                  <a href="http://<?php print $web_host . '/TOOLS/adminer.php'; ?>?pgsql=pgsql&username=<?php print getenv('POSTGRES_USER'); ?>&db=<?php print getenv('POSTGRES_DB'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+                </td>
+              </tr>
               <?php endif; ?>
             </table>
           </div>
@@ -403,7 +431,7 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
   <!-- jQuery -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    
+
   <script>
   jQuery( document ).ready(function( $ ) {
     var services = <?php echo json_encode($services); ?>;
@@ -411,7 +439,6 @@
       $.get("/index.php", { get_infos: index }, function(data) {
         if (data != "null") {
           result = $.parseJSON(data);
-          $('.' + index).removeClass("hidden");
           $('.' + index).removeClass("hidden");
           $('.' + index + ' .ip').html(result["ip"]);
           $('.' + index + ' .hostname').html(result["hostname"]);
