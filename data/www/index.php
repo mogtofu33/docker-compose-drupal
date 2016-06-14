@@ -333,12 +333,23 @@
                 <td><code><?php print phpversion(); ?></code></td>
               </tr>
               <tr>
+                <th>PHP ini</th>
+                <td>
+                  <code>config/php<?php print getenv('PHP_VERSION'); ?>/conf.d/zz-php.ini</code><br>
+                  <small>Need to restart stack if edited.</small>
+                </td>
+              </tr>
+              <tr>
                 <th>Webserver</th>
                 <td><code><?php (!empty($_SERVER['SERVER_SOFTWARE']))  ? print $_SERVER['SERVER_SOFTWARE'] : print ucfirst($server); ?></code></td>
               </tr>
               <tr>
                 <th>Memory limit</th>
                 <td><code><?php print ini_get('memory_limit'); ?></code></td>
+              </tr>
+              <tr>
+                <th>Max execution time</th>
+                <td><code><?php print ini_get('max_execution_time'); ?></code></td>
               </tr>
               <tr>
                 <th>XDebug</th>
@@ -372,13 +383,21 @@
                 <td><code>docker-compose ps</code></td>
               </tr>
               <tr>
+                <th>Restart containers</th>
+                <td><code>docker-compose restart</code></td>
+              </tr>
+              <tr>
                 <th>Destroy containers</th>
                 <td><code>docker-compose stop && docker-compose down</code></td>
               </tr>
               <tr><td colspan=2><small><a href="https://docs.docker.com/compose/reference/">More commands on Docker Compose reference page</a>.</small></td></tr>
               <tr>
                 <th>Bash in the container</th>
-                <td><code>docker exec -it CONTAINER_NAME bash</code></td>
+                <td><code>docker exec -it CONTAINER_NAME_OR_ID bash</code></td>
+              </tr>
+              <tr>
+                <th>Shell in third party containers<br><small>Not based on mogtofu33 images, can vary, depend on images.</small></th>
+                <td><code>docker exec -it CONTAINER_NAME_OR_ID sh</code></td>
               </tr>
               <tr>
                 <th>Remove your data (Full reset!)</th>
@@ -397,10 +416,6 @@
                 <td><code>. scripts/start-drush.sh</code></td>
               </tr>
               <tr>
-                <th>When you finish</th>
-                <td><code>. scripts/end-drush.sh</code></td>
-              </tr>
-              <tr>
                 <th>Quick dl Drupal 7</th>
                 <td>
                 <code>drush dl drupal-7 -y --destination=/www --drupal-project-rename</code></td>
@@ -411,8 +426,11 @@
               </tr>
               <tr>
                 <th>Quick install Drupal</th>
-                <td><code>cd drupal</code><br>
-                <code>drush si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password</code></td>
+                <td><code>drush si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password</code></td>
+              </tr>
+              <tr>
+                <th>When you finish</th>
+                <td><code>. scripts/end-drush.sh</code></td>
               </tr>
             </table>
           </div>
