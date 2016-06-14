@@ -14,6 +14,8 @@
   }
   // Get tools from folder.
   $tools = array_diff(scandir($container_root . '/TOOLS'), array('..', '.', 'scripts'));
+  // Get current folders exept drupal and tools.
+  $folders = array_diff(scandir($container_root), array('..', '.', '.htaccess', 'index.php', 'TOOLS'));
   // Define services.
   $services = array(
     'apache' => array('list' => FALSE, 'port' => getenv('APACHE_HOST_PORT')),
@@ -137,7 +139,7 @@
       <div class="col-md-7">
 
         <section class="panel panel-default">
-          <div class="panel-heading">Your drupal</div>
+          <div class="panel-heading">Your sites</div>
           <div class="panel-body">
             <table class="table table-condensed">
               <thead>
@@ -147,11 +149,13 @@
                   <th>Container document Root</th>
               </thead>
               <tbody>
-                <tr>
-                  <td><a href="http://<?php print $web_host; ?>/drupal">Drupal</a></td>
-                  <td><code><?php print str_replace('./', '', $host_root); ?>/drupal</code></td>
-                  <td><code><?php print $container_root; ?>/drupal</code></td>
-                </tr>
+                <?php foreach ($folders AS $folder): ?>
+                  <tr>
+                    <td><a href="http://<?php print $web_host . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
+                    <td><code><?php print str_replace('./', '', $host_root) . '/' . $folder; ?></code></td>
+                    <td><code><?php print $container_root . '/' . $folder; ?></code></td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
