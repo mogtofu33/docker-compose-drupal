@@ -344,9 +344,9 @@
                 <th>XDebug</th>
                 <td>
                 <?php if (function_exists('xdebug_start_code_coverage')): ?>
-                <div><span class="label label-success">Enable</span></div>
+                <div><span class="label label-success">Enabled</span></div>
                 <?php else: ?>
-                <div><span class="label label-error">Disable</span></div>
+                <div><span class="label label-warning">Disabled</span></div>
                 <?php endif; ?>
                 </td>
               </tr>
