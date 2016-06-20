@@ -171,7 +171,7 @@
         </section>
 
         <section class="panel panel-default">
-          <div class="panel-heading">Services details</div>
+          <div class="panel-heading">Services</div>
           <table class="table table-condensed table-hover">
             <thead>
               <tr>
@@ -297,38 +297,37 @@
           <table class="table table-condensed table-hover">
             <tr>
               <th>PHP Version</th>
-              <td><cite><?php print phpversion(); ?></cite></td>
+              <td><code><?php print phpversion(); ?></code></td>
             </tr>
             <tr>
               <th>PHP ini</th>
               <td>
-                <cite>config/php<?php print getenv('PHP_VERSION'); ?>/conf.d/zz-php.ini</cite><br>
+                <code>config/php<?php print getenv('PHP_VERSION'); ?>/conf.d/zz-php.ini</code>
                 <small>Need to restart stack if edited.</small>
               </td>
             </tr>
             <tr>
               <th>Webserver</th>
-              <td><cite><?php (!empty($_SERVER['SERVER_SOFTWARE']))  ? print $_SERVER['SERVER_SOFTWARE'] : print ucfirst($server); ?></cite></td>
+              <td><code><?php (!empty($_SERVER['SERVER_SOFTWARE']))  ? print $_SERVER['SERVER_SOFTWARE'] : print ucfirst($server); ?></cite></td>
             </tr>
             <tr>
               <th>Memory limit</th>
-              <td><cite><?php print ini_get('memory_limit'); ?></cite></td>
+              <td><code><?php print ini_get('memory_limit'); ?></code></td>
             </tr>
             <tr>
               <th>Max execution time</th>
-              <td><cite><?php print ini_get('max_execution_time'); ?></cite></td>
+              <td><code><?php print ini_get('max_execution_time'); ?></code></td>
             </tr>
             <tr>
               <th>XDebug</th>
               <td>
               <?php if (function_exists('xdebug_start_code_coverage')): ?>
-              <div><span class="label label-success">Enabled</span></div>
+                <div><span class="label label-success">Enabled</span></div>
               <?php else: ?>
-              <div><span class="label label-warning">Disabled</span></div>
+                <div><span class="label label-warning">Disabled</span></div>
               <?php endif; ?>
               </td>
             </tr>
-            <tr><td colspan=2><small><a href="/TOOLS/phpinfo.php">View more details in the server's phpinfo() report</a>.</small></td></tr>
           </table>
           <div class="panel-footer">
             <small><a href="/TOOLS/phpinfo.php">View more details in the server's phpinfo() report</a>.</small>
