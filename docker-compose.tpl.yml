@@ -45,7 +45,6 @@ services:
       - solr
     volumes:
       - ${HOST_WEB_ROOT}:/www
-      - ./config/apache:/etc/apache2/vhost
       - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
       - ${HOST_LOGS_ROOT}:/var/log/apache2
       - ./config/drush/php:/etc/drush/php
@@ -157,7 +156,7 @@ services:
       - CONTAINER_NAME=varnish
     restart: always
   ldap:
-    image: osixia/openldap:1.1.2
+    image: osixia/openldap:1.1.3
     ports:
       - "${LDAP_HOST_PORT}:389"
     restart: always
@@ -166,7 +165,7 @@ services:
       - CONTAINER_NAME=ldap
     restart: always
   ldapadmin:
-    image: osixia/phpldapadmin:0.6.8
+    image: osixia/phpldapadmin:0.6.9
     links:
       - ldap
     ports:
