@@ -18,9 +18,14 @@
   $folders = array_diff(scandir($container_root), array('..', '.', '.htaccess', 'index.php', 'TOOLS'));
   // Define services.
   $services = array(
-    'apache' => array('list' => FALSE, 'port' => getenv('APACHE_HOST_PORT')),
-    'nginx' => array('list' => FALSE, 'port' => getenv('NGINX_HOST_PORT')),
+    'apache' => array('list' => FALSE, 'port' => getenv('APACHE_HOST_HTTP_PORT') . ' | ' . getenv('APACHE_HOST_HTTPS_PORT')),
+    'nginx' => array('list' => FALSE, 'port' => getenv('NGINX_HOST_HTTP_PORT') . ' | ' . getenv('NGINX_HOST_HTTPS_PORT')),
     'phpfpm' => array('list' => FALSE, 'port' => '9000'),
+    'docker-ui' => array(
+      'list' => TRUE,
+      'port' => '9001',
+      'host_access' => TRUE,
+    ),
     'mysql' => array(
       'list' => TRUE,
       'port' => '3306',
