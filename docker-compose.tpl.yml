@@ -25,8 +25,8 @@
 ################################################################################
 version: '2'
 services:
-  docker-ui
-    image: uifd/ui-for-docker
+  docker-ui:
+    image: uifd/ui-for-docker:latest
     ports:
       - "9001:9000"
     volumes:
