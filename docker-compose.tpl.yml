@@ -25,10 +25,18 @@
 ################################################################################
 version: '2'
 services:
-  apache:
-    image: mogtofu33/apache-php:1.${APACHE_VERSION}
+  docker-ui
+    image: uifd/ui-for-docker
     ports:
-      - "${APACHE_HOST_PORT}:80"
+      - "9001:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+  apache:
+    image: mogtofu33/apache-php:1.${PHP_VERSION}
+    ports:
+      - "${APACHE_HOST_HTTP_PORT}:80"
+      - "${APACHE_HOST_HTTPS_PORT}:443"
     links:
       - mysql
       - pgsql
@@ -48,7 +56,8 @@ services:
   nginx:
     image: mogtofu33/nginx:${NGINX_VERSION}
     ports:
-      - "${NGINX_HOST_PORT}:80"
+      - "${NGINX_HOST_HTTP_PORT}:80"
+      - "${NGINX_HOST_HTTPS_PORT}:443"
     links:
       - phpfpm
       - mysql
@@ -89,9 +98,10 @@ services:
     expose:
       - "3306"
     volumes:
+      - ${HOST_LOGS_ROOT}:/var/log/mysql
+      # Comment on Windows system.
       - ${HOST_DATABASE_MYSQL}:/var/lib/mysql
       - ./config/mysql:/etc/mysql
-      - ${HOST_LOGS_ROOT}:/var/log/mysql
     env_file: .env
     environment:
       - CONTAINER_NAME=mysql
@@ -119,6 +129,7 @@ services:
       - "${SOLR_HOST_PORT}:8983"
     volumes:
       - ${HOST_LOGS_ROOT}:/var/log/solr
+    env_file: .env
     environment:
       - CONTAINER_NAME=solr
     restart: always
@@ -128,6 +139,7 @@ services:
       - "1025"
     ports:
       - "${MAILHOG_HOST_PORT}:8025"
+    env_file: .env
     environment:
       - CONTAINER_NAME=mailhog
     restart: always
