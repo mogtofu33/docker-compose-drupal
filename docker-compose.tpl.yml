@@ -34,7 +34,7 @@ services:
       # - /var/run/docker.sock:/var/run/docker.sock
     # privileged: true
   apache:
-    ## Choose Apache mod_php or apache with phpfpm.
+    ## Choose Apache mod_php or Apache with phpfpm.
     image: mogtofu33/apache-php:1.${PHP_VERSION}
     # image: mogtofu33/apache:1.0
     ports:
@@ -44,7 +44,7 @@ services:
       ## Choose database.
       # - mysql
       # - pgsql
-      ## If apache, set phpfpm services.
+      ## If apache alone, set phpfpm services.
       # - phpfpm
       ## Choose optionnal services.
       # - memcache
@@ -55,7 +55,8 @@ services:
       - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
       - ${HOST_LOGS_ROOT}:/var/log/apache2
       - ./config/drush:/etc/drush
-      - ./config/apache/vhost:/etc/apache2/vhost
+      ## Full apache config support for phpfpm.
+      #- ./config/apache:/etc/apache2
     env_file: .env
     environment:
       - CONTAINER_NAME=apache
@@ -97,7 +98,7 @@ services:
       - mailhog
     volumes:
       - ${HOST_WEB_ROOT}:/www
-      - ./config/php${PHP_VERSION}/php-fpm-nginx.conf:/etc/php/php-fpm.conf
+      - ./config/php${PHP_VERSION}/php-fpm.conf:/etc/php/php-fpm.conf
       - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
       - ${HOST_LOGS_ROOT}:/var/log/php
     env_file: .env
