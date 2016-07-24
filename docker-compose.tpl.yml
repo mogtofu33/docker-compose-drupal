@@ -25,7 +25,7 @@
 ################################################################################
 version: '2'
 services:
-  ## Optionnal Docker ui
+  ## Optionnal Docker ui, uncomment to enable.
   # docker-ui:
     # image: uifd/ui-for-docker:latest
     # ports:
@@ -54,7 +54,7 @@ services:
       - ${HOST_WEB_ROOT}:/www
       - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
       - ${HOST_LOGS_ROOT}:/var/log/apache2
-      - ./config/drush/php:/etc/drush/php
+      - ./config/drush:/etc/drush
       - ./config/apache/vhost:/etc/apache2/vhost
     env_file: .env
     environment:
@@ -78,7 +78,7 @@ services:
       - ${HOST_WEB_ROOT}:/www
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ${HOST_LOGS_ROOT}:/var/log/nginx
-      - ./config/drush/phpfpm:/etc/drush/phpfpm
+      - ./config/drush:/etc/drush
     env_file: .env
     environment:
       - CONTAINER_NAME=nginx
