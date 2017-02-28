@@ -11,13 +11,12 @@ Focus on easy set-up and light images with Alpine Linux.
 * Easy to launch, include all base tools for Drupal
 * Code, data and logs persistence
 * Simple config override for main services
-* Base Php / Apache / Nginx images with bash and custom PS1 (docker exec -it CONTAINER_NAME bash)
+* Base images with bash and custom PS1 (docker exec -it CONTAINER_NAME bash)
 * Light images (based on Alpine Linux)
-* One service by containers
+* Limited service by containers
 
-### Include (every service is optionnal as declared in the yml file)
-* Php 5.6 or 7 with Xdebug
-* Apache and/or Nginx
+### Include (every service is optional as declared in the yml file)
+* Apache with Php 5.6 or 7 with Xdebug
 * MySQL/MariaDB and/or PostgreSQL
 * Memcache
 * Mailhog
@@ -162,9 +161,3 @@ You can find a script in scripts/get-tools.sh folder to download or update all t
  * pass: admin
  * [http://localhost:6443](http://localhost:6443)
 * More ldap info, see https://github.com/osixia/docker-openldap#environment-variables
-
-## More features/fix on next release
-
-* Phpfpm permission
-* SSL on Apache / Nginx
-* Add script to ease Drupal full setup ?

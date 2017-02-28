@@ -23,169 +23,111 @@
 # @see https://docs.docker.com/compose/
 #
 ################################################################################
-version: '2'
+version: '3'
 services:
-  ## Optionnal Docker ui, uncomment to enable.
-  # docker-ui:
-    # image: uifd/ui-for-docker:latest
-    # ports:
-      # - "9001:9000"
-    # volumes:
-      # - /var/run/docker.sock:/var/run/docker.sock
-    # privileged: true
   apache:
-    ## Choose Apache mod_php or Apache with phpfpm.
-    image: mogtofu33/apache-php:1.${PHP_VERSION}
-    # image: mogtofu33/apache:latest
+    image: mogtofu33/apache-php:1.${PHP_VERSION:-7}
     ports:
-      - "${APACHE_HOST_HTTP_PORT}:80"
-      - "${APACHE_HOST_HTTPS_PORT}:443"
+      - "${APACHE_HOST_HTTP_PORT:-80}:80"
+      - "${APACHE_HOST_HTTPS_PORT:-443}:443"
     links:
       ## Choose database.
-      # - mysql
+      - mysql
       # - pgsql
-      ## If apache alone, set phpfpm services.
-      # - phpfpm
       ## Choose optionnal services.
       # - memcache
       # - solr
       - mailhog
     volumes:
-      - ${HOST_WEB_ROOT}:/www
-      - ${HOST_LOGS_ROOT}:/var/log/apache2
+      - ${HOST_WEB_ROOT:-./data/www}:/www
+      - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/apache2
+      - ./config/php${PHP_VERSION:-7}/conf.d:/etc/php/conf.d
+      - ./config/apache:/etc/apache2
+      # Optional Drush alias file (or any other config)
       - ./config/drush:/etc/drush
-      ## Remove for phpfpm.
-      - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
-      ## Full apache config support for phpfpm.
-      #- ./config/apache:/etc/apache2
     env_file: .env
     environment:
       - CONTAINER_NAME=apache
-    restart: always
-  nginx:
-    image: mogtofu33/nginx:latest
-    ports:
-      - "${NGINX_HOST_HTTP_PORT}:80"
-      - "${NGINX_HOST_HTTPS_PORT}:443"
-    links:
-      ## Choose database.
-      # - mysql
-      # - pgsql
-      ## Choose optionnal services.
-      # - memcache
-      # - solr
-      - mailhog
-      - phpfpm
-    volumes:
-      - ${HOST_WEB_ROOT}:/www
-      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ${HOST_LOGS_ROOT}:/var/log/nginx
-      - ./config/drush:/etc/drush
-    env_file: .env
-    environment:
-      - CONTAINER_NAME=nginx
-    restart: always
-  phpfpm:
-    image: mogtofu33/phpfpm:1.${PHP_VERSION}
-    expose:
-      - "9000"
-    links:
-      ## Choose database.
-      # - mysql
-      # - pgsql
-      ## Choose optionnal services.
-      # - memcache
-      # - solr
-      - mailhog
-    volumes:
-      - ${HOST_WEB_ROOT}:/www
-      - ./config/php${PHP_VERSION}/php-fpm.conf:/etc/php/php-fpm.conf
-      - ./config/php${PHP_VERSION}/conf.d:/etc/php/conf.d
-      - ${HOST_LOGS_ROOT}:/var/log/php
-    env_file: .env
-    environment:
-      - CONTAINER_NAME=phpfpm
-    restart: always
   mysql:
     image: mogtofu33/mariadb:latest
     expose:
       - "3306"
     volumes:
-      - ${HOST_LOGS_ROOT}:/var/log/mysql
+      - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/mysql
       ## Comment these two lines on Windows system, permissions issue.
-      - ${HOST_DATABASE_MYSQL}:/var/lib/mysql
+      - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
       - ./config/mysql:/etc/mysql
     env_file: .env
     environment:
       - CONTAINER_NAME=mysql
-    restart: always
   pgsql:
     image: mogtofu33/postgres:latest
     expose:
       - "5432"
     ## Comment these two lines on Windows system, permissions issue.
     volumes:
-      - ${HOST_DATABASE_POSTGRES}:/var/lib/postgresql/data
+      - ${HOST_DATABASE_POSTGRES:-./data/database/pgsql}:/var/lib/postgresql/data
     env_file: .env
     environment:
       - CONTAINER_NAME=pgsql
-    restart: always
   mailhog:
     image: diyan/mailhog:latest
     expose:
       - "1025"
     ports:
-      - "${MAILHOG_HOST_PORT}:8025"
+      - "${MAILHOG_HOST_PORT:-8025}:8025"
     env_file: .env
     environment:
       - CONTAINER_NAME=mailhog
-    restart: always
   memcache:
     image: bpressure/alpine-memcached:latest
     expose:
       - "11211"
     environment:
       - CONTAINER_NAME=memcache
-    restart: always
   solr:
     image: mogtofu33/solr:latest
     ports:
-      - "${SOLR_HOST_PORT}:8983"
+      - "${SOLR_HOST_PORT:-8983}:8983"
     volumes:
-      - ${HOST_LOGS_ROOT}:/var/log/solr
+      - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/solr
     env_file: .env
     environment:
       - CONTAINER_NAME=solr
-    restart: always
   # varnish:
-    # build: ./build/varnish
-    # ports:
-      # - "${VARNISH_HOST_PORT}:80"
-      # - "${VARNISH_HOST_TERMINAL_PORT}:6082"
-    # links:
-      # - apache
-    # volumes:
-      # - ${HOST_LOGS_ROOT}:/var/log/varnish
-    # env_file: .env
-    # environment:
-      # - CONTAINER_NAME=varnish
-    # restart: always
+  #   build: ./build/varnish
+  #   ports:
+  #     - "${VARNISH_HOST_PORT:-8080}:80"
+  #     - "${VARNISH_HOST_TERMINAL_PORT:-6082}:6082"
+  #   links:
+  #     - apache
+  #   volumes:
+  #     - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/varnish
+  #   env_file: .env
+  #   environment:
+  #     - CONTAINER_NAME=varnish
   # ldap:
-    # image: osixia/openldap:latest
-    # ports:
-      # - "${LDAP_HOST_PORT}:389"
-    # restart: always
-    # env_file: .env
-    # environment:
-      # - CONTAINER_NAME=ldap
-    # restart: always
+  #   image: osixia/openldap:latest
+  #   ports:
+  #     - "${LDAP_HOST_PORT:-389}:389"
+  #   restart: always
+  #   env_file: .env
+  #   environment:
+  #     - CONTAINER_NAME=ldap
   # ldapadmin:
-    # image: osixia/phpldapadmin:latest
-    # links:
-      # - ldap
-    # ports:
-      # - "${PHPLDAPADMIN_HOST_PORT}:443"
-    # env_file: .env
-    # environment:
-      # - CONTAINER_NAME=ldapadmin
-    # restart: always
+  #   image: osixia/phpldapadmin:latest
+  #   links:
+  #     - ldap
+  #   ports:
+  #     - "${PHPLDAPADMIN_HOST_PORT:-8443}:8443"
+  #   env_file: .env
+  #   environment:
+  #     - CONTAINER_NAME=ldapadmin
+  ## Optionnal Docker ui, uncomment to enable.
+  # docker-ui:
+  #   image: uifd/ui-for-docker:latest
+  #   ports:
+  #     - "9001:9000"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   privileged: true
