@@ -44,7 +44,7 @@ cp docker-compose.tpl.yml docker-compose.yml
 vi docker-compose.yml
 
 # Create your config file from template.
-cp config.env .env
+cp default.env .env
 
 # Edit your configuration
 vi .env
@@ -72,17 +72,17 @@ drush si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --a
 * [http://localhost/drupal](http://localhost/drupal)
 
 #### MySQL / PostgreSQL :
-* Database host (from apache or nginx container):
+* Database host (from apache  container):
  * mysql
  * pgsql
 * database name / user / pass: drupal
 
-#### Solr core (from apache or nginx container):
+#### Solr core (from apache container):
 * [http://solr:8983/solr/drupal](http://solr:8983/solr/drupal)
 
 ## Using Drush with your web container
 
-An aliases file is availbale from data/drush, it contains a simple alias @d for the default Drupal in www/drupal.
+An aliases file is available from data/drush, it contains a simple alias @d for the default Drupal in www/drupal.
 
 Using docker exec you can run a command directly in the container, for example:
 <pre>docker exec -it CONTAINER_NAME drush @d st</pre>
@@ -132,12 +132,12 @@ You can find a script in scripts/get-tools.sh folder to download or update all t
 - PimpMyLog:
 <pre>git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog</pre>
 
- - Copy config from config/pimpmylog
+- Copy config from config/pimpmylog
 
 - phpMemcachedAdmin
 <pre>git clone https://github.com/wp-cloud/phpmemcacheadmin.git data/www/TOOLS/PhpMemcachedAdmin</pre>
 
-  - (Change config 127.0.0.1 to memcache)
+- Copy config from config/memcache
 
 - opcache gui
 <pre>git clone https://github.com/amnuts/opcache-gui.git data/www/TOOLS/Opcache-gui</pre>
@@ -145,7 +145,7 @@ You can find a script in scripts/get-tools.sh folder to download or update all t
 - Xdebug gui
 <pre>git clone https://github.com/splitbrain/xdebug-trace-tree.git data/www/TOOLS/Xdebug-trace</pre>
 
-- Adminer with plugins and design
+- Adminer with plugins and design (Adminer light is already shipped)
 <pre>git clone https://github.com/dg/adminer-custom.git data/www/TOOLS/adminer</pre>
 
 ## Services access from host

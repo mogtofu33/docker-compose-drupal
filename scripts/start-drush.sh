@@ -12,7 +12,7 @@ fi
 
 if [ "$1" == "--help" ] || [ "$1" == "-h" ] ; then
 cat <<-HELP
-Drupal drush in container script, create alias so every drush cmd 
+Drupal drush in container script, create alias so every drush cmd
 will be executed on the Docker container.
  Arguments (optional):
   first argument      Container name from docker-compose ps, default first web container running
@@ -27,26 +27,21 @@ Source . drush-end.sh to stop this Drush session.
 HELP
 else
   if [ -z "$1" ]; then
-    # Get first apache/nginx container running.
-    WEB_RUNNING=$(docker-compose ps | grep "apache\|phpfpm" | grep "Up" | cut -d' ' -f 1 | head -1 2> /dev/null)
+    # Get first apache container running.
+    WEB_RUNNING=$(docker ps -f "name=apache" -f "status=running" -q | head -1 2> /dev/null)
     if [ $? -eq 1 ]; then
-      echo "${RED}[error] No running Apache or Nginx/PhpFpm container found in this folder.${NC}"
+      echo "${RED}[error] No running Apache container found in this folder.${NC}"
       container='';
     else
-      container=$WEB_RUNNING
+      container=$(docker inspect --format="{{ .Name }}" $WEB_RUNNING)
+      container="${container///}"
     fi
   else
     container=$1
   fi
 
   if [[ !$2 ]]; then
-    # Detect if we are on apache or nginx.
-    if [[ $container == *"apache"* ]]
-    then
-      user="apache:www-data"
-    else
-      user="phpfpm:phpfpm"
-    fi
+    user="apache:apache"
   else
     user=$2
   fi
@@ -61,14 +56,14 @@ else
   RUNNING=$(docker inspect --format="{{ .State.Running }}" $container 2> /dev/null)
   if [ $? -eq 1 ]; then
     echo -e "${RED}[error] container $container does not exist, here is all running web containers:${NC}"
-    echo "$(docker-compose ps | grep "apache\|phpfpm" | grep 'Up' | cut -d' ' -f 1)"
+    echo "$(docker ps -f 'status=running')"
   else
     export DK_USER=$user
     export DK_CONTAINER=$container
     export DK_DRUPAL_ROOT=$drupal_alias
     export DK_TMP_PS1=$PS1
 
-    alias drush="docker exec -u $DK_USER -it $DK_CONTAINER drush $DK_DRUPAL_ROOT"
+    alias drush="docker exec --user $DK_USER --interactive $DK_CONTAINER drush $DK_DRUPAL_ROOT"
     PS1="$PS1\[${RED_BOLD}[$DK_CONTAINER]> ${NC}"
   fi
 
