@@ -46,7 +46,8 @@ vi docker-compose.yml
 # Create your config file from template.
 cp default.env .env
 
-# Edit your configuration
+# Edit your configuration and enable third party tools if needed
+# (Composer, Drush, Drupal console)
 vi .env
 
 # Check the config
@@ -80,7 +81,7 @@ drush si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --a
 #### Solr core (from apache container):
 * [http://solr:8983/solr/drupal](http://solr:8983/solr/drupal)
 
-## Using Drush with your web container
+## Using Drush with your web container (If Drush is enable in your .env)
 
 An aliases file is available from data/drush, it contains a simple alias @d for the default Drupal in www/drupal.
 
@@ -90,7 +91,7 @@ Using docker exec you can run a command directly in the container, for example:
 To avoid permissions issues you can run command as webserver user, for example with apache:
 <pre>docker exec -it -u apache:apache CONTAINER_NAME drush @d st</pre>
 
-You can find a script to set a Drush alias for your container :
+You can find a script for bash to set a Drush alias for your container:
 <pre>. scripts/start-drush.sh</pre>
 Every drush command will now run on this container.
 
