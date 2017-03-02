@@ -88,10 +88,7 @@ Using docker exec you can run a command directly in the container, for example:
 <pre>docker exec -it CONTAINER_NAME drush @d st</pre>
 
 To avoid permissions issues you can run command as webserver user, for example with apache:
-<pre>docker exec -it -u apache:www-data CONTAINER_NAME drush @d st</pre>
-
-with Nginx/Phpfpm, CONTAINER_NAME should be ending with phpfpm_1:
-<pre>docker exec -it -u phpfpm:phpfpm CONTAINER_NAME drush @d st</pre>
+<pre>docker exec -it -u apache:apache CONTAINER_NAME drush @d st</pre>
 
 You can find a script to set a Drush alias for your container :
 <pre>. scripts/start-drush.sh</pre>
