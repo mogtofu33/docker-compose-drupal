@@ -1,3 +1,4 @@
+#! /bin/bash
 # Run with source with arguments to use Drush with this container.
 # . scripts/start-drush.sh
 
@@ -29,8 +30,8 @@ else
   if [ -z "$1" ]; then
     # Get first apache container running.
     WEB_RUNNING=$(docker ps -f "name=apache" -f "status=running" -q | head -1 2> /dev/null)
-    if [ $? -eq 1 ]; then
-      echo "${RED}[error] No running Apache container found in this folder.${NC}"
+    if [ -z "$WEB_RUNNING" ]; then
+      echo -e "${RED}[error] No running Apache container found, do you run docker-compose up -d ?.${NC}"
       container='';
     else
       container=$(docker inspect --format="{{ .Name }}" $WEB_RUNNING)
@@ -55,7 +56,7 @@ else
   # Check if this container exist.
   RUNNING=$(docker inspect --format="{{ .State.Running }}" $container 2> /dev/null)
   if [ $? -eq 1 ]; then
-    echo -e "${RED}[error] container $container does not exist, here is all running web containers:${NC}"
+    echo -e "${RED}[error] Container $container does not exist, here is all running web containers:${NC}"
     echo "$(docker ps -f 'status=running')"
   else
     export DK_USER=$user
