@@ -43,11 +43,12 @@ services:
       - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/apache2
       - ./config/php${PHP_VERSION:-7}/conf.d:/etc/php/conf.d
       - ./config/apache:/etc/apache2
-      # Optional Drush alias file (or any other config)
+      ## Optional Drush alias file (or any other config)
       - ./config/drush:/etc/drush
     env_file: .env
     environment:
       - CONTAINER_NAME=apache
+    ## Remove to avoid starting on system reboot.
     restart: always
   mysql:
     image: mogtofu33/mariadb:latest
@@ -61,6 +62,8 @@ services:
     env_file: .env
     environment:
       - CONTAINER_NAME=mysql
+    ## Remove to avoid starting on system reboot.
+    restart: always
 #  pgsql:
 #    image: mogtofu33/postgres:latest
 #    expose:
@@ -71,6 +74,8 @@ services:
 #    env_file: .env
 #    environment:
 #      - CONTAINER_NAME=pgsql
+#    ## Remove to avoid starting on system reboot.
+#    restart: always
   mailhog:
     image: diyan/mailhog:latest
     expose:
@@ -80,12 +85,16 @@ services:
     env_file: .env
     environment:
       - CONTAINER_NAME=mailhog
+    ## Remove to avoid starting on system reboot.
+    restart: always
   memcache:
     image: bpressure/alpine-memcached:latest
     expose:
       - "11211"
     environment:
       - CONTAINER_NAME=memcache
+    ## Remove to avoid starting on system reboot.
+    restart: always
   solr:
     image: mogtofu33/solr:latest
     ports:
@@ -95,6 +104,8 @@ services:
     env_file: .env
     environment:
       - CONTAINER_NAME=solr
+    ## Remove to avoid starting on system reboot.
+    restart: always
   # varnish:
   #   build: ./build/varnish
   #   ports:
@@ -107,6 +118,8 @@ services:
   #   env_file: .env
   #   environment:
   #     - CONTAINER_NAME=varnish
+  #   ## Remove to avoid starting on system reboot.
+  #   restart: always
   # ldap:
   #   image: osixia/openldap:latest
   #   ports:
@@ -114,6 +127,8 @@ services:
   #   env_file: .env
   #   environment:
   #     - CONTAINER_NAME=ldap
+  #   ## Remove to avoid starting on system reboot.
+  #   restart: always
   # ldapadmin:
   #   image: osixia/phpldapadmin:latest
   #   links:
@@ -123,6 +138,8 @@ services:
   #   env_file: .env
   #   environment:
   #     - CONTAINER_NAME=ldapadmin
+  #   ## Remove to avoid starting on system reboot.
+  #   restart: always
   ## Optionnal Docker ui, uncomment to enable.
   # docker-ui:
   #   image: uifd/ui-for-docker:latest
@@ -131,3 +148,5 @@ services:
   #   volumes:
   #     - /var/run/docker.sock:/var/run/docker.sock
   #   privileged: true
+  #   ## Remove to avoid starting on system reboot.
+  #   restart: always
