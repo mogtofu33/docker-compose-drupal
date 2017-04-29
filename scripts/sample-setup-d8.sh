@@ -19,8 +19,8 @@ export COMPOSER_HOME=/home/ubuntu/.composer
 /usr/local/bin/composer -d=$project_root/drupal8 require "drupal/devel" "drupal/admin_toolbar" "drupal/devel"
 
 # Set-up Drupal.
-docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y site-install $drush_options
-docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y en admin_toolbar
+docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y site-install $drush_options >> drupal-si.log
+docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y en admin_toolbar >> /dev/null
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 echo -e "[setup::info] Drupal 8 installed, account: admin, password: password\n"
