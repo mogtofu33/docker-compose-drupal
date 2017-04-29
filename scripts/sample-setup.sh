@@ -30,7 +30,8 @@ if [ ! -d "$project_path" ]; then
   echo "[setup::info] 2/4 Set-up Docker stack..."
   git clone $docker_stack_repo $project_path
   # set up tools from stack
-  ./$project_path/scripts/get-tools.sh
+  cd $project_path;
+  ./scripts/get-tools.sh
   chown -R ubuntu: $project_path
 else
   echo "[setup::info] Docker stack already here!"
