@@ -1,8 +1,28 @@
 #cloud-config
-# This config is used to set-up Drupal dev environment. Base on Ubuntu 16.04.
-# Include Git, Docker, Compass, Php packages for composer.
-# A third party script from Docker compose Drupal stack is executed to
-# This config IS NOT SECURED and only for dev internal purpose.
+# This config is used to set-up Drupal dev environment with OpenStack based on image Ubuntu 16.04.
+# It's meant to be a base for Docker Compose Drupal stack for setting up a full DEV environment.
+# THIS SETUP IS NOT SECURED, ONLY FOR DEV, MUST NOT BE USED ON PRODUCTION.
+# Install minimal packages: Git, Docker, Compass (with ruby), Composer with minimal Php 7.
+
+# Commands run by root user at the end of the cloud init process.
+# We grab a script to setup the Docker Compose Drupal stack (this project), see sample-setup.sh in
+# this folder for more information.
+# We use an other script to download and install a minimal Drupal 8 project, see sample-setup-d8.sh
+# in this folder for more information.
+# Adjust these commands to your needs and replace or add any other script.
+runcmd:
+  # Ubuntu user could not be created yet.
+  - mkdir -p /home/ubuntu
+  - wget -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/scripts/sample-setup.sh"
+  - mv sample-setup.sh /home/ubuntu/post-setup.sh
+  - chmod +x  /home/ubuntu/post-setup.sh
+  # Run post set-up script to install and launch this project.
+  - ./home/ubuntu/post-setup.sh
+  - chmod +x  /home/ubuntu/docker-compose-drupal/scripts/sample-setup-d8.sh
+  # Run script to install a minimal Drupal 8.
+  - ./home/ubuntu/docker-compose-drupal/scripts/sample-setup-d8.sh
+
+# Basic, NON SECURED cloud inti for Ubuntu 16.04 image with Docker.
 package_update: true
 package_upgrade: true
 groups:
@@ -111,15 +131,6 @@ packages:
   - ruby-compass
   - ruby-sass
   - ruby-bootstrap-sass
-# Specific project commands, we clone the script repo and launch the setup script.
-runcmd:
-  - mkdir -p /home/ubuntu
-  - wget -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/scripts/sample-setup.sh"
-  - mv sample-setup.sh /home/ubuntu/post-setup.sh
-  - chmod +x  /home/ubuntu/post-setup.sh
-  - ./home/ubuntu/post-setup.sh
-  - chmod +x  /home/ubuntu/docker-compose-drupal/scripts/sample-setup-d8.sh
-  - ./home/ubuntu/docker-compose-drupal/scripts/sample-setup-d8.sh
 power_state:
  mode: reboot
  timeout: 10
