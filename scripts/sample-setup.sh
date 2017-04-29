@@ -64,7 +64,10 @@ cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
 # Fix permissions (we are root when running this script).
 chown -R ubuntu:ubuntu $project_path
 cd $project_path
-docker-compose up
+docker-compose up -d
+
+# Wait a bit for stack to start.
+sleep 30s
 
 # Convenient links.
 ln -s $project_root /home/ubuntu/www
