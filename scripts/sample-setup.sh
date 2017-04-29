@@ -15,39 +15,41 @@ mkdir -p /home/ubuntu/
 
 # Setup docker-compose.
 if [ ! -f "/usr/local/bin/docker-compose" ]; then
-  echo "[setup::info] 1/4 Set-up Docker compose..."
+  echo "[setup::info] 1/6 Set-up Docker compose $docker_compose_version..."
   wget -q "https://github.com/docker/compose/releases/download/$docker_compose_version/docker-compose-Linux-x86_64"
   mv docker-compose-Linux-x86_64 /usr/local/bin/docker-compose
   chmod +x /usr/local/bin/docker-compose
 else
-  echo "[setup::info] Docker compose already here"
+  echo "[setup::info] 1/6 Docker compose already here"
 fi
 
 # Get a Docker compose stack (Apache/Php/Mysql/Mailhog/Solr).
 if [ ! -d "$project_path" ]; then
-  echo "[setup::info] 2/4 Set-up Docker stack..."
+  echo "[setup::info] 2/6 Clone Docker stack and tools..."
   git clone $docker_stack_repo $project_path
   # set up tools from stack
   cd $project_path;
   ./scripts/get-tools.sh
   chown -R ubuntu: $project_path
 else
-  echo "[setup::info] Docker stack already here!"
+  echo "[setup::info] 2/6 Docker stack already here!"
 fi
 
 # Set-up this Docker compose stack.
-echo "[setup::info] 3/4 First time Docker stack up, pull images and set-up tools..."
+echo "[setup::info] 3/6 Prepare Docker stack and set-up tools..."
 cp $project_path/default.env $project_path/.env
 # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
 cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
 # Fix permissions (we are root when running this script).
 chown -R ubuntu:ubuntu $project_path
+
+echo "[setup::info] 4/6 First launch Docker stack, grab images, bring up..."
 cd $project_path
 docker-compose up -d
 
 # Set-up composer.
 if [ ! -f "/usr/local/bin/composer" ]; then
-  echo "[setup::info] 3/4 Set-up Composer and dependencies..."
+  echo "[setup::info] 5/6 Set-up Composer and dependencies..."
   mkdir -p /home/ubuntu/.composer
   # As we are root, we need this to set-up composer.
   export COMPOSER_HOME=/home/ubuntu/.composer
@@ -62,6 +64,7 @@ else
 fi
 
 # Set-up Code sniffer.
+echo "[setup::info] 6/6 Set-up Code sniffer and final steps..."
 $COMPOSER_HOME/vendor/bin/phpcs --config-set installed_paths $COMPOSER_HOME/vendor/drupal/coder/coder_sniffer
 
 # Check if containers are up...
