@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Helper to get third party tools, must be run from parent folder.
+
 if [[ $1 == 'update' ]]; then
   git -C data/www/TOOLS/PimpMyLog pull origin master
   git -C data/www/TOOLS/PhpMemcachedAdmin pull origin master
