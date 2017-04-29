@@ -3,8 +3,6 @@
 # This script is an helper to setup this docker compose Drupal stack on Ubuntu 16.04.
 # This script must be run as root, it can be run from a cloud-config init.
 
-SCRIPT_DIR="$(dirname "$0")"
-
 # Variables.
 project_path="/home/ubuntu/docker-compose-drupal"
 project_container_apache="dockercomposedrupal_apache_1"
@@ -37,16 +35,26 @@ else
   echo "[setup::info] Docker stack already here!"
 fi
 
+# Set-up this Docker compose stack.
+echo "[setup::info] 3/4 First time Docker stack up, pull images and set-up tools..."
+cp $project_path/default.env $project_path/.env
+# Default file is Apache/Mysql/Memcache/Solr/Mailhog.
+cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
+# Fix permissions (we are root when running this script).
+chown -R ubuntu:ubuntu $project_path
+cd $project_path
+docker-compose up -d
+
 # Set-up composer.
 if [ ! -f "/usr/local/bin/composer" ]; then
   echo "[setup::info] 3/4 Set-up Composer and dependencies..."
   mkdir -p /home/ubuntu/.composer
+  # As we are root, we need this to set-up composer.
   export COMPOSER_HOME=/home/ubuntu/.composer
   curl -sS https://getcomposer.org/installer | php -- --filename=composer
   mv composer /usr/local/bin/composer
   chmod +x /usr/local/bin/composer
   /usr/local/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
-  export PATH="$PATH:$COMPOSER_HOME/vendor/bin"
 else
   echo "[setup::info] Composer already here!"
   ## Install dependencies just in case.
@@ -56,18 +64,13 @@ fi
 # Set-up Code sniffer.
 $COMPOSER_HOME/vendor/bin/phpcs --config-set installed_paths $COMPOSER_HOME/vendor/drupal/coder/coder_sniffer
 
-# Set-up this Docker compose stack.
-echo "[setup::info] 4/4 First time Docker stack up, pull images and set-up tools..."
-cp $project_path/default.env $project_path/.env
-# Default file is Apache/Mysql/Memcache/Solr/Mailhog.
-cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
-# Fix permissions (we are root when running this script).
-chown -R ubuntu:ubuntu $project_path
-cd $project_path
-docker-compose up -d
-
-# Wait a bit for stack to start.
-sleep 30s
+# Check if containers are up...
+RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_apache 2> /dev/null)
+if [ $? -eq 1 ]; then
+  echo "[setup::ERROR] Container $project_container_apache does not exist..."
+  # Wait a bit for stack to be up....
+  sleep 30s
+fi
 
 # Convenient links.
 ln -s $project_root /home/ubuntu/www
