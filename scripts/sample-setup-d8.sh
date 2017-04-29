@@ -20,7 +20,8 @@ export COMPOSER_HOME=/home/ubuntu/.composer
 
 # Set-up Drupal.
 echo "[setup::info] Install Drupal 8..."
-docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y site-install $drush_options >> drupal-si.log
+docker exec -t $project_container_apache chown -R apache: /www
+docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y site-install $drush_options >> $project_path/drupal-install.log
 docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y en admin_toolbar >> /dev/null
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
