@@ -16,9 +16,10 @@ drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=passwo
 export COMPOSER_HOME=/home/ubuntu/.composer
 # Setup Drupal 8 composer project.
 /usr/local/bin/composer create-project drupal-composer/drupal-project:8.x-dev $project_root/drupal8 --stability dev --no-interaction
-/usr/local/bin/composer -d=$project_root/drupal8 require "drupal/devel" "drupal/admin_toolbar" "drupal/devel"
+/usr/local/bin/composer -d=$project_root/drupal8 require "drupal/devel" "drupal/admin_toolbar"
 
 # Set-up Drupal.
+echo "[setup::info] Install Drupal 8..."
 docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y site-install $drush_options >> drupal-si.log
 docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y en admin_toolbar >> /dev/null
 
