@@ -31,12 +31,12 @@ services:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
     links:
-      ## Choose database.
+      ## Choose database, uncomment service concerned below.
       - mysql
       # - pgsql
       ## Choose optionnal services.
-      # - memcache
-      # - solr
+      - memcache
+      - solr
       - mailhog
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/www
@@ -48,6 +48,7 @@ services:
     env_file: .env
     environment:
       - CONTAINER_NAME=apache
+    restart: always
   mysql:
     image: mogtofu33/mariadb:latest
     expose:
@@ -60,16 +61,16 @@ services:
     env_file: .env
     environment:
       - CONTAINER_NAME=mysql
-  pgsql:
-    image: mogtofu33/postgres:latest
-    expose:
-      - "5432"
-    ## Comment these two lines on Windows system, permissions issue.
-    volumes:
-      - ${HOST_DATABASE_POSTGRES:-./data/database/pgsql}:/var/lib/postgresql/data
-    env_file: .env
-    environment:
-      - CONTAINER_NAME=pgsql
+#  pgsql:
+#    image: mogtofu33/postgres:latest
+#    expose:
+#      - "5432"
+#    ## Comment these two lines on Windows system, permissions issue.
+#    volumes:
+#      - ${HOST_DATABASE_POSTGRES:-./data/database/pgsql}:/var/lib/postgresql/data
+#    env_file: .env
+#    environment:
+#      - CONTAINER_NAME=pgsql
   mailhog:
     image: diyan/mailhog:latest
     expose:
@@ -110,7 +111,6 @@ services:
   #   image: osixia/openldap:latest
   #   ports:
   #     - "${LDAP_HOST_PORT:-389}:389"
-  #   restart: always
   #   env_file: .env
   #   environment:
   #     - CONTAINER_NAME=ldap
