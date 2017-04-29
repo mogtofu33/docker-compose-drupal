@@ -58,14 +58,12 @@ $COMPOSER_HOME/vendor/bin/phpcs --config-set installed_paths $COMPOSER_HOME/vend
 
 # Set-up this Docker compose stack.
 echo "[setup::info] 4/4 First time Docker stack up, pull images and set-up tools..."
-mkdir -p /etc/drush/
-cp -f $project_path/config/drush/aliases.drushrc.php /etc/drush/aliases.drushrc.php
 cp $project_path/default.env $project_path/.env
 cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
 # Fix permissions (we are root when running this script).
 chown -R ubuntu:ubuntu $project_path
 cd $project_path
-docker-compose up -d
+docker-compose up
 
 # Wait for containers to be up...
 RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_apache 2> /dev/null)
@@ -77,8 +75,7 @@ fi
 
 # Convenient links.
 ln -s $project_root /home/ubuntu/www
-ln -s $project_work /home/ubuntu/root
-ln -s $project_work/web /home/ubuntu/web
+ln -s $project_path /home/ubuntu/root
 
 # Fix permissions (we are root when running this script).
 chown -R ubuntu:ubuntu /home/ubuntu
