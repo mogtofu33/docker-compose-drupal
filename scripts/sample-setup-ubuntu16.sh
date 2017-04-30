@@ -42,10 +42,14 @@ docker-compose up -d
 # Set-up composer.
 if [ ! -f "/usr/local/bin/composer" ]; then
   echo "[setup::info] 4/5 Set-up Composer and dependencies..."
+  mkdir -p /home/ubuntu/.composer
+  export COMPOSER_HOME=/home/ubuntu/.composer
   curl -sS https://getcomposer.org/installer | php -- --filename=composer
   sudo mv composer /usr/local/bin/composer
   sudo chmod +x /usr/local/bin/composer
   /usr/local/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
+  echo "COMPOSER_HOME=/home/ubuntu/.composer" >> /home/ubuntu/.profile
+  echo "PATH=\$PATH:/home/ubuntu/.composer/vendor/bin" >> /home/ubuntu/.profile
 else
   echo "[setup::info] Composer already here!"
   ## Install dependencies just in case.
@@ -54,7 +58,7 @@ fi
 
 # Set-up Code sniffer.
 echo "[setup::info] 5/5 Set-up Code sniffer and final steps..."
-$HOME/.composer/vendor/bin/phpcs --config-set installed_paths $HOME/.composer/vendor/drupal/coder/coder_sniffer
+$COMPOSER_HOME/vendor/bin/phpcs --config-set installed_paths $COMPOSER_HOME/vendor/drupal/coder/coder_sniffer
 
 # Check if containers are up...
 RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_apache 2> /dev/null)
@@ -63,6 +67,12 @@ if [ $? -eq 1 ]; then
   # Wait a bit for stack to be up....
   sleep 30s
 fi
+
+# Add project variables to environment.
+cat <<EOT >> /home/ubuntu/.profile
+# Docker stack variables.
+PROJECT_CONTAINER_NAME="dockercomposedrupal_apache_1"
+EOT
 
 # Convenient links.
 ln -s $project_root /home/ubuntu/www
