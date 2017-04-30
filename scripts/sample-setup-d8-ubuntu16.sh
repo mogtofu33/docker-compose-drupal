@@ -32,6 +32,12 @@ DRUSH_CONTAINER_BIN="$project_container_root/vendor/bin/drush"
 DRUSH_CONTAINER_ROOT="--root=$project_container_root/web"
 EOT
 
+# Add drush alias shortcut.
+cat <<EOT >> /home/ubuntu/.bash_aliases
+# Drush within Docker.
+alias drush="docker exec -t --user apache $project_container_apache $drush_bin $drush_root "
+EOT
+
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 echo -e "[setup::info] Drupal 8 installed, account: admin, password: password\n"
 echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
