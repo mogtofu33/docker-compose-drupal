@@ -13,27 +13,26 @@ project_root="$project_path/data/www"
 
 # Setup docker-compose.
 if [ ! -f "/usr/local/bin/docker-compose" ]; then
-  echo "[setup::info] 1/6 Set-up Docker compose $docker_compose_version..."
-  wget -q "https://github.com/docker/compose/releases/download/$docker_compose_version/docker-compose-Linux-x86_64"
-  sudo mv docker-compose-Linux-x86_64 /usr/local/bin/docker-compose
+  echo "[setup::info] 1/5 Set-up Docker compose $docker_compose_version..."
+  sudo wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/$docker_compose_version/docker-compose-Linux-x86_64"
   sudo chmod +x /usr/local/bin/docker-compose
 else
-  echo "[setup::info] 1/6 Docker compose already here"
+  echo "[setup::info] 1/5 Docker compose already here"
 fi
 
 # Get a Docker compose stack (Apache/Php/Mysql/Mailhog/Solr).
 if [ ! -d "$project_path" ]; then
-  echo "[setup::info] 2/6 Clone Docker stack and tools..."
+  echo "[setup::info] 2/5 Clone Docker stack and tools..."
   git clone $docker_stack_repo $project_path
   # set up tools from stack
   cd $project_path;
   ./scripts/get-tools.sh
 else
-  echo "[setup::info] 2/6 Docker stack already here!"
+  echo "[setup::info] 2/5 Docker stack already here!"
 fi
 
 # Set-up and launch this Docker compose stack.
-echo "[setup::info] 3/6 Prepare Docker stack and set-up tools..."
+echo "[setup::info] 3/5 Prepare Docker stack and set-up tools..."
 cp $project_path/default.env $project_path/.env
 # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
 cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
@@ -42,7 +41,7 @@ docker-compose up -d
 
 # Set-up composer.
 if [ ! -f "/usr/local/bin/composer" ]; then
-  echo "[setup::info] 5/6 Set-up Composer and dependencies..."
+  echo "[setup::info] 4/5 Set-up Composer and dependencies..."
   curl -sS https://getcomposer.org/installer | php -- --filename=composer
   sudo mv composer /usr/local/bin/composer
   sudo chmod +x /usr/local/bin/composer
@@ -54,7 +53,7 @@ else
 fi
 
 # Set-up Code sniffer.
-echo "[setup::info] 6/6 Set-up Code sniffer and final steps..."
+echo "[setup::info] 5/5 Set-up Code sniffer and final steps..."
 $COMPOSER_HOME/vendor/bin/phpcs --config-set installed_paths $COMPOSER_HOME/vendor/drupal/coder/coder_sniffer
 
 # Check if containers are up...
