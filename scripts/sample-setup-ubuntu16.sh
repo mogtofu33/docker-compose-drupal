@@ -71,6 +71,8 @@ fi
 # Add project variables to environment.
 cat <<EOT >> /home/ubuntu/.profile
 # Docker stack variables.
+PROJECT_PATH="$project_path"
+PROJECT_ROOT="$project_path/data/www"
 PROJECT_CONTAINER_NAME="$project_container_apache"
 EOT
 
