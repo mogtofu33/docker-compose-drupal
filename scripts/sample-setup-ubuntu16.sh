@@ -54,7 +54,7 @@ fi
 
 # Set-up Code sniffer.
 echo "[setup::info] 5/5 Set-up Code sniffer and final steps..."
-$COMPOSER_HOME/vendor/bin/phpcs --config-set installed_paths $COMPOSER_HOME/vendor/drupal/coder/coder_sniffer
+$HOME/.composer/vendor/bin/phpcs --config-set installed_paths $HOME/.composer/vendor/drupal/coder/coder_sniffer
 
 # Check if containers are up...
 RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_apache 2> /dev/null)
