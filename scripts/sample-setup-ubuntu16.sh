@@ -71,7 +71,7 @@ fi
 # Add project variables to environment.
 cat <<EOT >> /home/ubuntu/.profile
 # Docker stack variables.
-PROJECT_CONTAINER_NAME="dockercomposedrupal_apache_1"
+PROJECT_CONTAINER_NAME="$project_container_apache"
 EOT
 
 # Convenient links.
