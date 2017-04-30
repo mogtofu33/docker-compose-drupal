@@ -5,7 +5,7 @@
 # Ubuntu user should be a sudoers without password. Should be used after a setup script
 # from this folder.
 
-# Variables.
+# Variables, should be cleaned as we use a setup script before this one.
 project_path="$HOME/docker-compose-drupal"
 project_container_apache="dockercomposedrupal_apache_1"
 project_root="$project_path/data/www"
@@ -26,8 +26,6 @@ docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y
 
 # Add project variables to environment.
 cat <<EOT >> /home/ubuntu/.profile
-PROJECT_PATH="$project_root/drupal8"
-PROJECT_CONTAINER_PATH="$project_container_root"
 DRUSH_CONTAINER_BIN="$project_container_root/vendor/bin/drush"
 DRUSH_CONTAINER_ROOT="--root=$project_container_root/web"
 EOT
