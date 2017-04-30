@@ -24,6 +24,12 @@ echo "[setup::info] Install Drupal 8..."
 docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y site-install $drush_options >> $project_path/drupal-install.log
 docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y en admin_toolbar >> /dev/null
 
+# Add project variables to environment.
+cat <<EOT >> /home/ubuntu/.profile
+PROJECT_PATH="$project_root/drupal8"
+PROJECT_CONTAINER_PATH="$project_container_root"
+EOT
+
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 echo -e "[setup::info] Drupal 8 installed, account: admin, password: password\n"
 echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
