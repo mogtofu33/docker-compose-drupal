@@ -10,8 +10,10 @@ project_path="$HOME/docker-compose-drupal"
 project_container_apache="dockercomposedrupal_apache_1"
 project_root="$project_path/data/www"
 project_container_root="/www/drupal8"
+project_container_web_root="$project_container_root/web"
+drupal_bin="$project_container_root/vendor/bin/drupal"
 drush_bin="$project_container_root/vendor/bin/drush"
-drush_root="--root=$project_container_root/web"
+drush_root="--root=$project_container_web_root"
 drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=password"
 
 # Setup Drupal 8 composer project.
@@ -34,6 +36,10 @@ EOT
 cat <<EOT >> /home/ubuntu/.bash_aliases
 # Drush within Docker.
 alias drush="docker exec -it --user apache $project_container_apache $drush_bin $drush_root "
+# Drupal console within Docker.
+function drupal() {
+  docker exec -it --user apache $project_container_apache bash -c "cd $project_container_web_root; $drupal_bin $@"
+}
 EOT
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
