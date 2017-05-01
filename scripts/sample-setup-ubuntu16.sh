@@ -76,6 +76,12 @@ PROJECT_ROOT="$project_path/data/www"
 PROJECT_CONTAINER_NAME="$project_container_apache"
 EOT
 
+# Add drush alias shortcut.
+cat <<EOT >> /home/ubuntu/.bash_aliases
+# Command within Docker.
+alias dcmd="docker exec -it --user apache $project_container_apache"
+EOT
+
 # Convenient links.
 ln -s $project_root /home/ubuntu/www
 ln -s $project_path /home/ubuntu/root
