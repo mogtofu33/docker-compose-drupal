@@ -38,7 +38,7 @@ cat <<EOT >> /home/ubuntu/.bash_aliases
 alias drush="docker exec -it --user apache $project_container_apache $drush_bin $drush_root "
 # Drupal console within Docker.
 function drupal() {
-  docker exec -it --user apache $project_container_apache bash -c "cd $project_container_web_root; $drupal_bin $@"
+  docker exec -it --user apache $project_container_apache bash -c 'cd $project_container_web_root; $drupal_bin \$@' 
 }
 EOT
 
