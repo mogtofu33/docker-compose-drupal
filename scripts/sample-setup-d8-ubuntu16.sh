@@ -34,16 +34,6 @@ EOT
 
 # Add drush alias shortcut.
 cat <<EOT >> /home/ubuntu/.bash_aliases
-# Docker
-alias dk='docker'
-# Docker-compose
-alias dkc='docker-compose'
-# Check Drupal coding standards
-alias drcs="phpcs --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
-# Check Drupal best practices
-alias drcsbp="phpcs --standard=DrupalPractice --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt,md'"
-# Fix Drupal coding standards
-alias drcsfix="phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
 # Drush within Docker.
 alias drush="docker exec -it --user apache $project_container_apache $drush_bin $drush_root "
 # Drupal console within Docker.
