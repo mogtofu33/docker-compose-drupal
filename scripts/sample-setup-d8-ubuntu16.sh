@@ -33,7 +33,7 @@ EOT
 # Add drush alias shortcut.
 cat <<EOT >> /home/ubuntu/.bash_aliases
 # Drush within Docker.
-alias drush="docker exec -t --user apache $project_container_apache $drush_bin $drush_root "
+alias drush="docker exec -it --user apache $project_container_apache $drush_bin $drush_root "
 EOT
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
