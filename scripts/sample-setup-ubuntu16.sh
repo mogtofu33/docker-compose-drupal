@@ -97,7 +97,7 @@ sudo chown ubuntu:ubuntu /usr/local/bin/dcmd
 sudo chmod +x /usr/local/bin/dcmd
 cat <<EOT > /usr/local/bin/dcmd
 #!/bin/bash
-docker exec -it --user apache $project_container_apache $@
+docker exec -it --user apache $project_container_apache \$@
 EOT
 
 # Convenient links.
