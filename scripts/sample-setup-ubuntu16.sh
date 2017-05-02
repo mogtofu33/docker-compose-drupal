@@ -11,6 +11,9 @@ project_path="$HOME/docker-compose-drupal"
 project_container_apache="dockercomposedrupal_apache_1"
 project_root="$project_path/data/www"
 
+# Fix permissions.
+sudo chown -R ubuntu:ubuntu /home/ubuntu
+
 # Setup docker-compose.
 if [ ! -f "/usr/local/bin/docker-compose" ]; then
   echo "[setup::info] 1/5 Set-up Docker compose $docker_compose_version..."
