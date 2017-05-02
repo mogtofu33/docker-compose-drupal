@@ -43,7 +43,7 @@ cat <<EOT > /usr/local/bin/drush
 docker exec -it --user apache $project_container_apache $drush_bin $@
 EOT
 
-cat <<EOT > /usr/local/bin/drush
+cat <<EOT > /usr/local/bin/drupal
 #!/bin/bash
 # Drupal console within Docker.
 docker exec -it --user apache $project_container_apache bash -c 'cd $project_container_web_root; $drupal_bin \$1' -- "\$@"
