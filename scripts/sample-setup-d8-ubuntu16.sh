@@ -9,7 +9,7 @@
 project_path="$HOME/docker-compose-drupal"
 project_container_apache="dockercomposedrupal_apache_1"
 project_root="$project_path/data/www"
-project_container_root="/www/drupal8"
+project_container_root="/www/drupal"
 project_container_web_root="$project_container_root/web"
 drupal_bin="$project_container_root/vendor/bin/drupal"
 drush_bin="$project_container_root/vendor/bin/drush"
@@ -17,8 +17,8 @@ drush_root="--root=$project_container_web_root"
 drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=password"
 
 # Setup Drupal 8 composer project.
-/usr/local/bin/composer create-project drupal-composer/drupal-project:8.x-dev $project_root/drupal8 --stability dev --no-interaction
-/usr/local/bin/composer -d=$project_root/drupal8 require "drupal/devel" "drupal/admin_toolbar"
+/usr/local/bin/composer create-project drupal-composer/drupal-project:8.x-dev $project_root/drupal --stability dev --no-interaction
+/usr/local/bin/composer -d=$project_root/drupal require "drupal/devel" "drupal/admin_toolbar"
 
 # Set-up Drupal.
 echo "[setup::info] Install Drupal 8..."
@@ -34,8 +34,8 @@ EOT
 
 # Add drush alias shortcut.
 cat <<EOT >> /home/ubuntu/.bash_aliases
-# Drush within Docker.
-alias drush="docker exec -it --user apache $project_container_apache $drush_bin $drush_root "
+# Drush within Docker, should be used with aliases.
+alias drush="docker exec -it --user apache $project_container_apache $drush_bin "
 # Drupal console within Docker.
 function drupal() {
   docker exec -it --user apache $project_container_apache bash -c 'cd $project_container_web_root; $drupal_bin \$1' -- "\$@"
