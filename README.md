@@ -1,36 +1,39 @@
-# Drupal Docker development made easy
+# Drupal Docker Development
 
-Require:
+## Require
 
-* Docker engine: https://docs.docker.com/engine/installation/
-* Docker compose: https://docs.docker.com/compose/install/
+* Docker engine 1.13+: https://docs.docker.com/engine/installation/
+* Docker compose 1.12+: https://docs.docker.com/compose/install/
 
-Focus on easy set-up and light images with Alpine Linux.
+## Introduction
 
-## Features
-* Easy to launch, include all base tools for Drupal
-* Code, data and logs persistence
-* Simple config override for main services
-* Base images with bash and custom PS1 (docker exec -it CONTAINER_NAME bash)
-* Light images (based on Alpine Linux)
-* Limited service by containers
+Focus on easy set-up, lightweight images based on [Alpine Linux](https://alpinelinux.org/) and easy to use tools.
 
 ### Include (every service is optional as declared in the yml file)
 * Apache with Php 5.6 or 7 with Xdebug
 * MySQL/MariaDB and/or PostgreSQL
 * Memcache
-* Mailhog
-* Solr
-* Ldap
-* Varnish
+* [Mailhog](https://github.com/mailhog/MailHog)
+* [Solr](http://lucene.apache.org/solr/)
+* [OpenLdap](https://www.openldap.org/)
+* [Varnish](https://varnish-cache.org/)
 
-### Include Drupal/Php Tools:
-* Drush
-* Drupal console
-* Composer
-* Adminer
+### Include Drupal/Php Tools
+* [Drush](http://www.drush.org)
+* [Drupal console](https://drupalconsole.com)
+* [Composer](https://getcomposer.org)
+* [Adminer](https://www.adminer.org)
+
+### Include Linux script to get and configure
+* [Opcache GUI](https://github.com/amnuts/opcache-gui)
+* [Pimp my Log](http://pimpmylog.com/)
+* [Phpmemcacheadmin](https://github.com/wp-cloud/phpmemcacheadmin)
+* [Xdebug GUI](https://github.com/splitbrain/xdebug-trace-tree)
+* [Adminer extended](https://github.com/dg/adminer-custom)
 
 ## Quick launch new Drupal project
+
+See documentation for more information/
 
 <pre>
 # Clone this project.
@@ -57,6 +60,7 @@ docker-compose config
 docker-compose build && docker-compose up -d
 </pre>
 
+## Linux host with bash
 Source drush script (see "section Using Drush with your web container")
 <pre>. scripts/start-drush.sh</pre>
 
@@ -84,67 +88,33 @@ drush si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --a
 ## Using Drush with your web container (If Drush is enable in your .env)
 
 An aliases file is available from data/drush, it contains a simple alias @d for the default Drupal in www/drupal.
+_Note_: Drush tables output is malformated when using alias, currently work best with --root=/www/drupal
 
-Using docker exec you can run a command directly in the container, for example:
-<pre>docker exec -it CONTAINER_NAME drush @d st</pre>
+Using docker exec you can run a command directly in the container as apache user, for example:
+<pre>docker exec -it -u apache CONTAINER_NAME drush --root=/www/drupal status</pre>
 
-To avoid permissions issues you can run command as webserver user, for example with apache:
-<pre>docker exec -it -u apache:apache CONTAINER_NAME drush @d st</pre>
+## Docker, Docker Compose basic usage
 
-You can find a script for bash to set a Drush alias for your container:
-<pre>. scripts/start-drush.sh</pre>
-Every drush command will now run on this container.
-
-When you finish your work on this stack:
-<pre>. scripts/end-drush.sh</pre>
-
-## See containers logs
+### See containers logs
+<pre>cd THIS_PROJECT</pre>
 <pre>docker-compose logs</pre>
 
 See data/logs for specific services logs.
 
-## Destroy containers
+<pre>docker-compose logs apache</pre>
+
+### Destroy containers (will loose drupal files!)
 <pre>docker-compose stop && docker-compose down</pre>
 
-## Remove your data (and lost everything !)
+### Remove your persistent data (and lost everything!)
 <pre>sudo rm -rf data/database data/logs data/www/drupal</pre>
-
-## Containers access
-
-### See running services and get container names
-<pre>docker-compose ps</pre>
-
-### Execute command on any service
-<pre>docker exec -it CONTAINER_NAME MY_CMD</pre>
-
-### Bash access on services based on my images
-<pre>docker exec -it CONTAINER_NAME bash</pre>
-
-### Other images (not from my base)
-<pre>docker exec -it CONTAINER_NAME /bin/sh</pre>
 
 ## Suggested tools
 
 You can find a script in scripts/get-tools.sh folder to download or update all tools.
-
-- PimpMyLog:
-<pre>git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog</pre>
-
-- Copy config from config/pimpmylog
-
-- phpMemcachedAdmin
-<pre>git clone https://github.com/wp-cloud/phpmemcacheadmin.git data/www/TOOLS/PhpMemcachedAdmin</pre>
-
-- Copy config from config/memcache
-
-- opcache gui
-<pre>git clone https://github.com/amnuts/opcache-gui.git data/www/TOOLS/Opcache-gui</pre>
-
-- Xdebug gui
-<pre>git clone https://github.com/splitbrain/xdebug-trace-tree.git data/www/TOOLS/Xdebug-trace</pre>
-
-- Adminer with plugins and design (Adminer light is already shipped)
-<pre>git clone https://github.com/dg/adminer-custom.git data/www/TOOLS/adminer</pre>
+<pre>cd THIS_PROJECT</pre>
+<pre>chmod +x scripts/get-tools.sh</pre>
+<pre>./scripts/get-tools.sh</pre>
 
 ## Services access from host
 
