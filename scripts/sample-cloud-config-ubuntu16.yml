@@ -1,31 +1,41 @@
 #cloud-config
-# This config is used to set-up Drupal dev environment with OpenStack based on image Ubuntu 16.04.
-# It's meant to be a base for Docker Compose Drupal stack for setting up a full DEV environment.
+#
+# This config is used to set-up Drupal dev environment with OpenStack based on
+# an Ubuntu 16.04 image.
+# It's meant to be a base for Docker Compose Drupal stack to set up a full DEV
+# environment.
 # THIS SETUP IS NOT SECURED, ONLY FOR DEV, MUST NOT BE USED ON PRODUCTION.
-# Install minimal packages: Git, Docker, Compass (with ruby), Composer with minimal Php 7.
+#
+# What this config is doing:
+#   Install minimal packages: Git, Docker, Compass (with ruby),
+#   Composer with minimal Php 7.
+#   Run a generic script to install docker-compose and our web stack.
+#   Run a generic script to install Drupal 8.
+#
+################################################################################
 
-# Commands run by root user at the end of the cloud init process.
-# We grab a script to setup the Docker Compose Drupal stack (this project), see sample-setup.sh in
-# this folder for more information.
-# We use an other script to download and install a minimal Drupal 8 project, see sample-setup-d8.sh
-# in this folder for more information.
 # Adjust these commands to your needs and replace or add any other script.
+# Note that these commands are executed by the root user.
 runcmd:
-  # Grab setup scripts for our Stack and Drupal 8.
-  - wget -O /home/ubuntu/setup.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/scripts/sample-setup-ubuntu16.sh"
-  - wget -O /home/ubuntu/setup-drupal.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/scripts/sample-setup-d8-ubuntu16.sh"
-  - chmod +x /home/ubuntu/setup*.sh
-  - chown "ubuntu:ubuntu" /home/ubuntu/setup*.sh
-  # Run post set-up script to install and launch this project.
-  - su -c "/home/ubuntu/setup.sh" ubuntu
-  # Run script to install a minimal Drupal 8.
-  - su -c "/home/ubuntu/setup-drupal.sh" ubuntu
+  # Add Docker recommended packages, and add user to Docker group, should not be
+  # edited.
+  - apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
+  - usermod -aG docker ubuntu
+  # Grab setup scripts for our Web Stack and run it as user ubuntu.
+  - wget -O /home/ubuntu/setup-docker-stack.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/scripts/sample-setup-ubuntu16.sh"
+  - chmod +x /home/ubuntu/setup-docker-stack.sh
+  - chown "ubuntu:ubuntu" /home/ubuntu/setup-docker-stack.sh
+  - su -c "/home/ubuntu/setup-docker-stack.sh" ubuntu
+  # This part can be replaced by an other specific script to clone an existing Drupal 8 project.
+  # Grab setup scripts for base Drupal 8 and run it as user ubuntu.
+  - wget -O /home/ubuntu/setup-base-drupal.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/scripts/sample-setup-d8-ubuntu16.sh"
+  - chmod +x /home/ubuntu/setup-base-drupal.sh
+  - chown "ubuntu:ubuntu" /home/ubuntu/setup-base-drupal.sh
+  - su -c "/home/ubuntu/setup-base-drupal.sh" ubuntu
 
-# Basic, NON SECURED cloud inti for Ubuntu 16.04 image with Docker.
+# Basic, NON SECURED cloud config for Ubuntu 16.04 image with Docker.
 package_update: true
 package_upgrade: true
-groups:
-  - docker
 # We are forcing password login to access this VM from console dashboard.
 # THIS IS NOT SECURED.
 chpasswd:
@@ -33,18 +43,8 @@ chpasswd:
     ubuntu:ubuntu
     root:root
   expire: False
-# Force unbuntu user to be part of docker group.
-system_info:
-  default_user:
-    name: ubuntu
-    plain_text_passwd: 'ubuntu'
-    home: /home/ubuntu
-    shell: /bin/bash
-    lock_passwd: True
-    gecos: ubuntu
-    groups: [adm, audio, cdrom, dialout, floppy, video, plugdev, dip, netdev, docker]
-
-# Set-up Docker for Ubuntu 16.04.
+# Set-up Docker for Ubuntu 16.04, see doc at:
+# https://docs.docker.com/engine/installation/linux/ubuntu/
 apt_sources:
  - source: deb https://apt.dockerproject.org/repo ubuntu-xenial main
    filename: docker.list
@@ -107,13 +107,14 @@ apt_sources:
       aTCeGwFQeqzHmM241iuOmBYPeyTY5veF49aBJA1gEJOQTvBR8Q==
       =Yhur
       -----END PGP PUBLIC KEY BLOCK-----
-# Set-up package for Docker, Composer and Compass.
+# Setup Docker, minimal Php 7 for Composer and Compass with bootstrap.
 packages:
   - software-properties-common
   - python
   - apt-transport-https
   - ca-certificates
   - git-core
+  - docker-engine
   - php7.0-curl
   - php7.0-zip
   - php7.0-mbstring
@@ -125,7 +126,6 @@ packages:
   - php-cli-prompt
   - php7.0-gd
   - php7.0-xml
-  - docker-engine
   - ruby-full
   - ruby-compass
   - ruby-sass
