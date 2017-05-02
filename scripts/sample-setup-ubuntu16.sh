@@ -94,7 +94,8 @@ EOT
 
 # Convenient links.
 ln -s $project_root /home/ubuntu/www
-ln -s $project_root /www
+sudo ln -s $project_root /www
+sudo chown ubuntu: /www
 ln -s $project_path /home/ubuntu/root
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
