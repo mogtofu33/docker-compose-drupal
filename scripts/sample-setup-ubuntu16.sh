@@ -15,6 +15,7 @@ project_root="$project_path/data/www"
 if [ ! -f "/usr/local/bin/docker-compose" ]; then
   echo "[setup::info] 1/5 Set-up Docker compose $docker_compose_version..."
   sudo wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/$docker_compose_version/docker-compose-Linux-x86_64"
+  sudo chown ubuntu:ubuntu /usr/local/bin/docker-compose
   sudo chmod +x /usr/local/bin/docker-compose
 else
   echo "[setup::info] 1/5 Docker compose already here"
@@ -88,8 +89,15 @@ alias drcs="phpcs --standard=Drupal --extensions='php,module,inc,install,test,pr
 alias drcsbp="phpcs --standard=DrupalPractice --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt,md'"
 # Fix Drupal coding standards
 alias drcsfix="phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
-# Command within Docker.
-alias dcmd="docker exec -it --user apache $project_container_apache"
+EOT
+
+# Add cmd in container bin for use with ssh.
+sudo touch /usr/local/bin/dcmd
+sudo chown ubuntu:ubuntu /usr/local/bin/dcmd
+sudo chmod +x /usr/local/bin/dcmd
+cat <<EOT > /usr/local/bin/dcmd
+#!/bin/bash
+docker exec -it --user apache $project_container_apache $@
 EOT
 
 # Convenient links.
