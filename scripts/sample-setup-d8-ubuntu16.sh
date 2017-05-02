@@ -47,7 +47,7 @@ cat <<EOT > /usr/local/bin/drupal
 #!/bin/bash
 # Drupal console within Docker.
 cmd="/www/drupal/vendor/bin/drupal \$@"
-docker exec -it --user apache dockercomposedrupal_apache_1 bash -c 'cd /www/drupal/web; $1' -- "\$cmd"
+docker exec -it --user apache dockercomposedrupal_apache_1 bash -c 'cd /www/drupal/web; \$1' -- "\$cmd"
 EOT
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
