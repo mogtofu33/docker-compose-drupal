@@ -32,14 +32,21 @@ DRUSH_CONTAINER_BIN="$project_container_root/vendor/bin/drush"
 DRUSH_CONTAINER_ROOT="--root=$project_container_root/web"
 EOT
 
-# Add drush alias shortcut.
-cat <<EOT >> /home/ubuntu/.bash_aliases
+# Add drush and drupal bin shortcut.
+sudo touch /usr/local/bin/drush
+sudo touch /usr/local/bin/drupal
+sudo chown ubuntu:ubuntu /usr/local/bin/drush /usr/local/bin/drupal
+sudo chmod +x /usr/local/bin/drush /usr/local/bin/drupal
+cat <<EOT > /usr/local/bin/drush
+#!/bin/bash
 # Drush within Docker, should be used with aliases.
-alias drush="docker exec -it --user apache $project_container_apache $drush_bin "
+docker exec -it --user apache $project_container_apache $drush_bin $@
+EOT
+
+cat <<EOT > /usr/local/bin/drush
+#!/bin/bash
 # Drupal console within Docker.
-function drupal() {
-  docker exec -it --user apache $project_container_apache bash -c 'cd $project_container_web_root; $drupal_bin \$1' -- "\$@"
-}
+docker exec -it --user apache $project_container_apache bash -c 'cd $project_container_web_root; $drupal_bin \$1' -- "\$@"
 EOT
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
