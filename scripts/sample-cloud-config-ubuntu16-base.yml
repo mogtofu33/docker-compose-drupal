@@ -4,22 +4,22 @@ runcmd:
   # edited.
   - apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
   - usermod -aG docker ubuntu
-  # Grab setup scripts for our Web Stack and run it as user ubuntu.
+  # Grab setup scripts for Docker-compose, Composer, Code sniffer.
   - wget -O /home/ubuntu/setup-docker-stack.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/scripts/setup-base-ubuntu16.sh"
   - chmod +x /home/ubuntu/setup-docker-stack.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup-docker-stack.sh
   - su -c "/home/ubuntu/setup-docker-stack.sh" ubuntu
 
-# Basic, NON SECURED cloud config for Ubuntu 16.04 image with Docker.
+# Basic cloud config for Ubuntu 16.04 image with Docker.
 package_update: true
 package_upgrade: true
-# We are forcing password login to access this VM from console dashboard.
+# For testing purpose we can force password login to access this VM from console dashboard.
 # THIS IS NOT SECURED.
-chpasswd:
-  list: |
-    ubuntu:ubuntu
-    root:root
-  expire: False
+#chpasswd:
+#  list: |
+#    ubuntu:ubuntu
+#    root:root
+#  expire: False
 # Set-up Docker for Ubuntu 16.04, see doc at:
 # https://docs.docker.com/engine/installation/linux/ubuntu/
 apt_sources:
