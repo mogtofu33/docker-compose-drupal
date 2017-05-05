@@ -5,7 +5,7 @@ runcmd:
   - apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
   - usermod -aG docker ubuntu
   # Grab setup scripts for our Web Stack and run it as user ubuntu.
-  - wget -O /home/ubuntu/setup-docker-stack.sh -q "https://github.com/Mogtofu33/docker-compose-drupal/blob/master/scripts/setup-base-ubuntu16.sh"
+  - wget -O /home/ubuntu/setup-docker-stack.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/scripts/setup-base-ubuntu16.sh"
   - chmod +x /home/ubuntu/setup-docker-stack.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup-docker-stack.sh
   - su -c "/home/ubuntu/setup-docker-stack.sh" ubuntu
