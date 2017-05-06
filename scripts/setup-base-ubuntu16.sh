@@ -1,10 +1,10 @@
-#! /bin/bash
+#!/bin/bash
 
-# This is an helper to setup this docker compose Drupal stack on Ubuntu 16.04.
-# This script must be run as ubuntu user with sudo privileges. From cloud-init
-# Ubuntu user should be a sudoers without password.
+# This is an helper to setup Docker Compose, Composer and Code sniffer on
+# Ubuntu 16.04.
+# This script must be run as ubuntu user with sudo privileges.
 
-# Variables.
+# Variables for versions.
 docker_compose_version="1.12.0"
 
 # Fix permissions.
@@ -12,19 +12,19 @@ sudo chown -R ubuntu:ubuntu /home/ubuntu
 
 # Setup docker-compose.
 if [ ! -f "/usr/local/bin/docker-compose" ]; then
-  echo "[setup::info] 1/5 Set-up Docker compose $docker_compose_version..."
+  echo "[setup::info] Set-up Docker compose $docker_compose_version..."
   sudo wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/$docker_compose_version/docker-compose-Linux-x86_64"
   sudo chown ubuntu:ubuntu /usr/local/bin/docker-compose
   sudo chmod +x /usr/local/bin/docker-compose
 else
-  echo "[setup::info] 1/5 Docker compose already here"
+  echo "[setup::info] Docker compose already here"
 fi
 
 # Set-up composer.
 if [ ! -f "/usr/local/bin/composer" ]; then
-  echo "[setup::info] 4/5 Set-up Composer and dependencies..."
-  mkdir -p /home/ubuntu/.composer
-  export COMPOSER_HOME=/home/ubuntu/.composer
+  echo "[setup::info] Set-up Composer and dependencies..."
+  # mkdir -p /home/ubuntu/.composer
+  # export COMPOSER_HOME=/home/ubuntu/.composer
   curl -sS https://getcomposer.org/installer | php -- --filename=composer
   sudo mv composer /usr/local/bin/composer
   sudo chmod +x /usr/local/bin/composer
@@ -38,7 +38,7 @@ else
 fi
 
 # Set-up Code sniffer.
-echo "[setup::info] 5/5 Set-up Code sniffer and final steps..."
+echo "[setup::info] Set-up Code sniffer and final steps..."
 $COMPOSER_HOME/vendor/bin/phpcs --config-set installed_paths $COMPOSER_HOME/vendor/drupal/coder/coder_sniffer
 
 # Add drush alias shortcut.
