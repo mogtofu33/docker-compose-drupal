@@ -23,14 +23,11 @@ fi
 # Set-up composer.
 if [ ! -f "/usr/local/bin/composer" ]; then
   echo "[setup::info] Set-up Composer and dependencies..."
-  # mkdir -p /home/ubuntu/.composer
-  # export COMPOSER_HOME=/home/ubuntu/.composer
-  curl -sS https://getcomposer.org/installer | php -- --filename=composer
-  sudo mv composer /usr/local/bin/composer
+  curl -sS https://getcomposer.org/installer | php -- --install-dir=/home/ubuntu/ --filename=composer
+  sudo mv /home/ubuntu/composer /usr/local/bin/composer
   sudo chmod +x /usr/local/bin/composer
   /usr/local/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
-  echo "COMPOSER_HOME=/home/ubuntu/.composer" >> /home/ubuntu/.profile
-  echo "PATH=\$PATH:/home/ubuntu/.composer/vendor/bin" >> /home/ubuntu/.profile
+  echo "PATH=\$PATH:/home/ubuntu/.config/composer/vendor/bin" >> /home/ubuntu/.profile
 else
   echo "[setup::info] Composer already here!"
   ## Install dependencies just in case.
@@ -38,8 +35,9 @@ else
 fi
 
 # Set-up Code sniffer.
+if [ ! -f "/usr/local/bin/composer" ]; then
 echo "[setup::info] Set-up Code sniffer and final steps..."
-$COMPOSER_HOME/vendor/bin/phpcs --config-set installed_paths $COMPOSER_HOME/vendor/drupal/coder/coder_sniffer
+/home/ubuntu/.config/composer/vendor/bin/phpcs --config-set installed_paths /home/ubuntu/.config/composer/vendor/drupal/coder/coder_sniffer
 
 # Add drush alias shortcut.
 cat <<EOT >> /home/ubuntu/.bash_aliases
