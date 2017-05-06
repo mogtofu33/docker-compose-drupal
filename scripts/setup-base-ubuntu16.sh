@@ -30,12 +30,11 @@ if [ ! -f "/usr/local/bin/composer" ]; then
   echo "PATH=\$PATH:/home/ubuntu/.config/composer/vendor/bin" >> /home/ubuntu/.profile
 else
   echo "[setup::info] Composer already here!"
-  ## Install dependencies just in case.
+  # Install dependencies just in case.
   /usr/local/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
 fi
 
 # Set-up Code sniffer.
-if [ ! -f "/usr/local/bin/composer" ]; then
 echo "[setup::info] Set-up Code sniffer and final steps..."
 /home/ubuntu/.config/composer/vendor/bin/phpcs --config-set installed_paths /home/ubuntu/.config/composer/vendor/drupal/coder/coder_sniffer
 
