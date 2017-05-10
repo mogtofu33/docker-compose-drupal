@@ -52,8 +52,6 @@ alias drcsbp="phpcs --standard=DrupalPractice --extensions='php,module,inc,insta
 alias drcsfix="phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
 EOT
 
-mkdir -p /home/ubuntu/www
-
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 echo -e "[setup::info] Install finished!\n"
 echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
