@@ -5,23 +5,22 @@
 # Ubuntu user should be a sudoers without password. Should be used after a setup script
 # from this folder has created a Drupal 8 instance.
 
-# Base variables for this script.
-bootstrap_version="3.3.7"
-docker_cmd="docker exec -t --user apache $project_container_apache "
-name="bootstrap_sass"
-title="Bootstrap Sass"
-
-
-# these variables should be cleaned as we use a setup script before this one.
+# These variables should be cleaned as we use a setup script before this one.
 project_path="$HOME/docker-compose-drupal"
 project_container_apache="dockercomposedrupal_apache_1"
 project_root="$project_path/data/www"
 project_container_root="/www/drupal"
 project_container_web_root="$project_container_root/web"
-theme="$project_container_web_root/web/theme"
 drupal_bin="$project_container_root/vendor/bin/drupal"
 drush_bin="$project_container_root/vendor/bin/drush"
 drush_root="--root=$project_container_web_root"
+
+# Base variables for this script.
+bootstrap_version="3.3.7"
+docker_cmd="docker exec -t --user apache $project_container_apache "
+name="bootstrap_sass"
+title="Bootstrap Sass"
+theme="$project_container_web_root/web/theme"
 
 # Add Bootstrap theme of Drupal 8 with composer.
 echo "[setup::info] Install Bootstrap for Drupal 8..."
