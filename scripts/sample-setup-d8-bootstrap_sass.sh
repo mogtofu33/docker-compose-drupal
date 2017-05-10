@@ -29,18 +29,18 @@ echo "[setup::info] Install Bootstrap for Drupal 8..."
 
 # Create bootstrap subtheme
 echo "[setup::info] Create $title subtheme..."
-docker_cmd mkdir -p $theme/custom
-docker_cmd cp -r $theme/contrib/bootstrap/starterkits/sass $theme/custom/$name
-docker_cmd wget -O $theme/custom/$name/$bootstrap_version.tar.gz https://github.com/twbs/bootstrap-sass/archive/v$bootstrap_version.tar.gz
-docker_cmd tar -xvzf $theme/custom/$name/$bootstrap_version.tar.gz -C $theme/custom/$name/
-docker_cmd mv $theme/custom/$name/bootstrap-sass-$bootstrap_version $theme/custom/$name/bootstrap
-docker_cmd rm -f $theme/custom/$name/$bootstrap_version.tar.gz
-docker_cmd mv $theme/custom/$name/THEMENAME.starterkit.yml $theme/custom/$name/$name.info.yml
-docker_cmd mv $theme/custom/$name/THEMENAME.libraries.yml $theme/custom/$name/$name.libraries.yml
-docker_cmd mv $theme/custom/$name/THEMENAME.theme $theme/custom/$name/$name.theme
-docker_cmd mv $theme/custom/$name/config/install/THEMENAME.settings.yml $theme/custom/$name/config/install/$name.settings.yml
-docker_cmd mv $theme/custom/$name/config/schema/THEMENAME.schema.yml $theme/custom/$name/config/schema/$name.schema.yml
-docker_cmd wget -O $theme/custom/$name/config.rb https://gist.githubusercontent.com/Mogtofu33/99a6a764ce0be20d7faa55c7ed315def/raw/18c33d42f539877bf52df4704ecf293e88e7bdfb/config.rb
+$docker_cmd mkdir -p $theme/custom
+$docker_cmd cp -r $theme/contrib/bootstrap/starterkits/sass $theme/custom/$name
+$docker_cmd wget -O $theme/custom/$name/$bootstrap_version.tar.gz https://github.com/twbs/bootstrap-sass/archive/v$bootstrap_version.tar.gz
+$docker_cmd tar -xvzf $theme/custom/$name/$bootstrap_version.tar.gz -C $theme/custom/$name/
+$docker_cmd mv $theme/custom/$name/bootstrap-sass-$bootstrap_version $theme/custom/$name/bootstrap
+$docker_cmd rm -f $theme/custom/$name/$bootstrap_version.tar.gz
+$docker_cmd mv $theme/custom/$name/THEMENAME.starterkit.yml $theme/custom/$name/$name.info.yml
+$docker_cmd mv $theme/custom/$name/THEMENAME.libraries.yml $theme/custom/$name/$name.libraries.yml
+$docker_cmd mv $theme/custom/$name/THEMENAME.theme $theme/custom/$name/$name.theme
+$docker_cmd mv $theme/custom/$name/config/install/THEMENAME.settings.yml $theme/custom/$name/config/install/$name.settings.yml
+$docker_cmd mv $theme/custom/$name/config/schema/THEMENAME.schema.yml $theme/custom/$name/config/schema/$name.schema.yml
+$docker_cmd wget -O $theme/custom/$name/config.rb https://gist.githubusercontent.com/Mogtofu33/99a6a764ce0be20d7faa55c7ed315def/raw/18c33d42f539877bf52df4704ecf293e88e7bdfb/config.rb
 
 # Locally edit files.
 sed -i -e 's/THEMETITLE/$title/g' $project_root/drupal/web/themes/custom/$name/$name.info.yml
