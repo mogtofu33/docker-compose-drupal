@@ -21,42 +21,14 @@
     'apache' => array('list' => FALSE, 'port' => getenv('APACHE_HOST_HTTP_PORT') . ' | ' . getenv('APACHE_HOST_HTTPS_PORT')),
     'nginx' => array('list' => FALSE, 'port' => getenv('NGINX_HOST_HTTP_PORT') . ' | ' . getenv('NGINX_HOST_HTTPS_PORT')),
     'phpfpm' => array('list' => FALSE, 'port' => '9000'),
-    'docker-ui' => array(
-      'list' => TRUE,
-      'port' => '9001',
-      'host_access' => TRUE,
-    ),
-    'mysql' => array(
-      'list' => TRUE,
-      'port' => '3306',
-      'guest_access' => TRUE,
-    ),
-    'pgsql' => array(
-      'list' => TRUE,
-      'port' => '5432',
-      'guest_access' => TRUE,
-    ),
-    'memcache' => array(
-      'list' => TRUE,
-      'port' => '11211',
-      'guest_access' => TRUE,
-    ),
-    'solr' => array(
-      'list' => TRUE,
-      'port' => getenv('SOLR_HOST_PORT'),
-      'path' => '/solr/drupal',
-      'guest_access' => TRUE,
-      'host_access' => TRUE,
-    ),
-    'mailhog' => array(
-      'list' => TRUE,
-      'port' => getenv('MAILHOG_HOST_PORT'),
-      'host_access' => TRUE,
-    ),
-    'varnish' => array(
-      'list' => TRUE,
-      'port' => getenv('VARNISH_HOST_PORT'),
-    ),
+    'docker-ui' => array('list' => TRUE, 'port' => '9001', 'host_access' => TRUE),
+    'mysql' => array('list' => TRUE, 'port' => '3306', 'guest_access' => TRUE),
+    'pgsql' => array('list' => TRUE, 'port' => '5432', 'guest_access' => TRUE),
+    'memcache' => array('list' => TRUE, 'port' => '11211', 'guest_access' => TRUE),
+    'redis' => array('list' => TRUE, 'port' => '6379', 'guest_access' => TRUE),
+    'solr' => array('list' => TRUE, 'port' => '8983', 'path' => '/solr/drupal', 'guest_access' => TRUE, 'host_access' => TRUE),
+    'mailhog' => array('list' => TRUE, 'port' => '8025', 'host_access' => TRUE),
+    'varnish' => array('list' => TRUE, 'port' => getenv('VARNISH_HOST_PORT')),
     'ldap' => array(
       'list' => TRUE,
       'port' => getenv('LDAP_HOST_PORT'),
@@ -67,11 +39,7 @@
       'guest_access' => TRUE,
       'host_access' => TRUE,
     ),
-    'ldapadmin' => array(
-      'list' => TRUE,
-      'port' => getenv('PHPLDAPADMIN_HOST_PORT'),
-      'host_access' => TRUE,
-    ),
+    'ldapadmin' => array('list' => TRUE, 'port' => getenv('PHPLDAPADMIN_HOST_PORT'), 'host_access' => TRUE),
   );
 
   // Handle ajax request for ip and hostname.
@@ -102,7 +70,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Drupal Docker Compose Stack</title>
+    <title>Drupal Docker Compose - Dev stack</title>
 </head>
 
 <body>
@@ -341,72 +309,6 @@
 
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-12">
-
-        <section class="panel panel-default">
-          <div class="panel-heading">Docker usefull commands</div>
-          <table class="table table-condensed table-hover">
-            <tr>
-              <th>See logs</th>
-              <td><code class="copy">docker-compose logs</code></td>
-            </tr>
-            <tr>
-              <th>See running containers</th>
-              <td><code class="copy">docker-compose ps</code></td>
-            </tr>
-            <tr>
-              <th>Restart containers</th>
-              <td><code class="copy">docker-compose restart</code></td>
-            </tr>
-            <tr>
-              <th>Destroy containers</th>
-              <td><code class="copy">docker-compose stop && docker-compose down</code></td>
-            </tr>
-            <tr>
-              <th>Bash in the container</th>
-              <td><code class="copy">docker exec -it CONTAINER_NAME_OR_ID bash</code></td>
-            </tr>
-            <tr>
-              <th>Shell in third party containers<br><small>Not based on mogtofu33 images, can vary, depend on images.</small></th>
-              <td><code class="copy">docker exec -it CONTAINER_NAME_OR_ID sh</code></td>
-            </tr>
-            <tr>
-              <th>Remove your data (Full reset!)</th>
-              <td><code class="copy">sudo rm -rf data/database data/logs data/www/drupal</code></td>
-            </tr>
-          </table>
-          <div class="panel-footer"><small><a href="https://docs.docker.com/compose/reference/">More commands on Docker Compose reference page</a>.</small></div>
-        </section>
-
-        <section class="panel panel-default">
-          <div class="panel-heading">Docker drush/drupal commands</div>
-          <table class="table table-condensed table-hover">
-            <tr>
-              <th>Using Drush with your container (If enable in your .env)</th>
-              <td><code>. scripts/start-drush.sh</code></td>
-            </tr>
-            <tr>
-              <th>Quick dl Drupal 7</th>
-              <td><code class="copy">drush dl drupal-7 -y --destination=/www --drupal-project-rename</code></td>
-            </tr>
-            <tr>
-              <th>Quick dl Drupal 8</th>
-              <td><code class="copy">drush dl drupal -y --destination=/www --drupal-project-rename</code></td>
-            </tr>
-            <tr>
-              <th>Quick install Drupal</th>
-              <td><code class="copy">drush si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password</code></td>
-            </tr>
-            <tr>
-              <th>When you finish</th>
-              <td><code class="copy">. scripts/end-drush.sh</code></td>
-            </tr>
-          </table>
-        </section>
-
-      </div>
-    </div>
     <hr>
     <!-- Footer -->
     <footer>
@@ -416,6 +318,7 @@
             </div>
         </div>
     </footer>
+    <hr>
   </div>
   <!-- /.container -->
 

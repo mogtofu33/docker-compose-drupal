@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 # Stop using Drush with this container.
 # . scripts/end-drush.sh
 

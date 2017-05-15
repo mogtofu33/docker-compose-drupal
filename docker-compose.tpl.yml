@@ -33,9 +33,10 @@ services:
     links:
       ## Choose database, uncomment service concerned below.
       - mysql
-      # - pgsql
+      - pgsql
       ## Choose optionnal services.
       - memcache
+      - redis
       - solr
       - mailhog
     volumes:
@@ -51,11 +52,11 @@ services:
     ## Remove to avoid starting on system reboot.
     restart: always
   mysql:
-    image: mogtofu33/mariadb:latest
+    image: mariadb:latest
     expose:
       - "3306"
     volumes:
-      - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/mysql
+      # - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/mysql
       ## Comment these two lines on Windows system, permissions issue.
       - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
       - ./config/mysql:/etc/mysql
@@ -64,43 +65,54 @@ services:
       - CONTAINER_NAME=mysql
     ## Remove to avoid starting on system reboot.
     restart: always
-#  pgsql:
-#    image: mogtofu33/postgres:latest
-#    expose:
-#      - "5432"
-#    ## Comment these two lines on Windows system, permissions issue.
-#    volumes:
-#      - ${HOST_DATABASE_POSTGRES:-./data/database/pgsql}:/var/lib/postgresql/data
-#    env_file: .env
-#    environment:
-#      - CONTAINER_NAME=pgsql
-#    ## Remove to avoid starting on system reboot.
-#    restart: always
+  pgsql:
+    image: postgres:alpine
+    expose:
+      - "5432"
+    ## Comment these two lines on Windows system, permissions issue.
+    volumes:
+      - ${HOST_DATABASE_POSTGRES:-./data/database/pgsql}:/var/lib/postgresql/data
+    env_file: .env
+    environment:
+      - CONTAINER_NAME=pgsql
+   ## Remove to avoid starting on system reboot.
+   restart: always
   mailhog:
-    image: diyan/mailhog:latest
+    image: mailhog/mailhog
     expose:
       - "1025"
     ports:
-      - "${MAILHOG_HOST_PORT:-8025}:8025"
-    env_file: .env
+      - "8025:8025"
     environment:
       - CONTAINER_NAME=mailhog
     ## Remove to avoid starting on system reboot.
     restart: always
   memcache:
-    image: bpressure/alpine-memcached:latest
+    image: memcached:alpine
     expose:
       - "11211"
     environment:
       - CONTAINER_NAME=memcache
-    ## Remove to avoid starting on system reboot.
-    restart: always
+  redis:
+    image: redis:alpine
+    expose:
+      - "6379"
+    # Optional persistent data for Redis.
+    # volumes:
+    #   - ${HOST_DATA_REDIS:-./data/redis}:/data
+    environment:
+      - CONTAINER_NAME=redis
   solr:
-    image: mogtofu33/solr:latest
+    image: solr:6.5-alpine
     ports:
-      - "${SOLR_HOST_PORT:-8983}:8983"
-    volumes:
-      - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/solr
+      - "8983:8983"
+    # Optional persistent data for Solr.
+    # volumes:
+      # - /data/solr:/opt/solr/server/solr/mycores/drupal
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr-precreate
+      - drupal
     env_file: .env
     environment:
       - CONTAINER_NAME=solr
@@ -123,8 +135,7 @@ services:
   # ldap:
   #   image: osixia/openldap:latest
   #   ports:
-  #     - "${LDAP_HOST_PORT:-389}:389"
-  #   env_file: .env
+  #     - "389:389"
   #   environment:
   #     - CONTAINER_NAME=ldap
   #   ## Remove to avoid starting on system reboot.
@@ -134,19 +145,18 @@ services:
   #   links:
   #     - ldap
   #   ports:
-  #     - "${PHPLDAPADMIN_HOST_PORT:-8443}:8443"
-  #   env_file: .env
+  #     - "8443:8443"
   #   environment:
   #     - CONTAINER_NAME=ldapadmin
   #   ## Remove to avoid starting on system reboot.
   #   restart: always
   ## Optionnal Docker ui, uncomment to enable.
-  # docker-ui:
-  #   image: uifd/ui-for-docker:latest
-  #   ports:
-  #     - "9001:9000"
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   privileged: true
-  #   ## Remove to avoid starting on system reboot.
-  #   restart: always
+  docker-ui:
+    image: uifd/ui-for-docker:latest
+    ports:
+      - "9001:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    ## Remove to avoid starting on system reboot.
+    restart: always

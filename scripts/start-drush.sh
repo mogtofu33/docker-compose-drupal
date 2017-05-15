@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 # Run with source with arguments to use Drush with this container.
 # . scripts/start-drush.sh
 
