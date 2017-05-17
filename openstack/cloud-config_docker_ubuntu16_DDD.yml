@@ -8,7 +8,7 @@ runcmd:
   - chown "ubuntu:ubuntu" /usr/local/bin/docker-compose
   - chmod +x /usr/local/bin/docker-compose
   # Grab setup scripts for our Web Stack and run it as user ubuntu.
-  - wget -O /home/ubuntu/setup-docker-stack.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/scripts/openstack/setup_DDD_ubuntu16.sh"
+  - wget -O /home/ubuntu/setup-docker-stack.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DDD_ubuntu16.sh"
   - chmod +x /home/ubuntu/setup-docker-stack.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup-docker-stack.sh
   - su -c "/home/ubuntu/setup-docker-stack.sh" ubuntu
