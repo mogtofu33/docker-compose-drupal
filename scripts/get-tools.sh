@@ -2,7 +2,17 @@
 
 # Helper to get third party tools, must be run from parent folder.
 
-if [[ $1 == 'update' ]]; then
+SOURCE="${BASH_SOURCE[0]}"
+BASENAME=`basename $0`
+
+if [[ $SOURCE != "./scripts/$BASENAME" ]]; then
+  echo -e "This script must be run from the root of this project:"
+  echo -e "./scripts/$BASENAME"
+  exit;
+fi
+
+if [[ $1 == 'update' ]]
+then
   git -C data/www/TOOLS/PimpMyLog pull origin master
   git -C data/www/TOOLS/PhpMemcachedAdmin pull origin master
   git -C data/www/TOOLS/Opcache-gui pull origin master
@@ -10,6 +20,14 @@ if [[ $1 == 'update' ]]; then
   git -C data/www/TOOLS/adminerExtended pull origin master
   git -C data/www/TOOLS/phpRedisAdmin pull origin master
   git -C data/www/TOOLS/phpRedisAdmin/vendor pull origin master
+elif [[ $1 == 'delete' ]]
+then
+  rm -rf data/www/TOOLS/PimpMyLog
+  rm -rf data/www/TOOLS/PhpMemcachedAdmin
+  rm -rf data/www/TOOLS/Opcache-gui
+  rm -rf data/www/TOOLS/Xdebug-trace
+  rm -rf data/www/TOOLS/adminerExtended
+  rm -rf data/www/TOOLS/phpRedisAdmin
 else
   git clone https://github.com/potsky/PimpMyLog.git data/www/TOOLS/PimpMyLog
   cp config/pimpmylog/config.user.php data/www/TOOLS/PimpMyLog/config.user.php
