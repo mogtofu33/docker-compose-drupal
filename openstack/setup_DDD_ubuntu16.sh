@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # This is an helper to setup this docker compose Drupal stack on Ubuntu 16.04.
-# This script must be run as ubuntu user with sudo privileges. From cloud-init
-# Ubuntu user should be a sudoers without password.
-# We assume that docker and docker-compose is properly installed when using this script.
+# This script must be run as ubuntu user with sudo privileges without password.
+# We assume that docker and docker-compose is properly installed when using this
+# script (From cloud config files in this folder).
+# This script is used with a cloud config setup from this folder.
 
 # Variables.
 docker_stack_repo="https://github.com/Mogtofu33/docker-compose-drupal.git"

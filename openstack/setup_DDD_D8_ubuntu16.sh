@@ -1,9 +1,8 @@
 #!/bin/bash
 
 # This script is an helper to setup this Drupal 8 with composer on Ubuntu 16.04.
-# This script must be run as ubuntu user with sudo privileges. From cloud-init
-# Ubuntu user should be a sudoers without password. Should be used after a setup script
-# from this folder.
+# This script must be run as ubuntu user with sudo privileges without password.
+# This script is used with a cloud config setup from this folder.
 
 # Variables, should be cleaned as we use a setup script before this one.
 project_path="$HOME/docker-compose-drupal"
