@@ -151,12 +151,12 @@ services:
   #   ## Remove to avoid starting on system reboot.
   #   restart: always
   ## Optionnal Docker ui, uncomment to enable.
-  docker-ui:
-    image: uifd/ui-for-docker:latest
-    ports:
-      - "9001:9000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    privileged: true
-    ## Remove to avoid starting on system reboot.
-    restart: always
+  # docker-ui:
+  #   image: uifd/ui-for-docker:latest
+  #   ports:
+  #     - "9001:9000"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   privileged: true
+  #   ## Remove to avoid starting on system reboot.
+  #   restart: always
