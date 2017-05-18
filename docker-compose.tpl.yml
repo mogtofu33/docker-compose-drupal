@@ -75,8 +75,8 @@ services:
     env_file: .env
     environment:
       - CONTAINER_NAME=pgsql
-   ## Remove to avoid starting on system reboot.
-   restart: always
+    ## Remove to avoid starting on system reboot.
+    restart: always
   mailhog:
     image: mailhog/mailhog
     expose:
@@ -93,6 +93,8 @@ services:
       - "11211"
     environment:
       - CONTAINER_NAME=memcache
+    ## Remove to avoid starting on system reboot.
+    restart: always
   redis:
     image: redis:alpine
     expose:
@@ -102,6 +104,8 @@ services:
     #   - ${HOST_DATA_REDIS:-./data/redis}:/data
     environment:
       - CONTAINER_NAME=redis
+    ## Remove to avoid starting on system reboot.
+    restart: always
   solr:
     image: solr:6.5-alpine
     ports:
