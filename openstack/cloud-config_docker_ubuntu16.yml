@@ -1,11 +1,38 @@
 #cloud-config
-# Basic, cloud config for Ubuntu 16.04 image with Docker.
+#
+################################################################################
+# This config is used to set-up Drupal dev environment with OpenStack based on
+# an Ubuntu 16.04 image.
+# It's meant to be a base for Docker Compose Drupal stack to set up a full DEV
+# environment.
+# THIS SETUP IS ONLY FOR DEV, MUST NOT BE USED ON PRODUCTION.
+#
+# What this config is doing:
+#   Install minimal packages: Git, Docker, Docker Compose.
+#
+################################################################################
+#
+# Adjust these commands to your needs and replace or add any other script.
+# Note that these commands are executed by the root user, you can use su to pass
+# it to ubuntu user.
 runcmd:
+  # Add Docker recommended packages and add user to Docker group, should not be
+  # edited. this is required for Docker.
   - apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
   - usermod -aG docker ubuntu
-  - wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.12.0/docker-compose-Linux-x86_64"
+  - wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.13.0/docker-compose-Linux-x86_64"
   - chown "ubuntu:ubuntu" /usr/local/bin/docker-compose
   - chmod +x /usr/local/bin/docker-compose
+################################################################################
+# Basic, cloud config for Ubuntu 16.04 image with Docker.
+# Setup Docker and git.
+packages:
+  - software-properties-common
+  - python
+  - apt-transport-https
+  - ca-certificates
+  - git-core
+  - docker-engine
 package_update: true
 package_upgrade: true
 # Set-up Docker for Ubuntu 16.04, see doc at:
@@ -72,14 +99,6 @@ apt_sources:
       aTCeGwFQeqzHmM241iuOmBYPeyTY5veF49aBJA1gEJOQTvBR8Q==
       =Yhur
       -----END PGP PUBLIC KEY BLOCK-----
-# Setup Docker, minimal Php 7 for Composer and Compass with bootstrap.
-packages:
-  - software-properties-common
-  - python
-  - apt-transport-https
-  - ca-certificates
-  - git-core
-  - docker-engine
 power_state:
  mode: reboot
  timeout: 10

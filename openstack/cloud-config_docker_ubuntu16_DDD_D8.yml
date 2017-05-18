@@ -1,27 +1,82 @@
 #cloud-config
-# Basic, cloud config for Ubuntu 16.04 image with Docker.
-# Added script support to install this project.
+#
+################################################################################
+# This config is used to set-up Drupal dev environment with OpenStack based on
+# an Ubuntu 16.04 image.
+# It's meant to be a base for Docker Compose Drupal stack to set up a full DEV
+# environment.
+# THIS SETUP IS ONLY FOR DEV, MUST NOT BE USED ON PRODUCTION.
+#
+# What this config is doing:
+#   Install minimal packages: Git, Docker, Compass (with ruby),
+#   Composer with minimal Php 7.
+#   Run a generic script to install Docker-compose, Composer, Code sniffer.
+#   Run a generic script to install this Docker-compose stack.
+#   Run a generic script to install Drupal 8 with Composer and Bootstrap Sass.
+#
+################################################################################
+#
+# Adjust these commands to your needs and replace or add any other script.
+# Note that these commands are executed by the root user, you can use su to pass
+# it to ubuntu user.
 runcmd:
+  # Add Docker recommended packages and add user to Docker group, should not be
+  # edited. this is required for Docker.
   - apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
   - usermod -aG docker ubuntu
   - wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.13.0/docker-compose-Linux-x86_64"
   - chown "ubuntu:ubuntu" /usr/local/bin/docker-compose
   - chmod +x /usr/local/bin/docker-compose
-  # Grab setup scripts for our Web Stack and run it as user ubuntu.
+  # External script to setup properly Docker-compose, and Drupal Docker Compose
+  # dev stack (this project) with user ubuntu.
   - wget -O /home/ubuntu/setup-docker-stack.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DDD_ubuntu16.sh"
   - chmod +x /home/ubuntu/setup-docker-stack.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup-docker-stack.sh
   - su -c "/home/ubuntu/setup-docker-stack.sh" ubuntu
-  # Grab setup scripts for Drupal 8 and run it as user ubuntu.
+  ##############################################################################
+  # This part is an example to install Drupal 8, it can be replaced by an other
+  # specific script to clone an existing Drupal 8 project.
+  # If you clone from a private repo you must add a deploy key in this config.
+  #
+  # Grab setup scripts for base Drupal 8 and run it as user ubuntu.
   - wget -O /home/ubuntu/setup-drupal8.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DDD_D8_ubuntu16.sh"
   - chmod +x /home/ubuntu/setup-drupal8.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup-drupal8.sh
   - su -c "/home/ubuntu/setup-drupal8.sh" ubuntu
-  # Grab setup scripts for Drupal 8 Bootstrap Sass sub-theme and run it as user ubuntu.
+  ##############################################################################
+  # This part is an example to install Bootstrap Sass subtheme on Drupal 8 from
+  # previous script.
+  #
+  # Grab setup scripts for Bootstrap subtheme and run it as user ubuntu.
   - wget -O /home/ubuntu/setup-d8-bootstrap.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DDD_D8_Bootstrap_sass.sh"
   - chmod +x /home/ubuntu/setup-d8-bootstrap.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup-d8-bootstrap.sh
   - su -c "/home/ubuntu/setup-d8-bootstrap.sh" ubuntu
+################################################################################
+# Basic, cloud config for Ubuntu 16.04 image with Docker.
+# Setup Docker, minimal Php 7 for Composer and Compass with bootstrap.
+packages:
+  - software-properties-common
+  - python
+  - apt-transport-https
+  - ca-certificates
+  - git-core
+  - docker-engine
+  - php7.0-curl
+  - php7.0-zip
+  - php7.0-mbstring
+  - php7.0-json
+  - php7.0-opcache
+  - php7.0-readline
+  - php7.0-cli
+  - php-cli
+  - php-cli-prompt
+  - php7.0-gd
+  - php7.0-xml
+  - ruby-full
+  - ruby-compass
+  - ruby-sass
+  - ruby-bootstrap-sass
 package_update: true
 package_upgrade: true
 # Set-up Docker for Ubuntu 16.04, see doc at:
@@ -88,14 +143,6 @@ apt_sources:
       aTCeGwFQeqzHmM241iuOmBYPeyTY5veF49aBJA1gEJOQTvBR8Q==
       =Yhur
       -----END PGP PUBLIC KEY BLOCK-----
-# Setup Docker, minimal Php 7 for Composer and Compass with bootstrap.
-packages:
-  - software-properties-common
-  - python
-  - apt-transport-https
-  - ca-certificates
-  - git-core
-  - docker-engine
 power_state:
  mode: reboot
  timeout: 10
