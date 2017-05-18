@@ -75,6 +75,6 @@ $docker_cmd $drush_cmd -y en bootstrap
 $docker_cmd $drush_cmd -y en bootstrap_sass
 $docker_cmd $drush_cmd -y config-set system.theme default bootstrap_sass
 
-echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 echo -e "[setup::info] Bootstrap Sass subtheme installed!\n"
-echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"

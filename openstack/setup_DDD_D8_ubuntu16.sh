@@ -4,31 +4,40 @@
 # This script must be run as ubuntu user with sudo privileges without password.
 # This script is used with a cloud config setup from this folder.
 
-# Variables, should be cleaned as we use a setup script before this one.
-project_path="$HOME/docker-compose-drupal"
-project_container_apache="dockercomposedrupal_apache_1"
-project_root="$project_path/data/www"
-project_container_root="/www/drupal"
+# Variables, some variables are from previous script.
+# project_path="$HOME/docker-compose-drupal"
+# project_container_apache="dockercomposedrupal_apache_1"
+# project_root="$project_path/data/www"
+# PROJECT_PATH="$project_path"
+# PROJECT_ROOT="$project_path/data/www"
+# PROJECT_CONTAINER_NAME="$project_container_apache"
+echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+echo -e "debug\n"
+echo -e "$PROJECT_PATH\n"
+echo -e "$PROJECT_ROOT\n"
+echo -e "$PROJECT_CONTAINER_NAME\n"
+echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+project_container_root="$PROJECT_ROOT/drupal"
 project_container_web_root="$project_container_root/web"
 drupal_bin="$project_container_root/vendor/bin/drupal"
 drush_bin="$project_container_root/vendor/bin/drush"
-drush_root="--root=$project_container_web_root"
+drush_root="--root=$project_container_root/web"
 drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=password"
 
 # Setup Drupal 8 composer project.
-/usr/local/bin/composer create-project drupal-composer/drupal-project:8.x-dev $project_root/drupal --stability dev --no-interaction
-/usr/local/bin/composer -d=$project_root/drupal require "drupal/devel" "drupal/admin_toolbar"
+/usr/local/bin/composer create-project drupal-composer/drupal-project:8.x-dev $project_container_root --stability dev --no-interaction
+/usr/local/bin/composer -d=$project_container_root require "drupal/devel" "drupal/admin_toolbar"
 
 # Set-up Drupal.
 echo "[setup::info] Install Drupal 8..."
-#docker exec -t $project_container_apache chown -R apache: /www
-docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y site-install $drush_options >> $project_path/drupal-install.log
-docker exec -t --user apache $project_container_apache $drush_bin $drush_root -y en admin_toolbar >> /dev/null
+#docker exec -t $PROJECT_CONTAINER_NAME chown -R apache: /www
+docker exec -t --user apache $PROJECT_CONTAINER_NAME $drush_bin $drush_root -y site-install $drush_options >> $PROJECT_PATH/drupal-install.log
+docker exec -t --user apache $PROJECT_CONTAINER_NAME $drush_bin $drush_root -y en admin_toolbar >> /dev/null
 
 # Add project variables to environment.
 cat <<EOT >> /home/ubuntu/.profile
 DRUSH_CONTAINER_BIN="$project_container_root/vendor/bin/drush"
-DRUSH_CONTAINER_ROOT="--root=$project_container_root/web"
+DRUSH_CONTAINER_ROOT="--root=$project_container_web_root"
 EOT
 
 # Add drush and drupal bin shortcut.
@@ -39,16 +48,16 @@ sudo chmod +x /usr/local/bin/drush /usr/local/bin/drupal
 cat <<EOT > /usr/local/bin/drush
 #!/bin/bash
 # Drush within Docker, should be used with aliases.
-docker exec -it --user apache $project_container_apache $drush_bin \$@
+docker exec -it --user apache $PROJECT_CONTAINER_NAME $drush_bin \$@
 EOT
 
 cat <<EOT > /usr/local/bin/drupal
 #!/bin/bash
 # Drupal console within Docker.
-cmd="/www/drupal/vendor/bin/drupal \$@"
-docker exec -it --user apache dockercomposedrupal_apache_1 bash -c 'cd /www/drupal/web; \$1' -- "\$cmd"
+cmd="$drupal_bin \$@"
+docker exec -it --user apache $PROJECT_CONTAINER_NAME bash -c 'cd '"$project_container_web_root"'; \$1' -- "\$cmd"
 EOT
 
-echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 echo -e "[setup::info] Drupal 8 installed, account: admin, password: password\n"
-echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
