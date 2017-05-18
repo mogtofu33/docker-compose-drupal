@@ -108,17 +108,17 @@ services:
     ## Remove to avoid starting on system reboot.
     restart: always
   solr:
-    image: solr:6.5-alpine
+    image: mogtofu33/solr:latest
+    # image: solr:6.5-alpine
     ports:
       - "8983:8983"
-    # Optional persistent data for Solr.
-    # volumes:
-      # - /data/solr:/opt/solr/server/solr/mycores/drupal
-    entrypoint:
-      - docker-entrypoint.sh
-      - solr-precreate
-      - drupal
-    env_file: .env
+    volumes:
+      - ./data/logs:/var/log/solr
+      # - ./config/solr/6.x:/opt/solr/server/solr/mycores/drupal/conf
+    # entrypoint:
+    #   - docker-entrypoint.sh
+    #   - solr-precreate
+    #   - drupal
     environment:
       - CONTAINER_NAME=solr
     ## Remove to avoid starting on system reboot.
