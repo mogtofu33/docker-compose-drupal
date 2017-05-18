@@ -6,11 +6,11 @@
 
 # Variables, some variables are from previous script.
 source $HOME/.profile
-project_container_root="$PROJECT_ROOT/drupal"
+project_container_root="/www/drupal"
 project_container_web_root="$project_container_root/web"
 drupal_bin="$project_container_root/vendor/bin/drupal"
 drush_bin="$project_container_root/vendor/bin/drush"
-drush_root="--root=$project_container_root/web"
+drush_root="--root=$project_container_web_root"
 drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=password"
 
 # Setup Drupal 8 composer project.
@@ -25,7 +25,7 @@ docker exec -t --user apache $PROJECT_CONTAINER_NAME $drush_bin $drush_root -y e
 
 # Add project variables to environment.
 cat <<EOT >> $HOME/.profile
-DRUSH_CONTAINER_BIN="$project_container_root/vendor/bin/drush"
+DRUSH_CONTAINER_BIN="$drush_bin"
 DRUSH_CONTAINER_ROOT="--root=$project_container_web_root"
 EOT
 
