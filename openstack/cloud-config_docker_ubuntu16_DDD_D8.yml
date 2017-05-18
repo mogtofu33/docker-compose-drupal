@@ -1,5 +1,5 @@
 #cloud-config
-#
+
 ################################################################################
 # This config is used to set-up Drupal dev environment with OpenStack based on
 # an Ubuntu 16.04 image.
@@ -15,7 +15,7 @@
 #   Run a generic script to install Drupal 8 with Composer and Bootstrap Sass.
 #
 ################################################################################
-#
+
 # Adjust these commands to your needs and replace or add any other script.
 # Note that these commands are executed by the root user, you can use su to pass
 # it to ubuntu user.

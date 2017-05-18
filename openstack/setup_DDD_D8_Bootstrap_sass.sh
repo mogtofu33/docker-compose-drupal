@@ -9,9 +9,7 @@
 #   ruby-full ruby-compass ruby-sass ruby-bootstrap-sass
 
 # These variables should be cleaned as we use a setup script before this one.
-project_path="$HOME/docker-compose-drupal"
-project_container_apache="dockercomposedrupal_apache_1"
-project_root="$project_path/data/www"
+source $HOME/.profile
 project_container_root="/www/drupal"
 project_container_web_root="$project_container_root/web"
 drush_cmd="$project_container_root/vendor/bin/drush --root=$project_container_web_root"
@@ -23,12 +21,12 @@ bootstrap_version="3.3.7"
 config_rb="https://gist.githubusercontent.com/Mogtofu33/c8bd086d12a6b6540763610893da5364/raw/fcfa4d4a15dbb45b5b6f8fc70f4d0a4bef8081f5/config_dev.rb"
 
 # Cmd and path variables.
-theme="$project_root/drupal/web/themes"
-docker_cmd="docker exec -t --user apache $project_container_apache "
+theme="$PROJECT_ROOT/drupal/web/themes"
+docker_cmd="docker exec -t --user apache $PROJECT_CONTAINER_NAME "
 
 # Add Bootstrap theme of Drupal 8 with composer.
 echo "[setup::info] Install Bootstrap for Drupal 8..."
-/usr/local/bin/composer -d=$project_root/drupal require "drupal/bootstrap:^3"
+/usr/local/bin/composer -d=$PROJECT_ROOT/drupal require "drupal/bootstrap:^3"
 
 # Create bootstrap subtheme.
 # see https://drupal-bootstrap.org/api/bootstrap/starterkits%21sass%21README.md/group/sub_theming_sass/8
@@ -61,13 +59,13 @@ mv $theme/custom/$name/config/schema/THEMENAME.schema.yml $theme/custom/$name/co
 wget -O $theme/custom/$name/config.rb $config_rb
 
 # Locally edit files.
-sed -i -e "s/THEMETITLE/${title}/g" $project_root/drupal/web/themes/custom/$name/$name.info.yml
-sed -i -e "s/THEMENAME/${name}/g" $project_root/drupal/web/themes/custom/$name/$name.info.yml
-sed -i -e "s/THEMETITLE/${title}/g" $project_root/drupal/web/themes/custom/$name/config/schema/$name.schema.yml
-sed -i -e "s/THEMENAME/${name}/g" $project_root/drupal/web/themes/custom/$name/config/schema/$name.schema.yml
+sed -i -e "s/THEMETITLE/${title}/g" $PROJECT_ROOT/drupal/web/themes/custom/$name/$name.info.yml
+sed -i -e "s/THEMENAME/${name}/g" $PROJECT_ROOT/drupal/web/themes/custom/$name/$name.info.yml
+sed -i -e "s/THEMETITLE/${title}/g" $PROJECT_ROOT/drupal/web/themes/custom/$name/config/schema/$name.schema.yml
+sed -i -e "s/THEMENAME/${name}/g" $PROJECT_ROOT/drupal/web/themes/custom/$name/config/schema/$name.schema.yml
 
 # Compass compile.
-compass compile $project_root/drupal/web/themes/custom/$name
+compass compile $PROJECT_ROOT/drupal/web/themes/custom/$name
 
 # Run drush commands to enable this theme.
 echo "[setup::info] Enable $title subtheme..."

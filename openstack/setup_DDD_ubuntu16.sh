@@ -13,7 +13,7 @@ project_container_apache="dockercomposedrupal_apache_1"
 project_root="$project_path/data/www"
 
 # Fix permissions.
-sudo chown -R ubuntu:ubuntu /home/ubuntu
+sudo chown -R ubuntu:ubuntu $HOME
 
 # Get a Docker compose stack (Apache/Php/Mysql/Mailhog/Solr).
 if [ ! -d "$project_path" ]; then
@@ -37,11 +37,11 @@ docker-compose up -d
 # Set-up composer.
 if [ ! -f "/usr/local/bin/composer" ]; then
   echo "[setup::info] Set-up Composer and dependencies..."
-  curl -sS https://getcomposer.org/installer | php -- --install-dir=/home/ubuntu/ --filename=composer
-  sudo mv /home/ubuntu/composer /usr/local/bin/composer
+  cd $HOME
+  curl -sS https://getcomposer.org/installer | php -- --install-dir=$HOME --filename=composer
+  sudo mv $HOME/composer /usr/local/bin/composer
   sudo chmod +x /usr/local/bin/composer
   /usr/local/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
-  echo "PATH=\$PATH:/home/ubuntu/.config/composer/vendor/bin" >> /home/ubuntu/.profile
 else
   echo "[setup::info] Composer already here!"
   # Install dependencies just in case.
@@ -50,7 +50,7 @@ fi
 
 # Set-up Code sniffer.
 echo "[setup::info] Set-up Code sniffer and final steps..."
-/home/ubuntu/.config/composer/vendor/bin/phpcs --config-set installed_paths /home/ubuntu/.config/composer/vendor/drupal/coder/coder_sniffer
+$HOME/.config/composer/vendor/bin/phpcs --config-set installed_paths $HOME/.config/composer/vendor/drupal/coder/coder_sniffer
 
 # Check if containers are up...
 RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_apache 2> /dev/null)
@@ -61,8 +61,8 @@ if [ $? -eq 1 ]; then
 fi
 
 # Add project variables to environment.
-cat <<EOT >> /home/ubuntu/.profile
-PATH=\$PATH:/home/ubuntu/.config/composer/vendor/bin
+cat <<EOT >> $HOME/.profile
+PATH=\$PATH:$HOME/.config/composer/vendor/bin
 # Docker stack variables.
 PROJECT_PATH="$project_path"
 PROJECT_ROOT="$project_path/data/www"
@@ -70,7 +70,7 @@ PROJECT_CONTAINER_NAME="$project_container_apache"
 EOT
 
 # Add docker and phpcs aliases.
-cat <<EOT >> /home/ubuntu/.bash_aliases
+cat <<EOT >> $HOME/.bash_aliases
 # Docker
 alias dk='docker'
 # Docker-compose
@@ -93,10 +93,10 @@ docker exec -it --user apache $project_container_apache \$@
 EOT
 
 # Convenient links.
-ln -s $project_root /home/ubuntu/www
+ln -s $project_root $HOME/www
 sudo ln -s $project_root /www
 sudo chown ubuntu: /www
-ln -s $project_path /home/ubuntu/root
+ln -s $project_path $HOME/root
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 echo -e "[setup::info] Docker compose stack install finished!\n"

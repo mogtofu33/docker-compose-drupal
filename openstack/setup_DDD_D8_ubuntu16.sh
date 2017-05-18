@@ -5,18 +5,7 @@
 # This script is used with a cloud config setup from this folder.
 
 # Variables, some variables are from previous script.
-# project_path="$HOME/docker-compose-drupal"
-# project_container_apache="dockercomposedrupal_apache_1"
-# project_root="$project_path/data/www"
-# PROJECT_PATH="$project_path"
-# PROJECT_ROOT="$project_path/data/www"
-# PROJECT_CONTAINER_NAME="$project_container_apache"
-echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
-echo -e "debug\n"
-echo -e "$PROJECT_PATH\n"
-echo -e "$PROJECT_ROOT\n"
-echo -e "$PROJECT_CONTAINER_NAME\n"
-echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+source $HOME/.profile
 project_container_root="$PROJECT_ROOT/drupal"
 project_container_web_root="$project_container_root/web"
 drupal_bin="$project_container_root/vendor/bin/drupal"
@@ -35,7 +24,7 @@ docker exec -t --user apache $PROJECT_CONTAINER_NAME $drush_bin $drush_root -y s
 docker exec -t --user apache $PROJECT_CONTAINER_NAME $drush_bin $drush_root -y en admin_toolbar >> /dev/null
 
 # Add project variables to environment.
-cat <<EOT >> /home/ubuntu/.profile
+cat <<EOT >> $HOME/.profile
 DRUSH_CONTAINER_BIN="$project_container_root/vendor/bin/drush"
 DRUSH_CONTAINER_ROOT="--root=$project_container_web_root"
 EOT
