@@ -3,7 +3,7 @@
 ## Require
 
 * Docker engine 1.13+: https://docs.docker.com/engine/installation/
-* Docker compose 1.12+: https://docs.docker.com/compose/install/
+* Docker compose 1.13+: https://docs.docker.com/compose/install/
 
 ## Introduction
 
@@ -32,8 +32,6 @@ Focus on easy set-up, lightweight images based on [Alpine Linux](https://alpinel
 * [Adminer extended](https://github.com/dg/adminer-custom)
 
 ## Quick launch new Drupal project
-
-See documentation for more information/
 
 <pre>
 # Clone this project.
