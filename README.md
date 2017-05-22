@@ -7,11 +7,13 @@
 
 ## Introduction
 
-Focus on simple set-up, Docker official images and lightweight Alpine Linux.
+Focus on simple set-up, based on Docker official images and lightweight Alpine Linux to ease maintenance.
 
-### Include (every service is optional as declared in the yml file)
+### Include
+_Every service is optional as declared in the yml file._
 * Apache with Php 7 and Xdebug
-* MySQL/MariaDB and/or PostgreSQL
+* MySQL/MariaDB
+* PostgreSQL
 * [Memcache](https://hub.docker.com/_/memcached)
 * [Mailhog](https://github.com/mailhog/MailHog)
 * [Solr](http://lucene.apache.org/solr)
@@ -50,23 +52,27 @@ docker-compose build && docker-compose up -d
 docker-compose logs
 </pre>
 
-Access the stack dashboard on port 8181
+### Access the stack dashboard
+
 <pre>
 http://localhost:8181
 </pre>
 
 ### Setup Drupal 8 with Composer
 
+#### Code download
+
 Setup a new Drupal 8 based on a composer template (yes it's slower than with
 Drush but this is the good way!)
-Include Drush and Drupal console.
+
+Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/).
 
 <pre>
 docker exec -it -u apache ddd-apache \
 composer create-project drupal-composer/drupal-project:8.x-dev /www/drupal --stability dev --no-interaction
 </pre>
 
-### Install Drupal 8
+#### Install Drupal 8
 
 To use PostGresSQL change _mysql_ to _pgsql_
 
@@ -86,7 +92,7 @@ http://localhost
 http://localhost/user/login
 </pre>
 
-#### Add some modules
+#### Daily usage, add some modules
 
 <pre>
 docker exec -it -u apache ddd-apache \
@@ -94,7 +100,7 @@ composer -d=/www/drupal require \
 drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 </pre>
 
-### Enable some modules
+#### Daily usage, enable some modules
 
 <pre>
 docker exec -it -u apache ddd-apache \
@@ -103,36 +109,21 @@ docker exec -it -u apache ddd-apache \
 admin_toolbar ctools ctools_block ctools_views panels token pathauto
 </pre>
 
-## Access services
+#### Daily usage, run a command on the server
 
-#### MySQL / PostgreSQL :
-* Database host (from apache  container):
- * mysql
- * pgsql
-* database name / user / pass: drupal
+<pre>
+docker exec -it -u apache ddd-apache \
+ls -lah /www/drupal
+</pre>
 
-#### Solr :
-* [http://localhost:8983/solr/#/drupal](http://localhost:8983/solr/#/drupal)
+#### Login in the Apache to run commands
+<pre>
+docker exec -it -u apache ddd-apache bash
+</pre>
 
-From the Apache container (Drupal config)
-* Hostname
- * solr
-* Core
- * drupal
-* port
- * 8983
+## Reset the stack
 
-## Docker, Docker Compose basic usage
-
-### See containers logs
-<pre>cd THIS_PROJECT</pre>
-<pre>docker-compose logs</pre>
-
-See data/logs for specific services logs.
-
-<pre>docker-compose logs apache</pre>
-
-### Destroy containers (will loose drupal files!)
+### Destroy containers (loose drupal files!)
 <pre>docker-compose stop && docker-compose down</pre>
 
 ### Remove your persistent data (and lost everything!)
@@ -145,22 +136,11 @@ See data/logs for specific services logs.
 * [Phpmemcacheadmin](https://github.com/wp-cloud/phpmemcacheadmin)
 * [Xdebug GUI](https://github.com/splitbrain/xdebug-trace-tree)
 * [Adminer extended](https://github.com/dg/adminer-custom)
+* [Php Redis Admin](https://github.com/ErikDubbelboer/phpRedisAdmin)
 
 You can find a script in scripts/get-tools.sh folder to download or update all tools.
-<pre>cd THIS_PROJECT</pre>
-<pre>chmod +x scripts/get-tools.sh</pre>
-<pre>./scripts/get-tools.sh</pre>
-
-## Services access from host
-
-* Adminer and other tools access:
- * [http://localhost/TOOLS](http://localhost/TOOLS)
-* Mailhog access:
- * [http://localhost:8025](http://localhost:8025)
-* Solr access:
- * [http://localhost:8983](http://localhost:8983)
-* Ldap admin:
- * login: cn=admin,dc=example,dc=org
- * pass: admin
- * [http://localhost:6443](http://localhost:6443)
-* More ldap info, see https://github.com/osixia/docker-openldap#environment-variables
+<pre>
+cd THIS_PROJECT
+chmod +x scripts/get-tools.sh
+./scripts/get-tools.sh
+</pre>
