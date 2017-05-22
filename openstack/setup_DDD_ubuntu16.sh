@@ -9,7 +9,7 @@
 # Variables.
 docker_stack_repo="https://github.com/Mogtofu33/docker-compose-drupal.git"
 project_path="$HOME/docker-compose-drupal"
-project_container_apache="dockercomposedrupal_apache_1"
+project_container_apache="ddd-apache"
 project_root="$project_path/data/www"
 
 # Fix permissions.
