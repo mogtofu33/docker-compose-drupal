@@ -1,4 +1,4 @@
-# Drupal Docker Development
+# Drupal 8 Docker Development
 
 ## Require
 
@@ -7,31 +7,21 @@
 
 ## Introduction
 
-Focus on easy set-up, lightweight images based on [Alpine Linux](https://alpinelinux.org/) and easy to use tools.
+Focus on simple set-up, Docker official images and lightweight Alpine Linux.
 
 ### Include (every service is optional as declared in the yml file)
-* Apache with Php 5.6 or 7 with Xdebug
+* Apache with Php 7 and Xdebug
 * MySQL/MariaDB and/or PostgreSQL
-* Memcache
+* [Memcache](https://hub.docker.com/_/memcached)
 * [Mailhog](https://github.com/mailhog/MailHog)
-* [Solr](http://lucene.apache.org/solr/)
-* [OpenLdap](https://www.openldap.org/)
-* [Varnish](https://varnish-cache.org/)
+* [Solr](http://lucene.apache.org/solr)
+* [OpenLdap](https://www.openldap.org)
+* [Varnish](https://varnish-cache.org)
 
-### Include Drupal/Php Tools
-* [Drush](http://www.drush.org)
-* [Drupal console](https://drupalconsole.com)
-* [Composer](https://getcomposer.org)
+### Optional Php Tools
 * [Adminer](https://www.adminer.org)
 
-### Include Linux script to get and configure
-* [Opcache GUI](https://github.com/amnuts/opcache-gui)
-* [Pimp my Log](http://pimpmylog.com/)
-* [Phpmemcacheadmin](https://github.com/wp-cloud/phpmemcacheadmin)
-* [Xdebug GUI](https://github.com/splitbrain/xdebug-trace-tree)
-* [Adminer extended](https://github.com/dg/adminer-custom)
-
-## Quick launch new Drupal project
+## Quick launch new Drupal 8 project
 
 <pre>
 # Clone this project.
@@ -41,38 +31,79 @@ cd docker-drupal
 # Create your docker compose file from template.
 cp docker-compose.tpl.yml docker-compose.yml
 
-# Edit, remove or add services
+# (Optional) choose a db, remove or add services, add your composer cache folder
 vi docker-compose.yml
 
 # Create your config file from template.
 cp default.env .env
 
-# Edit your configuration and enable third party tools if needed
-# (Composer, Drush, Drupal console)
+# (Optional) edit your configuration if needed.
 vi .env
 
-# Check the config
+# Check the config and fix if needed
 docker-compose config
 
 # Launch the containers.
 docker-compose build && docker-compose up -d
+
+# Check logs to ensure startup is finished
+docker-compose logs
 </pre>
 
-## Linux host with bash
-Source drush script (see "section Using Drush with your web container")
-<pre>. scripts/start-drush.sh</pre>
-
-Download and install Drupal 7 with Apache and MySQL (when drush script sourced):
-
-(Change drupal-7 to drupal for last 8.x release)
+Access the stack dashboard on port 8181
 <pre>
-drush dl drupal-7 -y --destination=/www --drupal-project-rename
-drush si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --account-pass=password
+http://localhost:8181
 </pre>
 
-#### Go to your Drupal, login with admin/password:
+### Setup Drupal 8 with Composer
 
-* [http://localhost/drupal](http://localhost/drupal)
+Setup a new Drupal 8 based on a composer template (yes it's slower than with
+Drush but this is the good way!)
+Include Drush and Drupal console.
+
+<pre>
+docker exec -it -u apache ddd-apache \
+composer create-project drupal-composer/drupal-project:8.x-dev /www/drupal --stability dev --no-interaction
+</pre>
+
+### Install Drupal 8
+
+To use PostGresSQL change _mysql_ to _pgsql_
+
+<pre>
+docker exec -it -u apache ddd-apache /www/drupal/vendor/bin/drush -y si \
+--root=/www/drupal/web \
+--account-name=admin \
+--account-pass=password \
+--db-url=mysql://drupal:drupal@mysql/drupal
+</pre>
+
+#### Access your Drupal 8
+
+<pre>
+http://localhost
+# Login with admin/password
+http://localhost/user/login
+</pre>
+
+#### Add some modules
+
+<pre>
+docker exec -it -u apache ddd-apache \
+composer -d=/www/drupal require \
+drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
+</pre>
+
+### Enable some modules
+
+<pre>
+docker exec -it -u apache ddd-apache \
+/www/drupal/vendor/bin/drush -y en \
+--root=/www/drupal/web \
+admin_toolbar ctools ctools_block ctools_views panels token pathauto
+</pre>
+
+## Access services
 
 #### MySQL / PostgreSQL :
 * Database host (from apache  container):
@@ -80,16 +111,16 @@ drush si -y --db-url=mysql://drupal:drupal@mysql/drupal --account-name=admin --a
  * pgsql
 * database name / user / pass: drupal
 
-#### Solr core (from apache container):
-* [http://solr:8983/solr/drupal](http://solr:8983/solr/drupal)
+#### Solr :
+* [http://localhost:8983/solr/#/drupal](http://localhost:8983/solr/#/drupal)
 
-## Using Drush with your web container (If Drush is enable in your .env)
-
-An aliases file is available from data/drush, it contains a simple alias @d for the default Drupal in www/drupal.
-_Note_: Drush tables output is malformated when using alias, currently work best with --root=/www/drupal
-
-Using docker exec you can run a command directly in the container as apache user, for example:
-<pre>docker exec -it -u apache CONTAINER_NAME drush --root=/www/drupal status</pre>
+From the Apache container (Drupal config)
+* Hostname
+ * solr
+* Core
+ * drupal
+* port
+ * 8983
 
 ## Docker, Docker Compose basic usage
 
@@ -108,6 +139,12 @@ See data/logs for specific services logs.
 <pre>sudo rm -rf data/database data/logs data/www/drupal</pre>
 
 ## Suggested tools
+
+* [Opcache GUI](https://github.com/amnuts/opcache-gui)
+* [Pimp my Log](http://pimpmylog.com/)
+* [Phpmemcacheadmin](https://github.com/wp-cloud/phpmemcacheadmin)
+* [Xdebug GUI](https://github.com/splitbrain/xdebug-trace-tree)
+* [Adminer extended](https://github.com/dg/adminer-custom)
 
 You can find a script in scripts/get-tools.sh folder to download or update all tools.
 <pre>cd THIS_PROJECT</pre>

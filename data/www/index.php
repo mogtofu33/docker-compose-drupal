@@ -19,9 +19,9 @@
   // Define services.
   $services = array(
     'apache' => array('list' => FALSE, 'port' => getenv('APACHE_HOST_HTTP_PORT') . ' | ' . getenv('APACHE_HOST_HTTPS_PORT')),
-    'nginx' => array('list' => FALSE, 'port' => getenv('NGINX_HOST_HTTP_PORT') . ' | ' . getenv('NGINX_HOST_HTTPS_PORT')),
-    'phpfpm' => array('list' => FALSE, 'port' => '9000'),
-    'docker-ui' => array('list' => TRUE, 'port' => '9001', 'host_access' => TRUE),
+    // 'nginx' => array('list' => FALSE, 'port' => getenv('NGINX_HOST_HTTP_PORT') . ' | ' . getenv('NGINX_HOST_HTTPS_PORT')),
+    // 'phpfpm' => array('list' => FALSE, 'port' => '9000'),
+    // 'docker-ui' => array('list' => TRUE, 'port' => '9001', 'host_access' => TRUE),
     'mysql' => array('list' => TRUE, 'port' => '3306', 'guest_access' => TRUE),
     'pgsql' => array('list' => TRUE, 'port' => '5432', 'guest_access' => TRUE),
     'memcache' => array('list' => TRUE, 'port' => '11211', 'guest_access' => TRUE),
@@ -81,7 +81,7 @@
       <div class="col-md-12">
         <h4>
           <a href="https://github.com/Mogtofu33/docker-compose-drupal">Drupal Docker Compose</a>
-          <small>Docker full stack for easy Drupal dev.</small>
+          <small>Docker full stack for simple Drupal dev.</small>
         </h4>
         <p>
           <a type="button" class="btn btn-xs btn-primary" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal">

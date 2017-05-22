@@ -26,10 +26,11 @@
 version: '3'
 services:
   apache:
-    image: mogtofu33/apache-php:1.${PHP_VERSION:-7}
+    image: mogtofu33/apache-php:1.${PHP_VERSION:-7.0}
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
+      # Used for our minimal dashboard.
       - 8181:8181
     links:
       ## Choose database, uncomment service concerned below.
@@ -43,13 +44,18 @@ services:
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/www
       - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/apache2
-      - ./config/php${PHP_VERSION:-7}/conf.d:/etc/php/conf.d
-      - ./config/apache:/etc/apache2
+      - ./config/php/:/etc/php7/conf.d/
+      - ./config/apache/httpd.conf:/etc/apache2/httpd.conf
+      - ./config/apache/vhost.conf:/etc/apache2/vhost/vhost.conf
+      - ./config/apache/conf.d/:/etc/apache2/conf.d/
       ## Optional Drush alias file (or any other config)
-      - ./config/drush:/etc/drush
+      - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
+      ## If you have composer set locally, share cache to speed up.
+      # - $HOME/.composer/cache:/var/www/.composer/cache
     env_file: .env
     environment:
       - CONTAINER_NAME=apache
+    container_name: ddd-apache
     ## Remove to avoid starting on system reboot.
     restart: always
   mysql:
@@ -57,7 +63,7 @@ services:
     expose:
       - "3306"
     volumes:
-      # - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/mysql
+      - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/mysql
       ## Comment these two lines on Windows system, permissions issue.
       - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
       - ./config/mysql:/etc/mysql
@@ -100,9 +106,6 @@ services:
     image: redis:alpine
     expose:
       - "6379"
-    # Optional persistent data for Redis.
-    # volumes:
-    #   - ${HOST_DATA_REDIS:-./data/redis}:/data
     environment:
       - CONTAINER_NAME=redis
     ## Remove to avoid starting on system reboot.
@@ -153,15 +156,5 @@ services:
   #     - "8443:8443"
   #   environment:
   #     - CONTAINER_NAME=ldapadmin
-  #   ## Remove to avoid starting on system reboot.
-  #   restart: always
-  ## Optionnal Docker ui, uncomment to enable.
-  # docker-ui:
-  #   image: uifd/ui-for-docker:latest
-  #   ports:
-  #     - "9001:9000"
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   privileged: true
   #   ## Remove to avoid starting on system reboot.
   #   restart: always

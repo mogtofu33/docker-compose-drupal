@@ -42,7 +42,7 @@ else
   fi
 
   if [[ !$2 ]]; then
-    user="apache:apache"
+    user="apache:www-data"
   else
     user=$2
   fi
