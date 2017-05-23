@@ -4,8 +4,8 @@ vcl 4.0;
 import std;
 import directors;
 
-backend server1 {         # Define one backend
-  .host = "apache";       # IP or Hostname of backend
+backend server1 { # Define one backend
+  .host = "apache";    # IP or Hostname of backend
   .port = "80";           # Port Apache or whatever is listening
   .max_connections = 300; # That's it
 
@@ -68,6 +68,9 @@ sub vcl_recv {
   # Normalize the header, remove the port (in case you're testing this on various TCP ports)
   set req.http.Host = regsub(req.http.Host, ":[0-9]+", "");
 
+  # Remove the proxy header (see https://httpoxy.org/#mitigate-varnish)
+  unset req.http.proxy;
+
   # Normalize the query arguments
   set req.url = std.querysort(req.url);
 
@@ -91,7 +94,8 @@ sub vcl_recv {
       req.method != "PATCH" &&
       req.method != "DELETE") {
     /* Non-RFC2616 or CONNECT which is weird. */
-    return (pipe);
+    /*Why send the packet upstream, while the visitor is using a non-valid HTTP method? */
+    return(synth(404, "Non-valid HTTP method!"));
   }
 
   # Implementing websocket support (https://www.varnish-cache.org/docs/4.0/users-guide/vcl-example-websockets.html)
@@ -316,7 +320,12 @@ sub vcl_backend_response {
   if (bereq.url ~ "^[^?]*\.(7z|avi|bz2|flac|flv|gz|mka|mkv|mov|mp3|mp4|mpeg|mpg|ogg|ogm|opus|rar|tar|tgz|tbz|txz|wav|webm|xz|zip)(\?.*)?$") {
     unset beresp.http.set-cookie;
     set beresp.do_stream = true;  # Check memory usage it'll grow in fetch_chunksize blocks (128k by default) if the backend doesn't send a Content-Length header, so only enable it for big objects
-    set beresp.do_gzip   = false;   # Don't try to compress it for storage
+  }
+
+  # Disable buffering only for BigPipe responses
+  if (beresp.http.Surrogate-Control ~ "BigPipe/1.0") {
+    set beresp.do_stream = true;
+    set beresp.ttl = 0s;
   }
 
   # Sometimes, a 301 or 302 redirect formed via Apache's mod_rewrite can mess with the HTTP port that is being passed along.

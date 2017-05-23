@@ -1,4 +1,4 @@
-FROM mogtofu33/alpine-base:edge
+FROM mogtofu33/alpine-base:latest
 
 MAINTAINER moimog33@gmail.com
 
