@@ -32,25 +32,25 @@ cp $project_path/default.env $project_path/.env
 # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
 cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
 cd $project_path
-docker-compose up -d
+docker-compose build && docker-compose up -d
 
 # Set-up composer.
-if [ ! -f "/usr/local/bin/composer" ]; then
+if [ ! -f "/usr/bin/composer" ]; then
   echo "[setup::info] Set-up Composer and dependencies..."
   cd $HOME
   curl -sS https://getcomposer.org/installer | php -- --install-dir=$HOME --filename=composer
-  sudo mv $HOME/composer /usr/local/bin/composer
-  sudo chmod +x /usr/local/bin/composer
-  /usr/local/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
+  sudo mv $HOME/composer /usr/bin/composer
+  sudo chmod +x /usr/bin/composer
+  /usr/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
 else
   echo "[setup::info] Composer already here!"
   # Install dependencies just in case.
-  /usr/local/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
+  composer global require "hirak/prestissimo:^0.3" "drupal/coder"
 fi
 
 # Set-up Code sniffer.
 echo "[setup::info] Set-up Code sniffer and final steps..."
-$HOME/.config/composer/vendor/bin/phpcs --config-set installed_paths $HOME/.config/composer/vendor/drupal/coder/coder_sniffer
+phpcs --config-set installed_paths $HOME/.config/composer/vendor/drupal/coder/coder_sniffer
 
 # Check if containers are up...
 RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_apache 2> /dev/null)
@@ -62,7 +62,6 @@ fi
 
 # Add project variables to environment.
 cat <<EOT >> $HOME/.profile
-PATH=\$PATH:$HOME/.config/composer/vendor/bin
 # Docker stack variables.
 PROJECT_PATH="$project_path"
 PROJECT_ROOT="$project_path/data/www"
