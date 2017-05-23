@@ -111,17 +111,9 @@ services:
     ## Remove to avoid starting on system reboot.
     restart: always
   solr:
-    image: mogtofu33/solr:latest
-    # image: solr:6.5-alpine
+    build: ./build/solr-${SOLR_VERSION:-6}
     ports:
       - "8983:8983"
-    volumes:
-      - ./data/logs:/var/log/solr
-      # - ./config/solr/6.x:/opt/solr/server/solr/mycores/drupal/conf
-    # entrypoint:
-    #   - docker-entrypoint.sh
-    #   - solr-precreate
-    #   - drupal
     environment:
       - CONTAINER_NAME=solr
     ## Remove to avoid starting on system reboot.
@@ -130,7 +122,7 @@ services:
   #   build: ./build/varnish
   #   ports:
   #     - "${VARNISH_HOST_PORT:-8080}:80"
-  #     - "${VARNISH_HOST_TERMINAL_PORT:-6082}:6082"
+  #     - "6082:6082"
   #   links:
   #     - apache
   #   volumes:

@@ -244,27 +244,6 @@
 				"Log": ["\\/PHP Stack trace:\\/", "\\/PHP *[0-9]*\\. \\/"]
 			}
 		}
-	},
-	"solr": {
-		"display" : "Solr logs",
-		"path"    : "\/var\/log\/apache2\/solr.log",
-		"refresh" : 5,
-		"max"     : 10,
-		"notify"  : true,
-		"format"    : {
-			"regex"        : "@^(.*)-(.*)-(.*) (.*):(.*):(.*) (.*) \\((.*)\\) \\[(.*)\\] (.*)$@U",
-			"export_title" : "Logs",
-			"match"        : {
-				"Date"     : [ 1, "\/", 2, "\/", 3, " ", 4, ":", 5, ":", 6 ],
-				"Severity" : 7,
-				"Error"    : 10
-			},
-			"types"    : {
-				"Date"     : "date:d-m-Y H:i:s",
-				"Severity" : "txt",
-				"Error"    : "pre"
-			}
-		}
 	}
 	}
 }
