@@ -75,11 +75,11 @@ alias dk='docker'
 # Docker-compose
 alias dkc='docker-compose'
 # Check Drupal coding standards
-alias drcs="phpcs --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
+alias drcs="$HOME/.config/composer/vendor/bin/phpcs --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
 # Check Drupal best practices
-alias drcsbp="phpcs --standard=DrupalPractice --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt,md'"
+alias drcsbp="$HOME/.config/composer/vendor/bin/phpcs --standard=DrupalPractice --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt,md'"
 # Fix Drupal coding standards
-alias drcsfix="phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
+alias drcsfix="$HOME/.config/composer/vendor/bin/phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
 EOT
 
 # Add cmd in container bin for use with ssh.
