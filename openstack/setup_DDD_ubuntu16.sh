@@ -45,12 +45,12 @@ if [ ! -f "/usr/bin/composer" ]; then
 else
   echo "[setup::info] Composer already here!"
   # Install dependencies just in case.
-  composer global require "hirak/prestissimo:^0.3" "drupal/coder"
+  /usr/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
 fi
 
 # Set-up Code sniffer.
 echo "[setup::info] Set-up Code sniffer and final steps..."
-phpcs --config-set installed_paths $HOME/.config/composer/vendor/drupal/coder/coder_sniffer
+$HOME/.config/composer/vendor/bin/phpcs --config-set installed_paths $HOME/.config/composer/vendor/drupal/coder/coder_sniffer
 
 # Check if containers are up...
 RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_apache 2> /dev/null)
