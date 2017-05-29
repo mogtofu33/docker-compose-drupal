@@ -281,7 +281,7 @@
             </tr>
             <tr>
               <th>Webserver</th>
-              <td><code><?php (!empty($_SERVER['SERVER_SOFTWARE']))  ? print $_SERVER['SERVER_SOFTWARE'] : print ucfirst($server); ?></cite></td>
+              <td><code><?php (!empty($_SERVER['SERVER_SOFTWARE']))  ? print $_SERVER['SERVER_SOFTWARE'] : print ucfirst($server); ?></code></td>
             </tr>
             <tr>
               <th>Memory limit</th>
