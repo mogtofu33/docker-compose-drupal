@@ -1,67 +1,5 @@
 <?php
-  // Variables
-  $ip = $_SERVER['SERVER_ADDR'];
-  $server = getenv('CONTAINER_NAME');
-  $host = getenv('SERVER_NAME');
-  $port = getenv('SERVER_PORT');
-  $host_root = getenv('HOST_WEB_ROOT');
-  $container_root = getenv('DOCUMENT_ROOT');
-  if ($port != '80') {
-    $web_host = $host . ':' . $port;
-  }
-  else {
-    $web_host = $host;
-  }
-  // Get tools from folder.
-  $tools = array_diff(scandir($container_root . '/TOOLS'), array('..', '.', 'scripts'));
-  // Get current folders exept drupal and tools.
-  $folders = array_diff(scandir($container_root), array('..', '.', '.htaccess', 'index.php', 'TOOLS'));
-  // Define services.
-  $services = array(
-    'apache' => array('list' => FALSE, 'port' => getenv('APACHE_HOST_HTTP_PORT') . ' | ' . getenv('APACHE_HOST_HTTPS_PORT')),
-    // 'nginx' => array('list' => FALSE, 'port' => getenv('NGINX_HOST_HTTP_PORT') . ' | ' . getenv('NGINX_HOST_HTTPS_PORT')),
-    // 'phpfpm' => array('list' => FALSE, 'port' => '9000'),
-    // 'docker-ui' => array('list' => TRUE, 'port' => '9001', 'host_access' => TRUE),
-    'mysql' => array('list' => TRUE, 'port' => '3306', 'guest_access' => TRUE),
-    'pgsql' => array('list' => TRUE, 'port' => '5432', 'guest_access' => TRUE),
-    'memcache' => array('list' => TRUE, 'port' => '11211', 'guest_access' => TRUE),
-    'redis' => array('list' => TRUE, 'port' => '6379', 'guest_access' => TRUE),
-    'solr' => array('list' => TRUE, 'port' => '8983', 'path' => '/solr/drupal', 'guest_access' => TRUE, 'host_access' => TRUE),
-    'mailhog' => array('list' => TRUE, 'port' => '8025', 'host_access' => TRUE),
-    'varnish' => array('list' => TRUE, 'port' => getenv('VARNISH_HOST_PORT')),
-    'ldap' => array(
-      'list' => TRUE,
-      'port' => getenv('LDAP_HOST_PORT'),
-      'extra' => 'Ldap Hostname: <code>http://ldap:389</code><br>
-                  login: <code>cn=admin,dc=example,dc=org</code><br>
-                  pass: <code>admin</code><br>
-                  <a href="https://github.com/osixia/docker-openldap#environment-variables">More ldap info on GitHub project.</a>',
-      'guest_access' => TRUE,
-      'host_access' => TRUE,
-    ),
-    'ldapadmin' => array('list' => TRUE, 'port' => getenv('PHPLDAPADMIN_HOST_PORT'), 'host_access' => TRUE),
-  );
-
-  // Handle ajax request for ip and hostname.
-  if (isset($_REQUEST['get_infos'])) {
-    if (isset($services[$_REQUEST['get_infos']])) {
-      print json_encode(get_infos($_REQUEST['get_infos'], $services[$_REQUEST['get_infos']]));
-    }
-    else {
-      print null;
-    }
-    exit;
-  }
-  function get_infos($id, $service) {
-    $ip = gethostbyname($id);
-    if ($ip != $id) {
-      $hostname = gethostbyaddr($ip);
-      $hostname = explode('.', $hostname);
-      $hostname = $hostname[0];
-      $service += array('ip' => $ip) + array('hostname' => $hostname);
-      return $service;
-    }
-  }
+require_once __DIR__.'/src/app.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -97,47 +35,54 @@
       </div>
     </div>
 
+    <?php if ($message): ?>
+      <div class="alert alert-<?php print $message['type']; ?> alert-dismissible fade in" role="alert"> <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button><?php print $message['text']; ?></div>
+    <?php endif; ?>
+
     <div class="row">
       <div class="col-md-7">
-
         <section class="panel panel-default">
-          <div class="panel-heading">Your sites</div>
-          <table class="table table-condensed table-hover">
-            <thead>
-              <tr>
-                <th>Source</th>
-                <th>Document Root</th>
-                <th>Container document Root</th>
-            </thead>
-            <tbody>
-              <?php foreach ($folders AS $folder): ?>
-                <tr>
-                  <td><a href="http://<?php print $web_host . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
-                  <td><code><?php print str_replace('./', '', $host_root) . '/' . $folder; ?></code></td>
-                  <td><code class="copy"><?php print $container_root . '/' . $folder; ?></code></td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="panel panel-default">
-          <div class="panel-heading">Containers running</div>
+          <div class="panel-heading">Containers</div>
           <table class="table table-condensed table-hover">
             <thead>
               <tr>
                 <th></th>
-                <th>IP</th>
-                <th>Service port</th>
-                <th>Container name/id</th>
+                <th>Port(s)<br><small>(Internal | Public)</small></th>
+                <th>Container name</th>
+                <th>Status</th>
+                <th>Details</th>
+                <th>Actions</th>
             </thead>
             <tbody>
-            <?php foreach ($services AS $id => $service): ?>
-              <tr class="hidden <?php print $id; ?>">
-                <th><?php print ucfirst($id); ?></th>
-                <td class="ip"></td>
-                <td><?php print $service['port']; ?></td>
-                <td class="hostname"></td>
+            <?php foreach ($containers_list AS $container): ?>
+              <tr class="<?php print $container['id']; ?>">
+                <th><?php print $container['service']; ?></th>
+                <td>
+                  <table>
+                  <?php foreach ($container['ports'] AS $port): ?>
+                  <tr>
+                    <td>
+                      <?php print $port[0]; if (isset($port[1])): print ' | ' . $port[1];  endif; ?>
+                    </td>
+                  </tr>
+                  <?php endforeach; ?>
+                  </table>
+                </td>
+                <td><code class="copy"><?php print $container['name']; ?></code></td>
+                <td><?php print $container['state']; ?></td>
+                <td>
+                  <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="log" data-container="<?php print $container['id']; ?>">Logs</button>
+                  <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="top" data-container="<?php print $container['id']; ?>">Top</button>
+                </td>
+                <td>
+                  <?php if ($container['state'] == 'Running'): ?>
+                  <form method="post">
+                  <input type="hidden" name="id" value="<?php print $container['id'] ?>">
+                  <input type="hidden" name="action" value="restart">
+                  <input type="submit" class="btn btn-info btn-xs" value="Restart">
+                 </form>
+                <?php endif; ?>
+                </td>
               </tr>
             <?php endforeach; ?>
           </table>
@@ -153,28 +98,31 @@
                 <th>Container access</th>
             </thead>
             <tbody>
-            <?php foreach ($services AS $id => $service): ?>
-              <?php if ($service['list']): ?>
-                <tr class="hidden <?php print $id; ?>">
-                  <th><?php print ucfirst($id); ?></th>
+            <?php foreach ($containers_list AS $service): ?>
+              <?php if (!in_array($service['service'], $services_to_hide)): ?>
+                <tr class="<?php print $service['id']; ?>">
+                  <th><?php print $service['service']; ?></th>
                   <td>
-                    <?php if (isset($service['host_access'])): ?>
-                    <a href="http://<?php print $host . ':' . $service['port']; ?>">http://<?php print $host . ':' . $service['port']; ?></a>
+                    <?php if ($service['is_public']): ?>
+                      <table>
+                      <?php foreach ($service['ports'] AS $port): ?>
+                        <?php if (isset($port[1])): ?>
+                          <tr><td><a href="http://<?php print $host . ':' . $port[1]; ?>">http://<?php print $host . ':' . $port[1]; ?></a></td></tr>
+                        <?php endif; ?>
+                      <?php endforeach; ?>
+                      </table>
                     <?php else: ?>
                     Container only
                     <?php endif; ?>
                   </td>
                   <td>
-                    <?php if (isset($service['guest_access'])): ?>
-                    <?php print $id . ':' . $service['port']; ?><?php isset($service['path']) ? print $service['path'] : ''; ?>
-                    <?php else: ?>
-                    Host only
-                    <?php endif; ?>
+                    <table>
+                    <?php foreach ($service['ports'] AS $port): ?>
+                      <tr><td><?php print $service['service_raw'] . ':' . $port[0]; ?></td></tr>
+                    <?php endforeach; ?>
+                    </table>
                     </td>
                 </tr>
-                <?php if (isset($service['extra'])): ?>
-                <tr class="hidden <?php print $id; ?>"><td colspan="3"><?php print $service['extra']; ?></td></tr>
-                <?php endif; ?>
               <?php endif; ?>
             <?php endforeach; ?>
             </tbody>
@@ -192,14 +140,33 @@
               <tr>
                 <th><?php print ucfirst($tool); ?></th>
                 <td class="text-center">
-                  <a href="http://<?php print $web_host . '/TOOLS/' . $tool; ?>" class="btn btn-info btn-xs" role="button">Access</a>
+                  <a href="http://<?php print $dashboard_host . '/TOOLS/' . $tool; ?>" class="btn btn-info btn-xs" role="button">Access</a>
                 </td>
               </tr>
             <?php endforeach; ?>
           </table>
         </section>
 
-        <section class="mysql hidden panel panel-default">
+        <section class="panel panel-default">
+          <div class="panel-heading">Your sites</div>
+          <table class="table table-condensed table-hover">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Document Root</th>
+            </thead>
+            <tbody>
+              <?php foreach ($folders AS $folder): ?>
+                <tr>
+                  <td><a href="http://<?php print $web_host . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
+                  <td><code><?php print str_replace('./', '', $host_root) . '/' . $folder; ?></code></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="mysql panel panel-default">
           <div class="panel-heading">MySQL connection information</div>
           <table class="table table-condensed table-hover">
             <tr>
@@ -229,12 +196,12 @@
           </table>
           <?php if (in_array('adminer.php', $tools)): ?>
           <div class="panel-footer">
-            <a href="http://<?php print $web_host . '/TOOLS/adminer.php'; ?>?server=mysql&username=<?php print getenv('MYSQL_USER'); ?>&db=<?php print getenv('MYSQL_DATABASE'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+            <a href="http://<?php print $dashboard_host . '/TOOLS/adminer.php'; ?>?server=mysql&username=<?php print getenv('MYSQL_USER'); ?>&db=<?php print getenv('MYSQL_DATABASE'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
           </div>
           <?php endif; ?>
         </section>
 
-        <section class="pgsql hidden panel panel-default">
+        <section class="pgsql panel panel-default">
           <div class="panel-heading">PostgreSQL connection information</div>
           <table class="table table-condensed table-hover">
             <tr>
@@ -260,7 +227,7 @@
           </table>
           <?php if (in_array('adminer.php', $tools)): ?>
           <div class="panel-footer">
-            <a href="http://<?php print $web_host . '/TOOLS/adminer.php'; ?>?pgsql=pgsql&username=<?php print getenv('POSTGRES_USER'); ?>&db=<?php print getenv('POSTGRES_DB'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+            <a href="http://<?php print $dashboard_host . '/TOOLS/adminer.php'; ?>?pgsql=pgsql&username=<?php print getenv('POSTGRES_USER'); ?>&db=<?php print getenv('POSTGRES_DB'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
           </div>
           <?php endif; ?>
         </section>
@@ -322,10 +289,29 @@
   </div>
   <!-- /.container -->
 
+  <!-- Modal -->
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <!-- <h4 class="modal-title" id="myModalLabel"></h4> -->
+        </div>
+        <div class="modal-body"></div>
+      </div>
+    </div>
+  </div>
+  <!-- /.Modal -->
+
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <!-- jQuery -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/clipboard.js/1.6.1/clipboard.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  <!-- Custom script -->
+  <!-- <script src="js/app.js"></script> -->
 
   <script>
   jQuery( document ).ready(function( $ ) {
@@ -339,18 +325,36 @@
       $(e.trigger).next('.label').delay(2000).fadeOut('slow');
       e.clearSelection();
     });
-    // Services async grabber.
-    var services = <?php echo json_encode($services); ?>;
-    $.each(services, function( index, value ) {
-      $.get("/index.php", { get_infos: index }, function(data) {
+
+    // Modal actions.
+    $('#myModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget);
+      var id = button.data('container');
+      var action = button.data('action');
+
+      var modal = $(this);
+      if (action == 'log' || action == 'top') {
+        modal.find('.modal-title').text('Logs for ' + id);
+        $.get("/index.php", { action : action, id: id }, function(data) {
+          if (data != "null") {
+            result = $.parseJSON(data);
+            modal.find('.modal-body').html('<pre>' + result + '</pre>');
+          }
+        });
+      }
+    });
+
+    // Other actions.
+    $('.action').on('click', function () {
+      var id = $(this).data('container');
+      var action = $(this).data('action');
+      $.get("/index.php", { action : action, id: id }, function(data) {
         if (data != "null") {
           result = $.parseJSON(data);
-          $('.' + index).removeClass("hidden");
-          $('.' + index + ' .ip').html(result["ip"]);
-          $('.' + index + ' .hostname').html('<code class="copy">' + result["hostname"] + '</code><button class="copy btn btn-xs" data-clipboard-text="' + result["hostname"] + '"><span class="glyphicon glyphicon-copy"></span></button>');
         }
       });
     });
+
   });
   </script>
 </body>

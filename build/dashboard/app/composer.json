@@ -1,0 +1,14 @@
+{
+    "name": "mogtofu33/docker-minimal-dashboard",
+    "description": "A minimal Php docker dashboard for Docker Compose Drupal.",
+    "license": "MIT",
+    "type": "project",
+    "require": {
+        "php": ">=5.5.9",
+        "docker-php/docker-php": "^1.24",
+        "symfony/var-dumper": "^3.3"
+    },
+    "autoload": {
+        "psr-0": { "": "src/" }
+    }
+}

@@ -30,8 +30,6 @@ services:
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
-      # Used for our minimal dashboard.
-      - 8181:8181
     links:
       ## Choose database, uncomment service concerned below.
       - mysql
@@ -53,8 +51,6 @@ services:
       ## If you have composer set locally, share cache to speed up.
       # - $HOME/.composer/cache:/var/www/.composer/cache
     env_file: .env
-    environment:
-      - CONTAINER_NAME=apache
     container_name: ddd-apache
     ## Remove to avoid starting on system reboot.
     restart: always
@@ -68,8 +64,6 @@ services:
       - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
       - ./config/mysql:/etc/mysql
     env_file: .env
-    environment:
-      - CONTAINER_NAME=mysql
     ## Remove to avoid starting on system reboot.
     restart: always
   pgsql:
@@ -80,8 +74,6 @@ services:
     volumes:
       - ${HOST_DATABASE_POSTGRES:-./data/database/pgsql}:/var/lib/postgresql/data
     env_file: .env
-    environment:
-      - CONTAINER_NAME=pgsql
     ## Remove to avoid starting on system reboot.
     restart: always
   mailhog:
@@ -90,24 +82,18 @@ services:
       - "1025"
     ports:
       - "8025:8025"
-    environment:
-      - CONTAINER_NAME=mailhog
     ## Remove to avoid starting on system reboot.
     restart: always
   memcache:
     image: memcached:alpine
     expose:
       - "11211"
-    environment:
-      - CONTAINER_NAME=memcache
     ## Remove to avoid starting on system reboot.
     restart: always
   redis:
     image: redis:alpine
     expose:
       - "6379"
-    environment:
-      - CONTAINER_NAME=redis
     ## Remove to avoid starting on system reboot.
     restart: always
   solr:
@@ -115,7 +101,7 @@ services:
     ports:
       - "8983:8983"
     environment:
-      - CONTAINER_NAME=solr
+      - EXTRA_ACCESS="/solr/drupal"
     ## Remove to avoid starting on system reboot.
     restart: always
   # varnish:
@@ -128,16 +114,12 @@ services:
   #   volumes:
   #     - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/varnish
   #   env_file: .env
-  #   environment:
-  #     - CONTAINER_NAME=varnish
   #   ## Remove to avoid starting on system reboot.
   #   restart: always
   # ldap:
   #   image: osixia/openldap:latest
   #   ports:
   #     - "389:389"
-  #   environment:
-  #     - CONTAINER_NAME=ldap
   #   ## Remove to avoid starting on system reboot.
   #   restart: always
   # ldapadmin:
@@ -146,7 +128,14 @@ services:
   #     - ldap
   #   ports:
   #     - "8443:8443"
-  #   environment:
-  #     - CONTAINER_NAME=ldapadmin
   #   ## Remove to avoid starting on system reboot.
   #   restart: always
+  dashboard:
+    build: ./build/dashboard
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./build/dashboard/src:/var/www/html
+      - ${HOST_WEB_ROOT:-./data/www}:/www
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file: .env
