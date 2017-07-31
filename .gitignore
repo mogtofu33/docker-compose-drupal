@@ -2,11 +2,9 @@
 docker-compose.yml
 .env
 # ignore static files
-data/database
-data/logs
-data/www/drupal*
-data/www/TOOLS/*/
-data/www/TOOLS/adminer.sql*
+data/*
+build/dashboard/app/vendor
+build/dashboard/src/third_party_tools
 # ignore tmp or specific files
 tmp*
 myscripts*
