@@ -7,21 +7,19 @@ $app = new App();
 
 // Handle POST/GET requests.
 if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
-  echo $app->processAction($_REQUEST['action'], $_REQUEST['id']);
+  echo $app->processAction($_REQUEST['action'], $_REQUEST['id'], $_REQUEST);
   exit;
 }
 // dump($app);
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Drupal Docker Compose - Dev stack</title>
 </head>
-
 <body>
   <!-- Page Content -->
   <div class="container-fluid">
@@ -61,8 +59,8 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                 <th></th>
                 <th>Port(s)<br><small>(Internal | Public)</small></th>
                 <th>Container name</th>
+                <th>Container IP</th>
                 <th>Details</th>
-                <!-- <th>Status</th> -->
                 <th>Actions</th>
             </thead>
             <tbody>
@@ -74,18 +72,18 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                   <?php foreach ($container['ports'] AS $port): ?>
                   <tr>
                     <td>
-                      <?php print $port['public']; if (isset($port['private'])): print ' | ' . $port['private'];  endif; ?>
+                      <?php print $port['private']; if (isset($port['public'])): print ' > ' . $port['public'];  endif; ?>
                     </td>
                   </tr>
                   <?php endforeach; ?>
                   </table>
                 </td>
                 <td><code class="copy"><?php print $container['name']; ?></code></td>
+                <td><code class="copy"><?php print $container['ip']; ?></code></td>
                 <td>
                   <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="logs" data-container="<?php print $container['id']; ?>">Logs</button>
                   <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="top" data-container="<?php print $container['id']; ?>">Top</button>
                 </td>
-                <!-- <td class="state <?php print $container['state_raw']; ?>"><?php print $container['state']; ?></td> -->
                 <td>
                   <?php if ($container['state_raw'] == 'running'): ?>
                  <button type="button" data-loading-text="Restarting..." class="btn btn-primary btn-xs action" autocomplete="off" data-container="<?php print $container['id'] ?>" data-action="restart">
@@ -117,7 +115,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                       <table>
                       <?php foreach ($container['ports'] AS $port): ?>
                         <?php if (isset($port['public'])): ?>
-                          <tr><td><a href="http://<?php print $app->host['host'] . ':' . $port['public']; ?>">http://<?php print $app->host['host'] . ':' . $port['public']; ?></a></td></tr>
+                          <tr><td><a href="http://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?>">http://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?></a></td></tr>
                         <?php endif; ?>
                       <?php endforeach; ?>
                       </table>
@@ -146,11 +144,11 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
         <section class="panel panel-default">
           <div class="panel-heading">Development tools</div>
           <table class="table table-condensed table-hover">
-            <?php foreach ($app->tools AS $tool): ?>
+            <?php foreach ($app->vars['tools'] AS $tool): ?>
               <tr>
                 <th><?php print str_replace('.php', '', ucfirst($tool)); ?></th>
                 <td class="text-center">
-                  <a href="http://<?php print $app->host['tools'] . $tool; ?>" class="btn btn-info btn-xs" role="button">Access</a>
+                  <a href="http://<?php print $app->vars['dashboard']['tools'] . $tool; ?>" class="btn btn-info btn-xs" role="button">Access</a>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -166,10 +164,10 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                 <th>Document Root</th>
             </thead>
             <tbody>
-              <?php foreach ($app->folders AS $folder): ?>
+              <?php foreach ($app->vars['folders'] AS $folder): ?>
                 <tr>
-                  <td><a href="http://<?php print $app->web_host['full'] . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
-                  <td><code><?php print str_replace('./', '', $app->container_root) . '/' . $folder; ?></code></td>
+                  <td><a href="http://<?php print $app->vars['apache']['full'] . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
+                  <td><code><?php print str_replace('./', '', $app->vars['dashboard']['root']) . '/' . $folder; ?></code></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
@@ -192,7 +190,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <tr>
               <th>Port</th>
               <td><code class="copy"><?php print $container['ports'][0]['private']; ?></code></td>
-            <?php foreach ($app->db_services_env[$service] AS $env => $value): ?>
+            <?php foreach ($app->vars['db_services_env'][$service] AS $env => $value): ?>
             </tr>
               <?php if (getenv($env)): ?>
                 <tr>
@@ -203,7 +201,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <?php endforeach; ?>
           </table>
           <div class="panel-footer">
-            <a href="http://<?php print $app->host['tools'] . 'adminer.php'; ?>?server=<?php print $service; ?>&username=<?php print $app->db_services_env[$service]['username']; ?>&db=<?php print $app->db_services_env[$service]['db']; ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+            <a href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?server=<?php print $service; ?>&username=<?php print $app->vars['db_services_env'][$service]['username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['db']; ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
           </div>
         </section>
         <?php endif; ?>
@@ -211,7 +209,6 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
         <section class="panel panel-default">
           <div class="panel-heading">PHP information</div>
-          <?php $php_info = $app->getPhpInfo(); ?>
           <table class="table table-condensed table-hover">
             <tr>
               <th>PHP Version</th>
@@ -220,10 +217,11 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <tr>
               <th>PHP ini</th>
               <td>
-                <code>config/php<?php print getenv('PHP_VERSION'); ?>/php.ini</code>
+                <code>config/php/php.ini</code>
                 <small>Need to restart apache if edited.</small>
               </td>
             </tr>
+            <?php $php_info = $app->getPhpInfo(); ?>
             <?php foreach ($php_info AS $label => $value): ?>
               <tr>
                 <th><?php print $label; ?></th>
@@ -244,16 +242,6 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
       </div>
     </div>
-    <hr>
-    <!-- Footer -->
-    <footer>
-        <div class="row">
-            <div class="col-lg-12">
-              <a type="button" class="btn btn-xs btn-info" href="http://<?php print $app->web_host['full']; ?>/server-status">Server status</a> <a type="button" class="btn btn-xs btn-info" href="http://<?php print $app->web_host['full']; ?>/server-info">server info</a>
-            </div>
-        </div>
-    </footer>
-    <hr>
   </div>
   <!-- /.container -->
 
@@ -281,5 +269,4 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
   <!-- Custom script -->
   <script src="js/app.js"></script>
 </body>
-
 </html>
