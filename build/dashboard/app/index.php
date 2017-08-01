@@ -1,5 +1,16 @@
 <?php
-require_once __DIR__.'/src/app.php';
+// ini_set('display_errors', 0);
+require_once __DIR__.'/vendor/autoload.php';
+
+use Dashboard\App;
+$app = new App();
+
+// Handle POST/GET requests.
+if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
+  echo $app->processAction($_REQUEST['action'], $_REQUEST['id']);
+  exit;
+}
+// dump($app);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,26 +46,27 @@ require_once __DIR__.'/src/app.php';
       </div>
     </div>
 
-    <?php if ($message): ?>
-      <div class="alert alert-<?php print $message['type']; ?> alert-dismissible fade in" role="alert"> <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button><?php print $message['text']; ?></div>
-    <?php endif; ?>
+    <div class="alert alert-success alert-dismissible fade in" role="alert" id="message" style="display:none;">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+      <div class="message"></div>
+    </div>
 
     <div class="row">
       <div class="col-md-7">
         <section class="panel panel-default">
-          <div class="panel-heading">Containers</div>
+          <div class="panel-heading">Containers running</div>
           <table class="table table-condensed table-hover">
             <thead>
               <tr>
                 <th></th>
                 <th>Port(s)<br><small>(Internal | Public)</small></th>
                 <th>Container name</th>
-                <th>Status</th>
                 <th>Details</th>
+                <!-- <th>Status</th> -->
                 <th>Actions</th>
             </thead>
             <tbody>
-            <?php foreach ($containers_list AS $container): ?>
+            <?php foreach ($app->containers AS $container): ?>
               <tr class="<?php print $container['id']; ?>">
                 <th><?php print $container['service']; ?></th>
                 <td>
@@ -62,25 +74,23 @@ require_once __DIR__.'/src/app.php';
                   <?php foreach ($container['ports'] AS $port): ?>
                   <tr>
                     <td>
-                      <?php print $port[0]; if (isset($port[1])): print ' | ' . $port[1];  endif; ?>
+                      <?php print $port['public']; if (isset($port['private'])): print ' | ' . $port['private'];  endif; ?>
                     </td>
                   </tr>
                   <?php endforeach; ?>
                   </table>
                 </td>
                 <td><code class="copy"><?php print $container['name']; ?></code></td>
-                <td><?php print $container['state']; ?></td>
                 <td>
-                  <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="log" data-container="<?php print $container['id']; ?>">Logs</button>
+                  <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="logs" data-container="<?php print $container['id']; ?>">Logs</button>
                   <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="top" data-container="<?php print $container['id']; ?>">Top</button>
                 </td>
+                <!-- <td class="state <?php print $container['state_raw']; ?>"><?php print $container['state']; ?></td> -->
                 <td>
-                  <?php if ($container['state'] == 'Running'): ?>
-                  <form method="post">
-                  <input type="hidden" name="id" value="<?php print $container['id'] ?>">
-                  <input type="hidden" name="action" value="restart">
-                  <input type="submit" class="btn btn-info btn-xs" value="Restart">
-                 </form>
+                  <?php if ($container['state_raw'] == 'running'): ?>
+                 <button type="button" data-loading-text="Restarting..." class="btn btn-primary btn-xs action" autocomplete="off" data-container="<?php print $container['id'] ?>" data-action="restart">
+                  Restart
+                 </button>
                 <?php endif; ?>
                 </td>
               </tr>
@@ -98,16 +108,16 @@ require_once __DIR__.'/src/app.php';
                 <th>Container access</th>
             </thead>
             <tbody>
-            <?php foreach ($containers_list AS $service): ?>
-              <?php if (!in_array($service['service'], $services_to_hide)): ?>
-                <tr class="<?php print $service['id']; ?>">
-                  <th><?php print $service['service']; ?></th>
+            <?php foreach ($app->containers AS $service => $container): ?>
+              <?php if (!in_array($service, $app::$services_to_hide)): ?>
+                <tr class="<?php print $container['id']; ?>">
+                  <th><?php print $container['service']; ?></th>
                   <td>
-                    <?php if ($service['is_public']): ?>
+                    <?php if ($container['is_public']): ?>
                       <table>
-                      <?php foreach ($service['ports'] AS $port): ?>
-                        <?php if (isset($port[1])): ?>
-                          <tr><td><a href="http://<?php print $host . ':' . $port[1]; ?>">http://<?php print $host . ':' . $port[1]; ?></a></td></tr>
+                      <?php foreach ($container['ports'] AS $port): ?>
+                        <?php if (isset($port['public'])): ?>
+                          <tr><td><a href="http://<?php print $app->host['host'] . ':' . $port['public']; ?>">http://<?php print $app->host['host'] . ':' . $port['public']; ?></a></td></tr>
                         <?php endif; ?>
                       <?php endforeach; ?>
                       </table>
@@ -117,8 +127,8 @@ require_once __DIR__.'/src/app.php';
                   </td>
                   <td>
                     <table>
-                    <?php foreach ($service['ports'] AS $port): ?>
-                      <tr><td><?php print $service['service_raw'] . ':' . $port[0]; ?></td></tr>
+                    <?php foreach ($container['ports'] AS $port): ?>
+                      <tr><td><?php print $service . ':' . $port['private']; ?></td></tr>
                     <?php endforeach; ?>
                     </table>
                     </td>
@@ -136,11 +146,11 @@ require_once __DIR__.'/src/app.php';
         <section class="panel panel-default">
           <div class="panel-heading">Development tools</div>
           <table class="table table-condensed table-hover">
-            <?php foreach ($tools AS $tool): ?>
+            <?php foreach ($app->tools AS $tool): ?>
               <tr>
-                <th><?php print ucfirst($tool); ?></th>
+                <th><?php print str_replace('.php', '', ucfirst($tool)); ?></th>
                 <td class="text-center">
-                  <a href="http://<?php print $dashboard_host . '/TOOLS/' . $tool; ?>" class="btn btn-info btn-xs" role="button">Access</a>
+                  <a href="http://<?php print $app->host['tools'] . $tool; ?>" class="btn btn-info btn-xs" role="button">Access</a>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -156,122 +166,80 @@ require_once __DIR__.'/src/app.php';
                 <th>Document Root</th>
             </thead>
             <tbody>
-              <?php foreach ($folders AS $folder): ?>
+              <?php foreach ($app->folders AS $folder): ?>
                 <tr>
-                  <td><a href="http://<?php print $web_host . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
-                  <td><code><?php print str_replace('./', '', $host_root) . '/' . $folder; ?></code></td>
+                  <td><a href="http://<?php print $app->web_host['full'] . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
+                  <td><code><?php print str_replace('./', '', $app->container_root) . '/' . $folder; ?></code></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
           </table>
         </section>
 
-        <section class="mysql panel panel-default">
-          <div class="panel-heading">MySQL connection information</div>
+        <?php foreach ($app->containers AS $service => $container): ?>
+        <?php if (in_array($service, array_keys($app::$db_services))): ?>
+        <section class="panel panel-default">
+          <div class="panel-heading"><strong><?php print ucfirst($service); ?></strong> connection information</div>
           <table class="table table-condensed table-hover">
             <tr>
-              <th>MySQL Hostname</th>
-              <td><code>mysql</code></td>
+              <th>Hostname</th>
+              <td><code><?php print $service; ?></code></td>
             </tr>
             <tr>
-              <th>MySQL Port</th>
-              <td><code class="copy">3306</code></td>
+              <th>Docker Ip</th>
+              <td><code><?php print $container['ip']; ?></code></td>
             </tr>
             <tr>
-              <th>MySQL Database</th>
-              <td><code class="copy"><?php print getenv('MYSQL_DATABASE'); ?></code></td>
+              <th>Port</th>
+              <td><code class="copy"><?php print $container['ports'][0]['private']; ?></code></td>
+            <?php foreach ($app->db_services_env[$service] AS $env => $value): ?>
             </tr>
-            <tr>
-              <th>MySQL Username</th>
-              <td><code class="copy"><?php print getenv('MYSQL_USER'); ?></code></td>
-            </tr>
-            <tr>
-              <th>MySQL Password</th>
-              <td><code class="copy"><?php print getenv('MYSQL_PASSWORD'); ?></code></td>
-            </tr>
-            <tr>
-              <th>MySQL ROOT Password</th>
-              <td><code class="copy"><?php print getenv('MYSQL_ROOT_PASSWORD'); ?></code></td>
-            </tr>
+              <?php if (getenv($env)): ?>
+                <tr>
+                  <th><?php print $env; ?></th>
+                  <td><code class="copy"><?php print $value; ?></code></td>
+                </tr>
+              <?php endif; ?>
+            <?php endforeach; ?>
           </table>
-          <?php if (in_array('adminer.php', $tools)): ?>
           <div class="panel-footer">
-            <a href="http://<?php print $dashboard_host . '/TOOLS/adminer.php'; ?>?server=mysql&username=<?php print getenv('MYSQL_USER'); ?>&db=<?php print getenv('MYSQL_DATABASE'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+            <a href="http://<?php print $app->host['tools'] . 'adminer.php'; ?>?server=<?php print $service; ?>&username=<?php print $app->db_services_env[$service]['username']; ?>&db=<?php print $app->db_services_env[$service]['db']; ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
           </div>
-          <?php endif; ?>
         </section>
-
-        <section class="pgsql panel panel-default">
-          <div class="panel-heading">PostgreSQL connection information</div>
-          <table class="table table-condensed table-hover">
-            <tr>
-              <th>PostgreSQL Hostname</th>
-              <td><code class="copy">pgsql</code></td>
-            </tr>
-            <tr>
-              <th>PostgreSQL Port</th>
-              <td><code class="copy">3306</code></td>
-            </tr>
-            <tr>
-              <th>PostgreSQL Database</th>
-              <td><code class="copy"><?php print getenv('POSTGRES_DB'); ?></code></td>
-            </tr>
-            <tr>
-              <th>PostgreSQL Username</th>
-              <td><code class="copy"><?php print getenv('POSTGRES_USER'); ?></code></td>
-            </tr>
-            <tr>
-              <th>PostgreSQL Password</th>
-              <td><code class="copy"><?php print getenv('POSTGRES_PASSWORD'); ?></code></td>
-            </tr>
-          </table>
-          <?php if (in_array('adminer.php', $tools)): ?>
-          <div class="panel-footer">
-            <a href="http://<?php print $dashboard_host . '/TOOLS/adminer.php'; ?>?pgsql=pgsql&username=<?php print getenv('POSTGRES_USER'); ?>&db=<?php print getenv('POSTGRES_DB'); ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
-          </div>
-          <?php endif; ?>
-        </section>
+        <?php endif; ?>
+        <?php endforeach; ?>
 
         <section class="panel panel-default">
           <div class="panel-heading">PHP information</div>
+          <?php $php_info = $app->getPhpInfo(); ?>
           <table class="table table-condensed table-hover">
             <tr>
               <th>PHP Version</th>
-              <td><code><?php print phpversion(); ?></code></td>
+              <td><code><?php print $app->getPhpVersion(); ?></code></td>
             </tr>
             <tr>
               <th>PHP ini</th>
               <td>
-                <code>config/php<?php print getenv('PHP_VERSION'); ?>/conf.d/zz-php.ini</code>
-                <small>Need to restart stack if edited.</small>
+                <code>config/php<?php print getenv('PHP_VERSION'); ?>/php.ini</code>
+                <small>Need to restart apache if edited.</small>
               </td>
             </tr>
-            <tr>
-              <th>Webserver</th>
-              <td><code><?php (!empty($_SERVER['SERVER_SOFTWARE']))  ? print $_SERVER['SERVER_SOFTWARE'] : print ucfirst($server); ?></cite></td>
-            </tr>
-            <tr>
-              <th>Memory limit</th>
-              <td><code><?php print ini_get('memory_limit'); ?></code></td>
-            </tr>
-            <tr>
-              <th>Max execution time</th>
-              <td><code><?php print ini_get('max_execution_time'); ?></code></td>
-            </tr>
-            <tr>
-              <th>XDebug</th>
-              <td>
-              <?php if (function_exists('xdebug_start_code_coverage')): ?>
-                <div><span class="label label-success">Enabled</span></div>
-              <?php else: ?>
-                <div><span class="label label-warning">Disabled</span></div>
+            <?php foreach ($php_info AS $label => $value): ?>
+              <tr>
+                <th><?php print $label; ?></th>
+                <td>
+                <?php if ($label == 'Opcache' || $label == 'Xdebug'): ?>
+                  <?php print $value; ?>
+                <?php else: ?>
+                <code><?php print $value; ?></code>
               <?php endif; ?>
               </td>
-            </tr>
+              </tr>
+            <?php endforeach; ?>
           </table>
-          <div class="panel-footer">
+          <!-- <div class="panel-footer">
             <small><a href="/TOOLS/phpinfo.php">View more details in the server's phpinfo() report</a>.</small>
-          </div>
+          </div> -->
         </section>
 
       </div>
@@ -281,7 +249,7 @@ require_once __DIR__.'/src/app.php';
     <footer>
         <div class="row">
             <div class="col-lg-12">
-              <?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?> <a type="button" class="btn btn-xs btn-info" href="/server-status">Server status</a> <a type="button" class="btn btn-xs btn-info" href="/server-info">server info</a>
+              <a type="button" class="btn btn-xs btn-info" href="http://<?php print $app->web_host['full']; ?>/server-status">Server status</a> <a type="button" class="btn btn-xs btn-info" href="http://<?php print $app->web_host['full']; ?>/server-info">server info</a>
             </div>
         </div>
     </footer>
@@ -295,7 +263,7 @@ require_once __DIR__.'/src/app.php';
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <!-- <h4 class="modal-title" id="myModalLabel"></h4> -->
+          <h4 class="modal-title" id="myModalLabel"></h4>
         </div>
         <div class="modal-body"></div>
       </div>
@@ -311,52 +279,7 @@ require_once __DIR__.'/src/app.php';
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
   <!-- Custom script -->
-  <!-- <script src="js/app.js"></script> -->
-
-  <script>
-  jQuery( document ).ready(function( $ ) {
-    // Clipboard copy js.
-    $('.copy').each(function(i, e) {
-      $(this).after('<button class="copy btn btn-xs" data-clipboard-text="' + $(this).text() + '"><span class="glyphicon glyphicon-copy"></span></button>');
-    });
-    var clipboard = new Clipboard('.copy');
-    clipboard.on('success', function(e) {
-      $(e.trigger).after(' <span class="label label-default">Copied!</span>');
-      $(e.trigger).next('.label').delay(2000).fadeOut('slow');
-      e.clearSelection();
-    });
-
-    // Modal actions.
-    $('#myModal').on('show.bs.modal', function (event) {
-      var button = $(event.relatedTarget);
-      var id = button.data('container');
-      var action = button.data('action');
-
-      var modal = $(this);
-      if (action == 'log' || action == 'top') {
-        modal.find('.modal-title').text('Logs for ' + id);
-        $.get("/index.php", { action : action, id: id }, function(data) {
-          if (data != "null") {
-            result = $.parseJSON(data);
-            modal.find('.modal-body').html('<pre>' + result + '</pre>');
-          }
-        });
-      }
-    });
-
-    // Other actions.
-    $('.action').on('click', function () {
-      var id = $(this).data('container');
-      var action = $(this).data('action');
-      $.get("/index.php", { action : action, id: id }, function(data) {
-        if (data != "null") {
-          result = $.parseJSON(data);
-        }
-      });
-    });
-
-  });
-  </script>
+  <script src="js/app.js"></script>
 </body>
 
 </html>
