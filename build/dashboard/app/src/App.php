@@ -1,8 +1,5 @@
 <?php
 
-/*
- * Docker minimal dashboard.
- */
 namespace Dashboard;
 
 use Docker\Docker;
@@ -10,77 +7,97 @@ use Docker\API\Model\ExecConfig;
 use Docker\API\Model\ExecStartConfig;
 use Docker\Manager\ExecManager;
 
-// use Symfony\Component\Debug\Debug;
-// Debug::enable();
+use Symfony\Component\Debug\Debug;
+Debug::enable();
 
+/**
+ * Class App.
+ *
+ * A minimal Docker Dashboard used for Docker Compose Drupal project.
+ */
 Class App {
 
+  /**
+   * The docker service.
+   *
+   * @var \Docker\Docker
+   */
   protected $docker;
-  // protected $apache_container;
 
-  public $host;
-  public $web_host;
+  /**
+   * Retain information on host, web host and services.
+   *
+   * @var Array
+   */
+  public $vars;
 
-  public static $services_to_hide = ['apache', 'dashboard'];
+  /**
+   * The services to hide.
+   *
+   * @var Array
+   */
+  public static $services_to_hide = ['dashboard'];
+
+  /**
+   * The db services.
+   *
+   * @var Array
+   */
   public static $db_services = [
     'pgsql' => 'POSTGRES',
     'mysql' => 'MYSQL',
   ];
-  public $db_services_env;
 
-  public $container_root;
-
-  public $tools = [];
-  public $extra_tools = [];
-  public $folders = [];
-  // public $running_services;
+  /**
+   * Containers list.
+   *
+   * @var Array
+   */
   public $containers;
 
-  function __construct() {
+  /**
+   * Constructs a new App object.
+   */
+  public function __construct() {
     $this->docker = new Docker();
     $this->containers = $this->getContainers();
-
-    // $this->apache_container = $this->docker->getContainerManager()->find('ddd-apache');
     $this->init();
     $this->initFolders();
   }
 
+  /**
+   * Instanciate values needed to be shown.
+   */
   protected function init() {
-    // dump($this->apache_container);
+    $this->vars['dashboard'] = $this->vars['apache'] = [];
     $host = $_SERVER['SERVER_NAME'];
     if ($host == '0.0.0.0') {
       $host = 'localhost';
     }
-    $this->host['full'] = $_SERVER['HTTP_HOST'];
-    $this->host['host'] = $host;
-    $this->host['tools'] = $_SERVER['HTTP_HOST'] . '/TOOLS/';
-    // $this->host['port'] = $_SERVER['SERVER_PORT'];
-
+    $this->vars['dashboard']['full'] = $_SERVER['HTTP_HOST'];
+    $this->vars['dashboard']['host'] = $host;
+    $this->vars['dashboard']['tools'] = $_SERVER['HTTP_HOST'] . '/TOOLS/';
 
     $host_root = getenv('HOST_WEB_ROOT');
-    // $host = $_SERVER['SERVER_NAME'];
-    // if ($host == '0.0.0.0') {
-    //   $host = 'localhost';
-    // }
-    // dump($this->apache_container->getNetworkSettings()->getNetworks());
-    $port = $_ENV['APACHE_HOST_HTTP_PORT'] == "80" ? "" : ":" . $_ENV['APACHE_HOST_HTTP_PORT'];
-    // $this->web_host = $host . $port;
-    $this->web_host['full'] = $host . $port;
-    $this->web_host['host'] = $host;
-    $this->web_host['port'] = $port;
 
-    $this->container_root = getenv('DOCUMENT_ROOT');
+    $port = $_ENV['APACHE_HOST_HTTP_PORT'] == "80" ? "" : ":" . $_ENV['APACHE_HOST_HTTP_PORT'];
+    $this->vars['apache']['full'] = $host . $port;
+
+    $this->vars['dashboard']['root'] = getenv('DOCUMENT_ROOT');
+
+    // Get db information from .env file stored in $_ENV in the container.
+    $this->vars['db_services_env'] = [];
     foreach ($_ENV as $k => $env) {
       foreach ($this::$db_services as $service => $value) {
         if (strpos($k, $value) !== FALSE) {
-          $this->db_services_env[$service][$k] = $env;
+          $this->vars['db_services_env'][$service][$k] = $env;
           $string = explode('_', $k);
           $name = end($string);
           if (strpos($name, 'USER') !== FALSE) {
-            $this->db_services_env[$service]['username'] = $env;
+            $this->vars['db_services_env'][$service]['username'] = $env;
           }
           if (strpos($name, 'DB') !== FALSE || strpos($name, 'DATABASE') !== FALSE) {
-            $this->db_services_env[$service]['db'] = $env;
+            $this->vars['db_services_env'][$service]['db'] = $env;
           }
         }
       }
@@ -88,16 +105,37 @@ Class App {
     }
   }
 
+  /**
+   * Populate a list of folders.
+   *
+   * @param string $path
+   *   A path to look for.
+   * @param string $project_path
+   *   A path to look for.
+   */
   protected function initFolders($path = '/var/www/html/', $project_path = '/www') {
     // Get tools from folder.
-    $this->tools = array_diff(scandir($path . 'TOOLS'), array('..', '.', '.htaccess'));
-    $this->extra_tools = @array_diff(scandir($path . 'third_party_tools'), array('..', '.', '.htaccess'));
+    $this->vars['tools'] = @array_diff(scandir($path . 'TOOLS'), array('..', '.', '.htaccess'));
+    $this->vars['extra_tools'] = @array_diff(scandir($path . 'third_party_tools'), array('..', '.', '.htaccess'));
     // Get current folders exept drupal and tools.
-    $this->folders = array_diff(scandir($project_path), array('..', '.', '.htaccess', 'TOOLS'));
+    $this->vars['folders'] = @array_diff(scandir($project_path), array('..', '.', '.htaccess', 'TOOLS', 'third_party_tools'));
   }
 
-  public function processAction($action, $id = NULL) {
-    // POST or GET actions.
+  /**
+   * Process some actions on a container.
+   *
+   * @param string $action
+   *   The action name.
+   * @param string $id
+   *   The container id.
+   * @param array $request
+   *   The full HTTP request.
+   *
+   * @return string
+   *   A json response keyed with message, result, id, action and level.
+   */
+  public function processAction($action = 'state', $id = NULL, $request = []) {
+    // Default message returned.
     $response = [
       'action' => $action,
       'id' => $id,
@@ -107,8 +145,10 @@ Class App {
     ];
 
     if (isset($action) && isset($id)) {
+      // Get container info.
       $container = $this->docker->getContainerManager()->find($id);
       $name = str_replace('/', '', $container->getName());
+      // Process actions.
       switch ($action) {
         case 'restart':
           $restart = $this->docker->getContainerManager()->restart($id, ['t' => 5]);
@@ -116,9 +156,16 @@ Class App {
           $response['level'] = 'success';
           break;
         case 'logs':
-          $logs = $this->docker->getContainerManager()->logs($id, ['tail' => 30, 'stderr' => TRUE, 'stdout' => TRUE]);
-          if (count($logs['stderr'])) {
+          if (isset($rrequest['tail'])) {
+            $tail = (int)$rrequest['tail'];
+          }
+          else {
+            $tail = 50;
+          }
+          $logs = $this->docker->getContainerManager()->logs($id, ['tail' => $tail, 'stderr' => TRUE, 'stdout' => TRUE]);
+          if (count($logs['stderr']) || count($logs['stdout'])) {
             $response['result'] = implode('', $logs['stderr']);
+            $response['result'] .= implode('', $logs['stdout']);
             $response['message'] = 'Logs on container ' . $name;
           }
           else {
@@ -135,20 +182,33 @@ Class App {
           $response['result'] = implode("\r", $response['result']);
           break;
         case 'state':
-          // $response['message'] = $container->getstate();
-          // dump($container);
-          break;
-        case 'status':
-          // $response['message'] = $container->getstatus();
+          if ($container->getstate()->getRunning()) {
+            $response['message'] = 'Container ' . $name . ' is running';
+            $response['level'] = 'success';
+          }
+          else {
+            $response['message'] = 'Container ' . $name . ' is stoped';
+            $response['level'] = 'warning';
+          }
           break;
         default:
           $response['level'] = 'error';
           $response['message'] = 'Invalid action.';
       }
-      return json_encode($response);
     }
+    else {
+      $response['level'] = 'error';
+      $response['message'] = 'Invalid request.';
+    }
+    return json_encode($response);
   }
 
+  /**
+   * Get formatted list of containers.
+   *
+   * @return array
+   *   Containers with information formatted in an array.
+   */
   public function getContainers() {
     $containers_list = [];
 
@@ -191,6 +251,12 @@ Class App {
     return $containers_list;
   }
 
+  /**
+   * Get php info from cmd on the apache container.
+   *
+   * @return array
+   *   Php result information formatted.
+   */
   public function getPhpInfo() {
     // $cmd = $this->exec('ddd-apache', ["touch", "/www/drupal/web/phpinfo.php"]);
     /* $cmd = $this->exec('ddd-apache', ["bash", "-c", "echo '<?php phpinfo(); ?>' >> /www/drupal/web/phpinfo.php"]);*/
@@ -215,6 +281,12 @@ Class App {
 
   }
 
+  /**
+   * Get php info from cmd on the apache container.
+   *
+   * @return string
+   *   Php version.
+   */
   public function getPhpVersion() {
     $cmd = $this->exec('ddd-apache', ["php", "-r", "print phpversion();"]);
     return $cmd['stdout'];
@@ -224,13 +296,17 @@ Class App {
    * Execs a command in a running container, and returns the result. Note that
    * docker doesn't support returning the exit code.
    *
-   * @param string $container     Container identifier
-   * @param array $cmd            Array of commands to send to the container
+   * @param string $container
+   *   Container identifier
+   * @param array $cmd
+   *   Array of commands to send to the container
+   * @param bool $resultArray
+   *  GFlag to return result as array.
    *
-   * @returns array [ stdout, stderr ]
+   * @return array
+   *   Keyed stdout and stderr result.
    */
-
-  public function exec($container, $cmd, $resultArray = FALSE) {
+  private function exec($container, $cmd, $resultArray = FALSE) {
 
     if (!is_array($cmd)) {
       throw new \Exception("cmd must be an array of strings");
