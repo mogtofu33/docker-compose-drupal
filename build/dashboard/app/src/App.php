@@ -7,8 +7,8 @@ use Docker\API\Model\ExecConfig;
 use Docker\API\Model\ExecStartConfig;
 use Docker\Manager\ExecManager;
 
-use Symfony\Component\Debug\Debug;
-Debug::enable();
+// use Symfony\Component\Debug\Debug;
+// Debug::enable();
 
 /**
  * Class App.
@@ -83,7 +83,8 @@ Class App {
     $port = $_ENV['APACHE_HOST_HTTP_PORT'] == "80" ? "" : ":" . $_ENV['APACHE_HOST_HTTP_PORT'];
     $this->vars['apache']['full'] = $host . $port;
 
-    $this->vars['dashboard']['root'] = getenv('DOCUMENT_ROOT');
+    // $this->vars['dashboard']['root'] = getenv('DOCUMENT_ROOT');
+    $this->vars['dashboard']['root'] = "/var/www/localhost";
 
     // Get db information from .env file stored in $_ENV in the container.
     $this->vars['db_services_env'] = [];
@@ -113,12 +114,11 @@ Class App {
    * @param string $project_path
    *   A path to look for.
    */
-  protected function initFolders($path = '/var/www/html/', $project_path = '/www') {
+  protected function initFolders($path = '/var/www/dashboard/', $project_path = '/var/www/localhost') {
     // Get tools from folder.
     $this->vars['tools'] = @array_diff(scandir($path . 'TOOLS'), array('..', '.', '.htaccess'));
-    $this->vars['extra_tools'] = @array_diff(scandir($path . 'third_party_tools'), array('..', '.', '.htaccess'));
     // Get current folders exept drupal and tools.
-    $this->vars['folders'] = @array_diff(scandir($project_path), array('..', '.', '.htaccess', 'TOOLS', 'third_party_tools'));
+    $this->vars['folders'] = @array_diff(scandir($project_path), array('..', '.', '.htaccess', 'TOOLS'));
   }
 
   /**
@@ -258,27 +258,20 @@ Class App {
    *   Php result information formatted.
    */
   public function getPhpInfo() {
-    // $cmd = $this->exec('ddd-apache', ["touch", "/www/drupal/web/phpinfo.php"]);
-    /* $cmd = $this->exec('ddd-apache', ["bash", "-c", "echo '<?php phpinfo(); ?>' >> /www/drupal/web/phpinfo.php"]);*/
-    // $cmd = $this->exec('ddd-apache', ["chown", "apache:www-data", "/www/phpinfo.php"]);
-    // $cmd = $this->exec('ddd-apache', ["rm", "f", "/www/drupal/web/phpinfo.php"]);
-
-    $cmd = $this->exec('ddd-apache', ["php", "-r", "print json_encode(ini_get_all());"]);
-    $info = json_decode($cmd['stdout']);
+    $info = ini_get_all(NULL, FALSE);
     $result = [
-      'Memory limit' => $info->memory_limit->local_value,
-      // 'Max execution time' => $info->max_execution_time->local_value,
-      'Upload max filesize' => $info->upload_max_filesize->local_value,
-      'Max input vars' =>  $info->max_input_vars->local_value,
-      'Display errors' => ($info->display_errors->local_value === "1") ? 'On' : 'Off',
-      'Date timezone' => $info->{"date.timezone"}->local_value,
-      'Sendmail' => $info->sendmail_path->local_value,
-      'Opcache' => ($info->{"opcache.enable"}->local_value === "1") ? '<span class="label label-success">Enabled</span>' : '<span class="label label-warning">Disabled</span>',
-      'Xdebug' => ($info->{"xdebug.default_enable"}->local_value === "1") ? '<span class="label label-warning">Enabled</span>' : '<span class="label label-success">Disabled</span>',
-      'Xdebug max nesting level' => $info->{"xdebug.max_nesting_level"}->local_value,
+      'Memory limit' => $info['memory_limit'],
+      'Max execution time' => $info['max_execution_time'],
+      'Upload max filesize' => $info['upload_max_filesize'],
+      'Max input vars' =>  $info['max_input_vars'],
+      'Display errors' => ($info['display_errors'] === "1") ? 'On' : 'Off',
+      'Date timezone' => $info['date.timezone'],
+      'Sendmail' => $info['sendmail_path'],
+      'Opcache' => ($info['opcache.enable'] === "1") ? '<span class="label label-success">Enabled</span>' : '<span class="label label-warning">Disabled</span>',
+      'Xdebug' => ($info['xdebug.default_enable'] === "1") ? '<span class="label label-warning">Enabled</span>' : '<span class="label label-success">Disabled</span>',
+      'Xdebug max nesting level' => $info['xdebug.max_nesting_level'],
     ];
     return $result;
-
   }
 
   /**
@@ -288,8 +281,9 @@ Class App {
    *   Php version.
    */
   public function getPhpVersion() {
-    $cmd = $this->exec('ddd-apache', ["php", "-r", "print phpversion();"]);
-    return $cmd['stdout'];
+    // $cmd = $this->exec('ddd-apache', ["php", "-r", "print phpversion();"]);
+    // return $cmd['stdout'];
+    return phpversion();
   }
 
   /**
