@@ -1,5 +1,4 @@
 <?php
-// ini_set('display_errors', 0);
 require_once __DIR__.'/vendor/autoload.php';
 
 use Dashboard\App;
@@ -10,7 +9,6 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
   echo $app->processAction($_REQUEST['action'], $_REQUEST['id'], $_REQUEST);
   exit;
 }
-// dump($app);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -206,7 +204,6 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
         </section>
         <?php endif; ?>
         <?php endforeach; ?>
-
         <section class="panel panel-default">
           <div class="panel-heading">PHP information</div>
           <table class="table table-condensed table-hover">
@@ -235,14 +232,25 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
               </tr>
             <?php endforeach; ?>
           </table>
-          <!-- <div class="panel-footer">
+          <div class="panel-footer">
             <small><a href="/TOOLS/phpinfo.php">View more details in the server's phpinfo() report</a>.</small>
-          </div> -->
+          </div>
         </section>
 
       </div>
     </div>
   </div>
+  <hr>
+  <!-- Footer -->
+  <footer>
+      <div class="row">
+          <div class="col-lg-12">
+            <?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?> <a type="button" class="btn btn-xs btn-info" href="/server-status">Server status</a> <a type="button" class="btn btn-xs btn-info" href="/server-info">server info</a>
+          </div>
+      </div>
+  </footer>
+  <hr>
+</div>
   <!-- /.container -->
 
   <!-- Modal -->

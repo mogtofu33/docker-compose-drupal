@@ -5,7 +5,9 @@
     "type": "project",
     "require": {
         "php": ">=5.5.9",
-        "docker-php/docker-php": "^1.24",
+        "docker-php/docker-php": "^1.24"
+    },
+    "require-dev": {
         "symfony/var-dumper": "^3.3"
     },
     "autoload": {
