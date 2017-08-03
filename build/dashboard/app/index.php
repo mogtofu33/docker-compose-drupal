@@ -88,7 +88,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                   <?php foreach ($container['ports'] AS $port): ?>
                   <tr>
                     <td>
-                      <?php print $port['type'] . ': ' . $port['private']; if (isset($port['public'])): print ' > ' . $port['public'];  endif; ?>
+                      <?php print $port['private']; if (isset($port['public'])): print ' > ' . $port['public'];  endif; ?>
                     </td>
                   </tr>
                   <?php endforeach; ?>
@@ -110,6 +110,22 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
               </tr>
             <?php endforeach; ?>
           </table>
+
+          <div class="panel-footer">
+            <div class="form-inline">
+            <label for="exec">Run command on </label>
+            <select class="form-control input-sm" name="id" id="exec">
+              <option value="_none">- Select -</option>
+              <?php foreach ($app->containers as $c): ?>
+              <option value="<?php print $c['id']; ?>"><?php print $c['service']; ?></option>
+              <?php endforeach; ?>
+            </select>
+            </div>
+            <div id="terminal" style="display:none;">
+              <small>Command are exec through <code>docker exec -t</code> as <strong>ROOT</strong>, you can only run direct commands from system root.</small>
+              <div class="body"></div>
+            </div>
+          </div>
         </section>
 
         <section class="panel panel-default">
@@ -272,8 +288,12 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
   <script src="https://cdn.jsdelivr.net/clipboard.js/1.6.1/clipboard.min.js"></script>
   <!-- Bootstrap -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- Terminal -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.5.3/js/jquery.terminal.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.5.3/css/jquery.terminal.min.css" rel="stylesheet"/>
 
   <!-- Custom script -->
   <script src="js/app.js"></script>
+  <script src="js/unix_formatting.js"></script>
 </body>
 </html>

@@ -19,16 +19,14 @@ jQuery( document ).ready(function( $ ) {
     var $action = $btn.data('action');
     var modal = $(this);
 
-    if ($action == 'logs' || $action == 'top') {
-      modal.find('.modal-title').text('Logs for ' + $id);
-      // Request to endpoint.
-      $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
-        if (response != "null") {
-          modal.find('.modal-title').html(response.message);
-          modal.find('.modal-body pre').html(response.result);
-        }
-      });
-    }
+    modal.find('.modal-title').text($action + ' for ' + $id);
+    // Request to endpoint.
+    $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
+      if (response != "null") {
+        modal.find('.modal-title').html(response.message);
+        modal.find('.modal-body pre').html(response.result);
+      }
+    });
     $(this).find('button.refresh').on('click', function (event) {
       var $btnrefresh = $(this).button('loading');
       $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
@@ -38,6 +36,36 @@ jQuery( document ).ready(function( $ ) {
       });
       $btnrefresh.button('reset');
     });
+  });
+
+  // Let simulate a terminal.
+  $('#terminal .body').terminal(function($command) {
+    if ($command !== '') {
+      var $id = $('select[name=id]').val();
+      var $terminal = this;
+      // Request to endpoint.
+      $.getJSON("/index.php", { action : 'exec', id: $id, cmd: $command }, function(response) {
+        if (response != "null") {
+          $terminal.echo(response.result);
+        }
+      });
+    }
+  }, {
+      greetings: '',
+      name: 'bash',
+      height: 300,
+      width: 800,
+      prompt: 'sh> '
+  });
+  // Handle container taret changes.
+  $('select#exec').on('change', function () {
+    var $val = $(this).val();
+    if ($val == '_none') {
+      $('#terminal').hide();
+    }
+    else {
+      $('#terminal').show();
+    }
   });
 
   // Other actions.
