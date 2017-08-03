@@ -51,8 +51,7 @@ services:
       ## Optional Drush alias file (or any other config)
       - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
       ## Used by dashboard.
-      # - ./build/dashboard/build:/var/www/dashboard
-      - ./build/dashboard/app:/var/www/dashboard
+      - ./build/dashboard/build:/var/www/dashboard
       - /var/run/docker.sock:/var/run/docker.sock
       ## If you have composer set locally, share cache to speed up.
       # - $HOME/.composer/cache:/var/www/.composer/cache

@@ -4,7 +4,10 @@ docker-compose.yml
 # ignore static files
 data/*
 build/dashboard/app/vendor
-build/dashboard/src/third_party_tools
+build/dashboard/tools/
+tools/*
+!tools/adminer.php
+!tools/phpinfo.php
 # ignore tmp or specific files
 tmp*
 myscripts*

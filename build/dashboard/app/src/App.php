@@ -76,7 +76,7 @@ Class App {
     }
     $this->vars['dashboard']['full'] = $_SERVER['HTTP_HOST'];
     $this->vars['dashboard']['host'] = $host;
-    $this->vars['dashboard']['tools'] = $_SERVER['HTTP_HOST'] . '/TOOLS/';
+    $this->vars['dashboard']['tools'] = $_SERVER['HTTP_HOST'] . '/tools/';
 
     $host_root = getenv('HOST_WEB_ROOT');
 
@@ -116,9 +116,9 @@ Class App {
    */
   protected function initFolders($path = '/var/www/dashboard/', $project_path = '/var/www/localhost') {
     // Get tools from folder.
-    $this->vars['tools'] = @array_diff(scandir($path . 'TOOLS'), array('..', '.', '.htaccess'));
+    $this->vars['tools'] = @array_diff(scandir($path . 'tools'), array('..', '.', '.htaccess'));
     // Get current folders exept drupal and tools.
-    $this->vars['folders'] = @array_diff(scandir($project_path), array('..', '.', '.htaccess', 'TOOLS'));
+    $this->vars['folders'] = @array_diff(scandir($project_path), array('..', '.', '.htaccess'));
   }
 
   /**
@@ -156,11 +156,11 @@ Class App {
           $response['level'] = 'success';
           break;
         case 'logs':
-          if (isset($rrequest['tail'])) {
-            $tail = (int)$rrequest['tail'];
+          if (isset($request['tail'])) {
+            $tail = (int)$request['tail'];
           }
           else {
-            $tail = 50;
+            $tail = 30;
           }
           $logs = $this->docker->getContainerManager()->logs($id, ['tail' => $tail, 'stderr' => TRUE, 'stdout' => TRUE]);
           if (count($logs['stderr']) || count($logs['stdout'])) {
@@ -241,13 +241,15 @@ Class App {
         if ($p->getPublicPort()) {
           $has_public_access = TRUE;
         }
-        $containers_list[$service]['ports'][] = [
+        $containers_list[$service]['ports'][$p->getPrivatePort()] = [
           'private' => $p->getPrivatePort(),
           'public' => $p->getPublicPort(),
         ];
       }
+      ksort($containers_list[$service]['ports']);
       $containers_list[$service]['is_public'] = $has_public_access;
     }
+    ksort($containers_list);
     return $containers_list;
   }
 
