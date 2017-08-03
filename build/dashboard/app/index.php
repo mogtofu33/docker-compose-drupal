@@ -50,6 +50,24 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <div class="row">
       <div class="col-md-7">
         <section class="panel panel-default">
+          <div class="panel-heading">Your sites</div>
+          <table class="table table-condensed table-hover">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Document Root</th>
+            </thead>
+            <tbody>
+              <?php foreach ($app->vars['folders'] AS $folder): ?>
+                <tr>
+                  <td><a href="http://<?php print $app->vars['apache']['full'] . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
+                  <td><code><?php print str_replace('./', '', $app->vars['dashboard']['root']) . '/' . $folder; ?></code></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </section>
+        <section class="panel panel-default">
           <div class="panel-heading">Containers running</div>
           <table class="table table-condensed table-hover">
             <thead>
@@ -153,25 +171,6 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           </table>
         </section>
 
-        <section class="panel panel-default">
-          <div class="panel-heading">Your sites</div>
-          <table class="table table-condensed table-hover">
-            <thead>
-              <tr>
-                <th>Source</th>
-                <th>Document Root</th>
-            </thead>
-            <tbody>
-              <?php foreach ($app->vars['folders'] AS $folder): ?>
-                <tr>
-                  <td><a href="http://<?php print $app->vars['apache']['full'] . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
-                  <td><code><?php print str_replace('./', '', $app->vars['dashboard']['root']) . '/' . $folder; ?></code></td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </section>
-
         <?php foreach ($app->containers AS $service => $container): ?>
         <?php if (in_array($service, array_keys($app::$db_services))): ?>
         <section class="panel panel-default">
@@ -187,7 +186,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             </tr>
             <tr>
               <th>Port</th>
-              <td><code class="copy"><?php print $container['ports'][0]['private']; ?></code></td>
+              <td><code class="copy"><?php print end($container['ports'])['private']; ?></code></td>
             <?php foreach ($app->vars['db_services_env'][$service] AS $env => $value): ?>
             </tr>
               <?php if (getenv($env)): ?>
@@ -233,24 +232,22 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <?php endforeach; ?>
           </table>
           <div class="panel-footer">
-            <small><a href="/TOOLS/phpinfo.php">View more details in the server's phpinfo() report</a>.</small>
+            <small><a href="/tools/phpinfo.php">View more details in the server's phpinfo() report</a>.</small>
           </div>
         </section>
 
       </div>
     </div>
+    <hr>
+    <!-- Footer -->
+    <footer>
+        <div class="row">
+            <div class="col-lg-12">
+              <?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?> <a type="button" class="btn btn-xs btn-info" href="/server-status">Server status</a> <a type="button" class="btn btn-xs btn-info" href="/server-info">server info</a>
+            </div>
+        </div>
+    </footer>
   </div>
-  <hr>
-  <!-- Footer -->
-  <footer>
-      <div class="row">
-          <div class="col-lg-12">
-            <?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?> <a type="button" class="btn btn-xs btn-info" href="/server-status">Server status</a> <a type="button" class="btn btn-xs btn-info" href="/server-info">server info</a>
-          </div>
-      </div>
-  </footer>
-  <hr>
-</div>
   <!-- /.container -->
 
   <!-- Modal -->
@@ -261,7 +258,11 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           <h4 class="modal-title" id="myModalLabel"></h4>
         </div>
-        <div class="modal-body"></div>
+        <div class="modal-body"><pre style="max-height:500px;overflow-y:scroll;"></pre></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" data-loading-text="Refreshing..." class="btn btn-primary refresh" autocomplete="off"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh</button>
+        </div>
       </div>
     </div>
   </div>

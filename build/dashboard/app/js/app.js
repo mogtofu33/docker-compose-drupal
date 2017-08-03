@@ -25,10 +25,19 @@ jQuery( document ).ready(function( $ ) {
       $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
         if (response != "null") {
           modal.find('.modal-title').html(response.message);
-          modal.find('.modal-body').html('<pre>' + response.result + '</pre>');
+          modal.find('.modal-body pre').html(response.result);
         }
       });
     }
+    $(this).find('button.refresh').on('click', function (event) {
+      var $btnrefresh = $(this).button('loading');
+      $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
+        if (response != "null") {
+          modal.find('.modal-body pre').html(response.result);
+        }
+      });
+      $btnrefresh.button('reset');
+    });
   });
 
   // Other actions.
