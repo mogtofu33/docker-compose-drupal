@@ -88,7 +88,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                   <?php foreach ($container['ports'] AS $port): ?>
                   <tr>
                     <td>
-                      <?php print $port['private']; if (isset($port['public'])): print ' > ' . $port['public'];  endif; ?>
+                      <?php print $port['type'] . ': ' . $port['private']; if (isset($port['public'])): print ' > ' . $port['public'];  endif; ?>
                     </td>
                   </tr>
                   <?php endforeach; ?>
@@ -130,13 +130,11 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                     <?php if ($container['is_public']): ?>
                       <table>
                       <?php foreach ($container['ports'] AS $port): ?>
-                        <?php if (isset($port['public'])): ?>
-                          <tr><td><a href="http://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?>">http://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?></a></td></tr>
+                        <?php if (isset($port['public']) && $port['mode']): ?>
+                          <tr><td><a href="<?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?>"><?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?></a></td></tr>
                         <?php endif; ?>
                       <?php endforeach; ?>
                       </table>
-                    <?php else: ?>
-                    Container only
                     <?php endif; ?>
                   </td>
                   <td>

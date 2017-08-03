@@ -238,13 +238,26 @@ Class App {
       ];
       $has_public_access = FALSE;
       foreach ($ports AS $p) {
-        if ($p->getPublicPort()) {
+        $private = $p->getPrivatePort();
+        $public = $p->getPublicPort();
+        if ($public) {
           $has_public_access = TRUE;
         }
-        $containers_list[$service]['ports'][$p->getPrivatePort()] = [
-          'private' => $p->getPrivatePort(),
-          'public' => $p->getPublicPort(),
+        $containers_list[$service]['ports'][$private] = [
+          'private' => $private ? $private : NULL,
+          'public' => $public ? $public : NULL,
+          'type' => $p->getType(),
+          'mode' => 'http',
         ];
+        // Filter port to match https and exclude non http.
+        $https_port = ['443', '8443'];
+        if (in_array($public, $https_port)) {
+          $containers_list[$service]['ports'][$private]['mode'] = 'https';
+        }
+        $non_http = ['389', '3306', '11211', '5432', '6379'];
+        if (in_array($public, $non_http)) {
+          $containers_list[$service]['ports'][$private]['mode'] = NULL;
+        }
       }
       ksort($containers_list[$service]['ports']);
       $containers_list[$service]['is_public'] = $has_public_access;
