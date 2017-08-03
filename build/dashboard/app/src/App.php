@@ -7,8 +7,8 @@ use Docker\API\Model\ExecConfig;
 use Docker\API\Model\ExecStartConfig;
 use Docker\Manager\ExecManager;
 
-// use Symfony\Component\Debug\Debug;
-// Debug::enable();
+use Symfony\Component\Debug\Debug;
+Debug::enable();
 
 /**
  * Class App.
@@ -191,6 +191,15 @@ Class App {
             $response['level'] = 'warning';
           }
           break;
+          case 'exec':
+            $exec = $this->exec($id, explode(' ', $request['cmd']));
+            $response['level'] = 'success';
+            $response['result'] = $exec['stdout'];
+            if (!empty($exec['stderr'])) {
+              $response['level'] = 'error';
+              $response['result'] = $exec['stderr'];
+            }
+            break;
         default:
           $response['level'] = 'error';
           $response['message'] = 'Invalid action.';
@@ -315,14 +324,14 @@ Class App {
    * @return array
    *   Keyed stdout and stderr result.
    */
-  private function exec($container, $cmd, $resultArray = FALSE) {
+  private function exec($container, $cmd, $tty = TRUE) {
 
     if (!is_array($cmd)) {
       throw new \Exception("cmd must be an array of strings");
     }
 
     $ec = new ExecConfig;
-    $ec->setTty(true);
+    $ec->setTty($tty);
     $ec->setAttachStdout(true);
     $ec->setAttachStderr(true);
     $ec->setCmd($cmd);
@@ -343,11 +352,6 @@ Class App {
     });
     $stream->wait();
 
-    if ($resultArray) {
-      return ['stdout' => explode("\r\n", $stdoutResult), 'stderr' => explode("\r\n", $stderrResult)];
-    }
-    else {
-      return ['stdout' => $stdoutResult, 'stderr' => $stderrResult];
-    }
+    return ['stdout' => $stdoutResult, 'stderr' => $stderrResult];
   }
 }
