@@ -80,7 +80,13 @@ Class App {
 
     $host_root = getenv('HOST_WEB_ROOT');
 
-    $port = $_ENV['APACHE_HOST_HTTP_PORT'] == "80" ? "" : ":" . $_ENV['APACHE_HOST_HTTP_PORT'];
+    if (isset($_ENV['APACHE_HOST_HTTP_PORT'])) {
+      $port = $_ENV['APACHE_HOST_HTTP_PORT'] == "80" ? "" : ":" . $_ENV['APACHE_HOST_HTTP_PORT'];
+    }
+    else {
+      $port = '';
+    }
+
     $this->vars['apache']['full'] = $host . $port;
 
     // $this->vars['dashboard']['root'] = getenv('DOCUMENT_ROOT');
