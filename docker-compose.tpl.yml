@@ -44,7 +44,7 @@ services:
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/www
       - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/apache2
-      - ./config/php/php.ini:/etc/php7/php.ini
+      - ./config/php/:/etc/php7/conf.d/
       - ./config/apache/httpd.conf:/etc/apache2/httpd.conf
       - ./config/apache/vhost.conf:/etc/apache2/vhost/vhost.conf
       - ./config/apache/conf.d/:/etc/apache2/conf.d/
