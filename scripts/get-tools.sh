@@ -7,6 +7,7 @@ BASENAME=`basename $0`
 
 if [[ $SOURCE != "./$BASENAME" ]]; then
   echo -e "This script must be run from the scripts folder of this project:"
+  echo -e "cd scripts"
   echo -e "./$BASENAME"
   exit;
 fi
