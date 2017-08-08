@@ -6,7 +6,7 @@ SOURCE="${BASH_SOURCE[0]}"
 BASENAME=`basename $0`
 
 if [[ $SOURCE != "./$BASENAME" ]]; then
-  echo -e "This script must be run from the scripts fooder of this project:"
+  echo -e "This script must be run from the scripts folder of this project:"
   echo -e "./$BASENAME"
   exit;
 fi
