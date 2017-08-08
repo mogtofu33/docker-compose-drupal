@@ -207,6 +207,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <tr>
               <th>Port</th>
               <td><code class="copy"><?php print end($container['ports'])['private']; ?></code></td>
+            <?php if (isset($app->vars['db_services_env'][$service])): ?>
             <?php foreach ($app->vars['db_services_env'][$service] AS $env => $value): ?>
             </tr>
               <?php if (getenv($env)): ?>
@@ -216,9 +217,12 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                 </tr>
               <?php endif; ?>
             <?php endforeach; ?>
+            <?php endif; ?>
           </table>
           <div class="panel-footer">
+            <?php if (isset($app->vars['db_services_env'][$service])): ?>
             <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?server=<?php print $service; ?>&username=<?php print $app->vars['db_services_env'][$service]['username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['db']; ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+            <?php endif; ?>
           </div>
         </section>
         <?php endif; ?>

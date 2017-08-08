@@ -44,7 +44,7 @@ services:
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/www
       - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/apache2
-      - ./config/php/:/etc/php7/
+      - ./config/php/php.ini:/etc/php7/php.ini
       - ./config/apache/httpd.conf:/etc/apache2/httpd.conf
       - ./config/apache/vhost.conf:/etc/apache2/vhost/vhost.conf
       - ./config/apache/conf.d/:/etc/apache2/conf.d/
@@ -133,5 +133,15 @@ services:
   #     - ldap
   #   ports:
   #     - "8443:8443"
+  #   ## Remove to avoid starting on system reboot.
+  #   restart: always
+  ## Optionnal Docker ui, uncomment to enable and access at localhot:9000.
+  # docker-ui:
+  #   image: uifd/ui-for-docker:latest
+  #   ports:
+  #     - "9000:9000"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   privileged: true
   #   ## Remove to avoid starting on system reboot.
   #   restart: always
