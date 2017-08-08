@@ -17,6 +17,12 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Drupal Docker Compose - Dev stack</title>
+    <style>
+    .scroll {
+      max-height:500px;
+      overflow-y:scroll;
+    }
+    </style>
 </head>
 <body>
   <!-- Page Content -->
@@ -25,17 +31,17 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <div class="row">
       <div class="col-md-12">
         <h4>
-          <a href="https://github.com/Mogtofu33/docker-compose-drupal">Drupal Docker Compose</a>
+          <a href="https://github.com/Mogtofu33/docker-compose-drupal" target="_blank">Drupal Docker Compose</a>
           <small>Docker full stack for simple Drupal dev.</small>
         </h4>
         <p>
-          <a type="button" class="btn btn-xs btn-primary" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal">
+          <a type="button" class="btn btn-xs btn-primary" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal" target="_blank">
             <span class="glyphicon glyphicon-home" aria-hidden="true"></span> Project homepage
           </a>
-          <a type="button" class="btn btn-xs btn-info" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal/blob/master/README.md">
+          <a type="button" class="btn btn-xs btn-info" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal/blob/master/README.md" target="_blank">
             <span class="glyphicon glyphicon-book" aria-hidden="true"></span> Documentation
           </a>
-          <a type="button" class="btn btn-xs btn-warning" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal/issues">
+          <a type="button" class="btn btn-xs btn-warning" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal/issues" target="_blank">
             <span class="glyphicon glyphicon-send" aria-hidden="true"></span> Bug report
           </a>
         </p>
@@ -60,7 +66,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <tbody>
               <?php foreach ($app->vars['folders'] AS $folder): ?>
                 <tr>
-                  <td><a href="http://<?php print $app->vars['apache']['full'] . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
+                  <td><a target="_blank" href="http://<?php print $app->vars['apache']['full'] . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
                   <td><code><?php print str_replace('./', '', $app->vars['dashboard']['root']) . '/' . $folder; ?></code></td>
                 </tr>
               <?php endforeach; ?>
@@ -77,7 +83,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                 <th>Container name</th>
                 <th>Container IP</th>
                 <th>Details</th>
-                <th>Actions</th>
+                <!-- <th>Actions</th> -->
             </thead>
             <tbody>
             <?php foreach ($app->containers AS $container): ?>
@@ -100,20 +106,20 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                   <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="logs" data-container="<?php print $container['id']; ?>">Logs</button>
                   <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="top" data-container="<?php print $container['id']; ?>">Top</button>
                 </td>
-                <td>
+                <!-- <td>
                   <?php if ($container['state_raw'] == 'running'): ?>
                  <button type="button" data-loading-text="Restarting..." class="btn btn-primary btn-xs action" autocomplete="off" data-container="<?php print $container['id'] ?>" data-action="restart">
                   Restart
                  </button>
                 <?php endif; ?>
-                </td>
+                </td> -->
               </tr>
             <?php endforeach; ?>
           </table>
 
           <div class="panel-footer">
             <div class="form-inline">
-            <label for="exec">Run command on </label>
+            <label for="exec">Quick command on </label>
             <select class="form-control input-sm" name="id" id="exec">
               <option value="_none">- Select -</option>
               <?php foreach ($app->containers as $c): ?>
@@ -122,7 +128,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             </select>
             </div>
             <div id="terminal" style="display:none;">
-              <small>Command are exec through <code>docker exec -t</code> as <strong>ROOT</strong>, you can only run direct commands from system root.</small>
+              <small>Command are send through <code>docker exec -t</code> as <strong>ROOT</strong>, you can only run direct and simple commands from the system root.<br>For more complex commands you can type in a local terminal: <code class="copy">docker exec -it CONTAINER_NAME /bin/sh</code></small>
               <div class="body"></div>
             </div>
           </div>
@@ -147,7 +153,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                       <table>
                       <?php foreach ($container['ports'] AS $port): ?>
                         <?php if (isset($port['public']) && $port['mode']): ?>
-                          <tr><td><a href="<?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?>"><?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?></a></td></tr>
+                          <tr><td><a target="_blank" href="<?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?>"><?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?></a></td></tr>
                         <?php endif; ?>
                       <?php endforeach; ?>
                       </table>
@@ -178,7 +184,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
               <tr>
                 <th><?php print str_replace('.php', '', ucfirst($tool)); ?></th>
                 <td class="text-center">
-                  <a href="http://<?php print $app->vars['dashboard']['tools'] . $tool; ?>" class="btn btn-info btn-xs" role="button">Access</a>
+                  <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . $tool; ?>" class="btn btn-info btn-xs" role="button">Access</a>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -212,7 +218,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <?php endforeach; ?>
           </table>
           <div class="panel-footer">
-            <a href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?server=<?php print $service; ?>&username=<?php print $app->vars['db_services_env'][$service]['username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['db']; ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+            <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?server=<?php print $service; ?>&username=<?php print $app->vars['db_services_env'][$service]['username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['db']; ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
           </div>
         </section>
         <?php endif; ?>
@@ -246,7 +252,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <?php endforeach; ?>
           </table>
           <div class="panel-footer">
-            <small><a href="/tools/phpinfo.php">View more details in the server's phpinfo() report</a>.</small>
+            <small><a target="_blank" href="/tools/phpinfo.php">View more details in the server's phpinfo() report</a>.</small>
           </div>
         </section>
 
@@ -257,10 +263,11 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <footer>
         <div class="row">
             <div class="col-lg-12">
-              <?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?> <a type="button" class="btn btn-xs btn-info" href="/server-status">Server status</a> <a type="button" class="btn btn-xs btn-info" href="/server-info">server info</a>
+              <?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?> <a type="button" class="btn btn-xs btn-info" href="/server-status" target="_blank">Server status</a> <a type="button" class="btn btn-xs btn-info" href="/server-info" target="_blank">server info</a>
             </div>
         </div>
     </footer>
+    <hr>
   </div>
   <!-- /.container -->
 
@@ -272,7 +279,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           <h4 class="modal-title" id="myModalLabel"></h4>
         </div>
-        <div class="modal-body"><pre style="max-height:500px;overflow-y:scroll;"></pre></div>
+        <div class="modal-body"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           <button type="button" data-loading-text="Refreshing..." class="btn btn-primary refresh" autocomplete="off"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh</button>
