@@ -141,7 +141,7 @@ Class App {
       'id' => $id,
       'message' => NULL,
       'level' => 'info',
-      'result' => NULL,
+      'result' => [],
     ];
 
     if (isset($action) && isset($id)) {
@@ -164,9 +164,9 @@ Class App {
           }
           $logs = $this->docker->getContainerManager()->logs($id, ['tail' => $tail, 'stderr' => TRUE, 'stdout' => TRUE]);
           if (count($logs['stderr']) || count($logs['stdout'])) {
-            $response['result'] = implode('', $logs['stderr']);
-            $response['result'] .= implode('', $logs['stdout']);
-            $response['message'] = 'Logs on container ' . $name;
+            $response['result']['stderr'] = implode('', $logs['stderr']);
+            $response['result']['stdout'] = implode('', $logs['stdout']);
+            $response['message'] = 'Last ' . $tail . ' logs on container ' . $name;
           }
           else {
             $response['message'] = 'No logs on container ' . $name;
@@ -174,12 +174,12 @@ Class App {
           break;
         case 'top':
           $top = $this->docker->getContainerManager()->listProcesses($id, ['ps_args' => 'aux']);
-          $response['result'][] = implode(' | ', $top->getTitles());
+          $response['result']['top'][] = implode(' | ', $top->getTitles());
           foreach ($top->getProcesses() as $process) {
-            $response['result'][] = implode(' | ', $process);
+            $response['result']['top'][] = implode(' | ', $process);
             $response['message'] = 'Top on container ' . $name;
           }
-          $response['result'] = implode("\r", $response['result']);
+          $response['result']['top'] = implode("\r", $response['result']['top']);
           break;
         case 'state':
           if ($container->getstate()->getRunning()) {
@@ -194,10 +194,13 @@ Class App {
           case 'exec':
             $exec = $this->exec($id, explode(' ', $request['cmd']));
             $response['level'] = 'success';
-            $response['result'] = $exec['stdout'];
+            if (strpos($exec['stdout'], 'rpc error') !== FALSE) {
+              $response['level'] = 'error';
+            }
+            $response['result']['stdout'] = $exec['stdout'];
             if (!empty($exec['stderr'])) {
               $response['level'] = 'error';
-              $response['result'] = $exec['stderr'];
+              $response['result']['stderr'] = $exec['stderr'];
             }
             break;
         default:

@@ -18,20 +18,26 @@ jQuery( document ).ready(function( $ ) {
     var $id = $btn.data('container');
     var $action = $btn.data('action');
     var modal = $(this);
+    modal.find('.modal-body').html('');
 
     modal.find('.modal-title').text($action + ' for ' + $id);
     // Request to endpoint.
     $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
       if (response != "null") {
         modal.find('.modal-title').html(response.message);
-        modal.find('.modal-body pre').html(response.result);
+        for (var key in response.result) {
+          modal.find('.modal-body').append('<label>' + key + '</label><pre class="scroll">' + response.result[key] + '</pre>');
+        }
       }
     });
     $(this).find('button.refresh').on('click', function (event) {
       var $btnrefresh = $(this).button('loading');
       $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
+        modal.find('.modal-body').html('');
         if (response != "null") {
-          modal.find('.modal-body pre').html(response.result);
+          for (var key in response.result) {
+            modal.find('.modal-body').append('<label>' + key + '</label><pre class="scroll">' + response.result[key] + '</pre>');
+          }
         }
       });
       $btnrefresh.button('reset');
@@ -39,14 +45,26 @@ jQuery( document ).ready(function( $ ) {
   });
 
   // Let simulate a terminal.
-  $('#terminal .body').terminal(function($command) {
-    if ($command !== '') {
+  var $greetings = '';
+  var terminal = $('#terminal .body').terminal(function(command, term) {
+    // console.log(term);
+    if (command !== '') {
       var $id = $('select[name=id]').val();
       var $terminal = this;
       // Request to endpoint.
-      $.getJSON("/index.php", { action : 'exec', id: $id, cmd: $command }, function(response) {
+      $.getJSON("/index.php", { action : 'exec', id: $id, cmd: command }, function(response) {
         if (response != "null") {
-          $terminal.echo(response.result);
+          if (typeof response.result['stderr'] != 'undefined') {
+            $terminal.echo(response.result['stderr'].trim());
+          }
+          else {
+            if (response.level == 'error') {
+              $terminal.echo('\u001b[1;31mDOCKER ERROR\u001b[0m ' + response.result['stdout'].trim());
+            }
+            else {
+              $terminal.echo(response.result['stdout'].trim());
+            }
+          }
         }
       });
     }
@@ -55,32 +73,22 @@ jQuery( document ).ready(function( $ ) {
       name: 'bash',
       height: 300,
       width: 800,
-      prompt: 'sh> '
+      prompt: ''
   });
+
   // Handle container taret changes.
   $('select#exec').on('change', function () {
     var $val = $(this).val();
+    var $text = $(this).find("option[value='" + $val + "']").text();
+    terminal.set_prompt('[[g;red;]root]@[[;purple;]' + $text + ']> ');
     if ($val == '_none') {
       $('#terminal').hide();
+      terminal.purge();
     }
     else {
       $('#terminal').show();
     }
-  });
-
-  // Other actions.
-  $('.action').on('click', function () {
-    var $btn = $(this).button('loading');
-    var $id = $(this).data('container');
-    var $action = $(this).data('action');
-    // Request to endpoint.
-    $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
-      if (response != "null") {
-        $('#message .message').html(response.message);
-        $('#message').show();
-      }
-      $btn.button('reset');
-    });
+    terminal.reset();
   });
 
 });
