@@ -124,7 +124,7 @@ Class App {
     // Get tools from folder.
     $this->vars['tools'] = @array_diff(scandir($path . 'tools'), array('..', '.', '.htaccess'));
     // Get current folders exept drupal and tools.
-    $this->vars['folders'] = @array_diff(scandir($project_path), array('..', '.', '.htaccess'));
+    $this->vars['folders'] = @array_diff(scandir($project_path), array('..', '.', '.htaccess', 'cgi-bin'));
   }
 
   /**
