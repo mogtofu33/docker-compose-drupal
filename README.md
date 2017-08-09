@@ -80,8 +80,8 @@ composer create-project drupal-composer/drupal-project:8.x-dev /var/www/localhos
 To use PostGresSQL change _mysql_ to _pgsql_
 
 <pre>
-docker exec -it -u apache ddd-apache /www/drupal/vendor/bin/drush -y si \
---root=/www/drupal/web \
+docker exec -it -u apache ddd-apache /var/www/localhost/drupal/vendor/bin/drush -y si \
+--root=/var/www/localhost/drupal/web \
 --account-name=admin \
 --account-pass=password \
 --db-url=mysql://drupal:drupal@mysql/drupal
@@ -91,7 +91,7 @@ docker exec -it -u apache ddd-apache /www/drupal/vendor/bin/drush -y si \
 
 <pre>
 http://localhost
-# Login with admin/password
+# Login with admin / password
 http://localhost/user/login
 </pre>
 
@@ -99,7 +99,7 @@ http://localhost/user/login
 
 <pre>
 docker exec -it -u apache ddd-apache \
-composer -d=/www/drupal require \
+composer -d=/var/www/localhost/drupal require \
 drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 </pre>
 
@@ -107,8 +107,8 @@ drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 
 <pre>
 docker exec -it -u apache ddd-apache \
-/www/drupal/vendor/bin/drush -y en \
---root=/www/drupal/web \
+/var/www/localhost/drupal/vendor/bin/drush -y en \
+--root=/var/www/localhost/drupal/web \
 admin_toolbar ctools ctools_block ctools_views panels token pathauto
 </pre>
 
@@ -116,7 +116,7 @@ admin_toolbar ctools ctools_block ctools_views panels token pathauto
 
 <pre>
 docker exec -it -u apache ddd-apache \
-ls -lah /www/drupal
+ls -lah /var/www/localhost/drupal
 </pre>
 
 #### Login in the Apache to run commands

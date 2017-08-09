@@ -10,7 +10,7 @@
 
 # These variables should be cleaned as we use a setup script before this one.
 source $HOME/.profile
-project_container_root="/www/drupal"
+project_container_root="/var/www/localhost/drupal"
 project_container_web_root="$project_container_root/web"
 drush_cmd="$project_container_root/vendor/bin/drush --root=$project_container_web_root"
 
