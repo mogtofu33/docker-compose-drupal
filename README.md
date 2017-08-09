@@ -3,7 +3,7 @@
 ## Require
 
 * Docker engine 1.13+: https://docs.docker.com/engine/installation/
-* Docker compose 1.13+: https://docs.docker.com/compose/install/
+* Docker compose 1.15+: https://docs.docker.com/compose/install/
 
 ## Introduction
 
@@ -15,13 +15,14 @@ _Every service is optional as declared in the yml file._
 * MySQL/MariaDB
 * PostgreSQL
 * [Memcache](https://hub.docker.com/_/memcached)
+* [Redis](https://redis.io/)
 * [Mailhog](https://github.com/mailhog/MailHog)
 * [Solr](http://lucene.apache.org/solr)
 * [OpenLdap](https://www.openldap.org)
 * [Varnish](https://varnish-cache.org)
 
 ### Optional Php Tools
-* [Adminer](https://www.adminer.org)
+* [Adminer](https://www.adminer.org) (Database management)
 
 ## Quick launch new Drupal 8 project
 
@@ -33,24 +34,27 @@ cd docker-drupal
 # Create your docker compose file from template.
 cp docker-compose.tpl.yml docker-compose.yml
 
-# (Optional) choose a db, remove or add services, add your composer cache folder
+# (Optional) choose a db, remove or add services, add your composer cache folder.
+# But you can let it as it for a default quick stack.
 vi docker-compose.yml
 
 # Create your config file from template.
 cp default.env .env
 
-# (Optional) edit your configuration if needed.
+# Edit your configuration if needed, recommended on Unix add your local uid/gid.
 vi .env
 
-# Check the config and fix if needed
+# Check the config and fix if needed.
 docker-compose config
 
-# Launch the containers.
-docker-compose build && docker-compose up -d
+# Launch the containers (first time include downloading Docker images).
+docker-compose up --build -d
 
-# Check logs to ensure startup is finished
-docker-compose logs
+# Quick check logs to ensure startup is finished, mostly Apache.
+docker-compose logs apache
 </pre>
+
+Note: If you have a permission denied from now it's because of owner of <code>/var/run/docker.sock</code>, run docker and docker-compose commands as sudo.
 
 ### Access the stack dashboard
 
@@ -62,14 +66,13 @@ http://localhost:8181
 
 #### Code download
 
-Setup a new Drupal 8 based on a composer template (yes it's slower than with
-Drush but this is the good way!)
+Setup a new Drupal 8 based on a composer template (yes it's slower, but this is the good way!) with user Apache.
 
 Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/).
 
 <pre>
 docker exec -it -u apache ddd-apache \
-composer create-project drupal-composer/drupal-project:8.x-dev /www/drupal --stability dev --no-interaction
+composer create-project drupal-composer/drupal-project:8.x-dev /var/www/localhost/drupal --stability dev --no-interaction
 </pre>
 
 #### Install Drupal 8
@@ -123,11 +126,11 @@ docker exec -it -u apache ddd-apache bash
 
 ## Reset the stack
 
-### Destroy containers (loose drupal files!)
+### Destroy containers (data/ is persistent, so you are not loosing db or files)
 <pre>docker-compose stop && docker-compose down</pre>
 
 ### Remove your persistent data (and lost everything!)
-<pre>sudo rm -rf data/database data/logs data/www/drupal</pre>
+<pre>rm -rf data</pre>
 
 ## Suggested tools
 
@@ -140,7 +143,7 @@ docker exec -it -u apache ddd-apache bash
 
 You can find a script in scripts/get-tools.sh folder to download or update all tools.
 <pre>
-cd THIS_PROJECT
-chmod +x scripts/get-tools.sh
-./scripts/get-tools.sh
+cd THIS_PROJECT/scripts/
+chmod +x get-tools.sh
+./get-tools.sh
 </pre>
