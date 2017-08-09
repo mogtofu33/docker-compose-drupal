@@ -20,13 +20,7 @@
           "output-dir": "../build/",
           "entry-point": "index.php",
           "skip-shebang": true,
-          "include": ["js"],
-          "include-dev": false,
-          "events": {
-              "build.after": [
-                  "chmod +x ../dashboard.phar"
-              ]
-          }
+          "include-dev": false
       }
     }
 }
