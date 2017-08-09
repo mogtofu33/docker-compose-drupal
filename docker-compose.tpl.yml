@@ -26,7 +26,7 @@
 version: '3'
 services:
   apache:
-    image: mogtofu33/apache-php:1.${PHP_VERSION:-7.0}
+    image: mogtofu33/apache-php:1.${PHP_VERSION:-7.1}
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
@@ -42,7 +42,7 @@ services:
       - solr
       - mailhog
     volumes:
-      - ${HOST_WEB_ROOT:-./data/www}:/www
+      - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
       - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/apache2
       - ./config/php/:/etc/php7/conf.d/
       - ./config/apache/httpd.conf:/etc/apache2/httpd.conf
@@ -55,7 +55,7 @@ services:
       - ./tools:/var/www/dashboard/tools
       - /var/run/docker.sock:/var/run/docker.sock
       ## If you have composer set locally, share cache to speed up.
-      # - $HOME/.composer/cache:/var/www/.composer/cache
+      # - $HOME/.composer/cache:/composer/cache
     env_file: .env
     container_name: ddd-apache
     ## Remove to avoid starting on system reboot.
