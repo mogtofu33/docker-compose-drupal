@@ -6,9 +6,10 @@ use Docker\Docker;
 use Docker\API\Model\ExecConfig;
 use Docker\API\Model\ExecStartConfig;
 use Docker\Manager\ExecManager;
+use Apache_Config_Parser;
 
-use Symfony\Component\Debug\Debug;
-Debug::enable();
+// use Symfony\Component\Debug\Debug;
+// Debug::enable();
 
 /**
  * Class App.
@@ -61,8 +62,8 @@ Class App {
   public function __construct() {
     $this->docker = new Docker();
     $this->containers = $this->getContainers();
-    $this->init();
     $this->initFolders();
+    $this->init();
   }
 
   /**
@@ -89,8 +90,7 @@ Class App {
 
     $this->vars['apache']['full'] = $host . $port;
 
-    // $this->vars['dashboard']['root'] = getenv('DOCUMENT_ROOT');
-    $this->vars['dashboard']['root'] = "/var/www/localhost";
+    $this->vars['dashboard']['root'] = $this->parseVhost($host);
 
     // Get db information from .env file stored in $_ENV in the container.
     $this->vars['db_services_env'] = [];
@@ -362,5 +362,36 @@ Class App {
     $stream->wait();
 
     return ['stdout' => $stdoutResult, 'stderr' => $stderrResult];
+  }
+
+  private function parseVhost($host) {
+    $hosts = [];
+    $vhost = trim(file_get_contents('/etc/apache2/vhost/vhost.conf'));
+    $vhost_lines = explode("\n", $vhost);
+
+    $apache_root = [];
+    foreach ($vhost_lines as $vhost_line) {
+      $vhost_line = trim($vhost_line);
+      if (substr($vhost_line, 0, 1) == '#' || empty($vhost_line)) {
+        continue;
+      }
+      preg_match('#<VirtualHost (.*?)>#', $vhost_line, $match_port);
+      if (isset($match_port[1])) {
+        $vhost_port = str_replace('*:', $host . ':', $match_port[1]);
+      }
+
+      preg_match("/^(?P<key>\w+)\s+(?P<value>.*)/", $vhost_line, $matches);
+      if (isset($matches['key'])) {
+        if ($matches['key'] == 'DocumentRoot' && $matches['value']  != getenv('DOCUMENT_ROOT')) {
+          $apache_root[$vhost_port] = $matches['value'];
+        }
+      }
+    }
+    if (count($apache_root)) {
+      return $apache_root;
+    }
+    else {
+      return ['localhost:80' => '/var/www/localhost'];
+    }
   }
 }

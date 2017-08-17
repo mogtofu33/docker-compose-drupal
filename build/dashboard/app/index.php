@@ -60,14 +60,18 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           <table class="table table-condensed table-hover">
             <thead>
               <tr>
-                <th>Source</th>
+                <th>Host</th>
                 <th>Document Root</th>
             </thead>
             <tbody>
-              <?php foreach ($app->vars['folders'] AS $folder): ?>
+              <?php foreach ($app->vars['dashboard']['root'] as $host => $doc_root): ?>
                 <tr>
-                  <td><a target="_blank" href="http://<?php print $app->vars['apache']['full'] . '/' . $folder; ?>"><?php print ucfirst($folder); ?></a></td>
-                  <td><code><?php print str_replace('./', '', $app->vars['dashboard']['root']) . '/' . $folder; ?></code></td>
+                  <td>
+                    <a target="_blank" href="//<?php print $host; ?>"><?php print $host; ?></a>
+                  </td>
+                  <td>
+                    <code><?php print $doc_root; ?></code>
+                  </td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
@@ -221,7 +225,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           </table>
           <div class="panel-footer">
             <?php if (isset($app->vars['db_services_env'][$service])): ?>
-            <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?server=<?php print $service; ?>&username=<?php print $app->vars['db_services_env'][$service]['username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['db']; ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+            <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?<?php print $service; ?>=<?php print $service; ?>&amp;server=<?php print $service; ?>&amp;username=<?php print $app->vars['db_services_env'][$service]['username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['db']; ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
             <?php endif; ?>
           </div>
         </section>
