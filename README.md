@@ -47,6 +47,12 @@ vi .env
 # Check the config and fix if needed.
 docker-compose config
 
+# For an existing Drupal 8 project, create folders and copy it in
+# Note that based on Composer template you we root should be under _drupal/web_
+# folder. If not you need to adapt Apache vhost config from config/apache/vhost.conf
+mkdir -p data/www/drupal
+cp -r _YOUR_DRUPAL_ data/www/drupal/
+
 # Launch the containers (first time include downloading Docker images).
 docker-compose up --build -d
 
@@ -56,11 +62,16 @@ docker-compose logs apache
 
 Note: If you have a permission denied from now it's because of owner of <code>/var/run/docker.sock</code>, run docker and docker-compose commands as sudo.
 
-### Access the stack dashboard
+### Access the stack dashboard and your Drupal root
 
+<pre>
+http://localhost
+</pre>
 <pre>
 http://localhost:8181
 </pre>
+
+If you have copy an existing Drupal project, you can import the database from the adminer link in the dashboard.
 
 ### Setup Drupal 8 with Composer
 
@@ -68,11 +79,16 @@ http://localhost:8181
 
 Setup a new Drupal 8 based on a composer template (yes it's slower, but this is the good way!) with user Apache.
 
-Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/).
+Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/), using [Composer](https://getcomposer.org) in the docker service:
 
 <pre>
 docker exec -it -u apache ddd-apache \
 composer create-project drupal-composer/drupal-project:8.x-dev /var/www/localhost/drupal --stability dev --no-interaction
+</pre>
+
+_OR_ locally if you have [Composer](https://getcomposer.org/download/), from this project root:
+<pre>
+composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal --stability dev --no-interaction
 </pre>
 
 #### Install Drupal 8
