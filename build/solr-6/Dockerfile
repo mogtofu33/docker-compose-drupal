@@ -1,4 +1,4 @@
-FROM solr:6.5-alpine
+FROM solr:6-alpine
 
 MAINTAINER moimog33@gmail.com
 
