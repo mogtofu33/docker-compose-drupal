@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-#       _                 _
-#   ___(_)_ __ ___  _ __ | | ___
-#  / __| | '_ ` _ \| '_ \| |/ _ \
-#  \__ \ | | | | | | |_) | |  __/
-#  |___/_|_| |_| |_| .__/|_|\___|
-#                  |_|
+# ____   ____   ____                         _
+# |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
+# | | | | |     | | | | '__| | | | '_ \ / _  | |
+# | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
+# |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
+#                               |_|
 #
-# Boilerplate for creating a simple bash script with some basic strictness
-# checks and help features.
+# Helper to get third party tools, part of Docker Compose Drupal project.
+# Based on Bash simple Boilerplate.
+# https://github.com/Mogtofu33/docker-compose-drupal
 #
 # Usage:
-#   manage-tools argument
+#   get-tools install | update | delete
 #
 # Depends on:
 #  list
@@ -22,8 +23,7 @@
 #  git
 #
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
-#
-# Copyright (c) 2015 William Melody • hi@williammelody.com
+# Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
 
 # Short form: set -u
 set -o nounset
@@ -169,11 +169,12 @@ _install() {
 }
 
 _update() {
-  printf "Update tools...\n"
   for i in "${_PROGRAMS[@]:-}"
   do
     arr=($(echo $i | tr ':' "\n"))
     dir=${arr[1]}
+    program=${arr[1]}
+    printf "Update ${program}...\n"
     git -C "${_BASE_PATH}tools/${dir}" pull origin
   done
   printf "Update finished!\n"
@@ -203,7 +204,7 @@ _delete() {
 _main() {
 
   if ! [ -x "$(command -v git)" ]; then
-    _die printf "Git is not installed. Please install to use this script.\n"
+    die "Git is not installed. Please install to use this script.\n"
   fi
 
   # Check where this script is run to fix base path.
@@ -214,7 +215,7 @@ _main() {
   then
     _BASE_PATH="./"
   else
-    _die printf "This script must be run within DCD project. Invalid command : %s\n" "${_SOURCE}"
+    die "This script must be run within DCD project. Invalid command : $0"
   fi
 
   # Run actions.
