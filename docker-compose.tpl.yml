@@ -48,8 +48,9 @@ services:
       - ./config/apache/httpd.conf:/etc/apache2/httpd.conf
       - ./config/apache/vhost.conf:/etc/apache2/vhost/vhost.conf
       - ./config/apache/conf.d/:/etc/apache2/conf.d/
-      ## Optional Drush alias file (or any other config)
+      ## Optional Drush alias and drushrc files (or any other config)
       - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
+      - ./config/drush/aliases.drushrc.php:/etc/drush/drushrc.php
       ## Used by dashboard and tools.
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
