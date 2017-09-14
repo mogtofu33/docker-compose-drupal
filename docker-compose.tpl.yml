@@ -50,7 +50,7 @@ services:
       - ./config/apache/conf.d/:/etc/apache2/conf.d/
       ## Optional Drush alias and drushrc files (or any other config)
       - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
-      - ./config/drush/aliases.drushrc.php:/etc/drush/drushrc.php
+      - ./config/drush/drushrc.php:/etc/drush/drushrc.php
       ## Used by dashboard and tools.
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
