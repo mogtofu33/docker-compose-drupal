@@ -244,3 +244,35 @@
 
 # ﬆ => st
 "\uFB06" => "st"
+
+# Macrons support ā, ē, ī, ō, ū, Ā, Ē, Ī, Ō and Ū.
+
+# Ā  [LATIN CAPITAL LETTER A WITH MACRON]
+"\u0100" => "A"
+
+# ā  [LATIN SMALL LETTER A WITH MACRON]
+"\u0101" => "a"
+
+# Ē  [LATIN CAPITAL LETTER E WITH MACRON]
+"\u0112" => "E"
+
+# ē  [LATIN SMALL LETTER E WITH MACRON]
+"\u0113" => "e"
+
+# Ī  [LATIN CAPITAL LETTER I WITH MACRON]
+"\u012A" => "I"
+
+# ī  [LATIN SMALL LETTER I WITH MACRON]
+"\u012B" => "i"
+
+# Ō  [LATIN CAPITAL LETTER O WITH MACRON]
+"\u014C" => "O"
+
+# ō  [LATIN SMALL LETTER O WITH MACRON]
+"\u014D" => "o"
+
+# Ū  [LATIN CAPITAL LETTER U WITH MACRON]
+"\u016A" => "U"
+
+# ū  [LATIN SMALL LETTER U WITH MACRON]
+"\u016B" => "u"
