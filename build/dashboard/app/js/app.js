@@ -3,7 +3,7 @@
 jQuery( document ).ready(function( $ ) {
   // Clipboard copy js.
   $('.copy').each(function(i, e) {
-    $(this).after('<button class="copy btn btn-xs" data-clipboard-text="' + $(this).text() + '"><span class="glyphicon glyphicon-copy"></span></button>');
+    $(this).after('<button title="Copy to clipboard" class="copy btn btn-sm btn-link" data-clipboard-text="' + $(this).text() + '"><span class="octicon octicon-clippy"></span></button>');
   });
   var clipboard = new Clipboard('.copy');
   clipboard.on('success', function(e) {
@@ -26,7 +26,7 @@ jQuery( document ).ready(function( $ ) {
       if (response != "null") {
         modal.find('.modal-title').html(response.message);
         for (var key in response.result) {
-          modal.find('.modal-body').append('<label>' + key + '</label><pre class="scroll">' + response.result[key] + '</pre>');
+          modal.find('.modal-body').append('<label>' + key + '</label><pre class="pre-scrollable">' + response.result[key] + '</pre>');
         }
       }
     });
@@ -36,7 +36,7 @@ jQuery( document ).ready(function( $ ) {
         modal.find('.modal-body').html('');
         if (response != "null") {
           for (var key in response.result) {
-            modal.find('.modal-body').append('<label>' + key + '</label><pre class="scroll">' + response.result[key] + '</pre>');
+            modal.find('.modal-body').append('<label>' + key + '</label><pre class="pre-scrollable">' + response.result[key] + '</pre>');
           }
         }
       });

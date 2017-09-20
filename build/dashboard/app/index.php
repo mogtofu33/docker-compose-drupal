@@ -13,51 +13,74 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
     <title>Drupal Docker Compose - Dev stack</title>
+    <!-- https://getbootstrap.com/docs/4.0/content/typography/#responsive-typography -->
     <style>
-    .scroll {
-      max-height:500px;
-      overflow-y:scroll;
+    html {
+      font-size: 14px;
+    }
+    @include media-breakpoint-up(sm) {
+      html {
+        font-size: 16px;
+      }
+    }
+    @include media-breakpoint-up(md) {
+      html {
+        font-size: 20px;
+      }
+    }
+    @include media-breakpoint-up(lg) {
+      html {
+        font-size: 28px;
+      }
+    }
+    /* Fix Bs4 default a flashy color. */
+    body a {
+      color: #337ab7;
+    }
+    body .btn-link {
+      color: #5f6a75;
     }
     </style>
 </head>
 <body>
   <!-- Page Content -->
-  <div class="container-fluid">
+  <div class="container-fluid my-3">
 
     <div class="row">
-      <div class="col-md-12">
+      <div class="col">
         <h4>
-          <a href="https://github.com/Mogtofu33/docker-compose-drupal" target="_blank">Drupal Docker Compose</a>
+          <a href="https://github.com/Mogtofu33/docker-compose-drupal" target="_blank"><span class="badge badge-info">Drupal Docker Compose</span></a>
           <small>Docker full stack for simple Drupal dev.</small>
         </h4>
         <p>
-          <a type="button" class="btn btn-xs btn-primary" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal" target="_blank">
-            <span class="glyphicon glyphicon-home" aria-hidden="true"></span> Project homepage
+          <a class="btn btn-sm btn-outline-info" href="https://github.com/Mogtofu33/docker-compose-drupal" target="_blank" role="button">
+            <span class="octicon octicon-home" aria-hidden="true"></span> Project homepage
           </a>
-          <a type="button" class="btn btn-xs btn-info" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal/blob/master/README.md" target="_blank">
-            <span class="glyphicon glyphicon-book" aria-hidden="true"></span> Documentation
+          <a class="btn btn-sm btn-outline-secondary" href="https://github.com/Mogtofu33/docker-compose-drupal/blob/master/README.md" target="_blank">
+            <span class="octicon octicon-book" aria-hidden="true"></span> Documentation
           </a>
-          <a type="button" class="btn btn-xs btn-warning" aria-label="Left Align" href="https://github.com/Mogtofu33/docker-compose-drupal/issues" target="_blank">
-            <span class="glyphicon glyphicon-send" aria-hidden="true"></span> Bug report
+          <a class="btn btn-sm btn-outline-warning" href="https://github.com/Mogtofu33/docker-compose-drupal/issues" target="_blank">
+            <span class="octicon octicon-bug" aria-hidden="true"></span> Bug report
           </a>
         </p>
       </div>
     </div>
 
     <div class="alert alert-success alert-dismissible fade in" role="alert" id="message" style="display:none;">
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+      <button class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
       <div class="message"></div>
     </div>
 
     <div class="row">
-      <div class="col-md-7">
-        <section class="panel panel-default">
-          <div class="panel-heading">Your sites</div>
-          <table class="table table-condensed table-hover">
+      <div class="col">
+        <section class="card mb-3">
+          <div class="card-header">Your sites</div>
+          <table class="table table-hover table-sm table-responsive mb-0">
             <thead>
               <tr>
                 <th>Host</th>
@@ -76,10 +99,12 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
               <?php endforeach; ?>
             </tbody>
           </table>
+
         </section>
-        <section class="panel panel-default">
-          <div class="panel-heading">Containers running</div>
-          <table class="table table-condensed table-hover">
+
+        <section class="card mb-3">
+          <div class="card-header">Containers running</div>
+          <table class="table table-hover table-sm table-responsive mb-0">
             <thead>
               <tr>
                 <th></th>
@@ -94,25 +119,21 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
               <tr class="<?php print $container['id']; ?>">
                 <th><?php print $container['service']; ?></th>
                 <td>
-                  <table>
+                  <ul class="list-unstyled mb-0">
                   <?php foreach ($container['ports'] AS $port): ?>
-                  <tr>
-                    <td>
-                      <?php print $port['private']; if (isset($port['public'])): print ' > ' . $port['public'];  endif; ?>
-                    </td>
-                  </tr>
+                    <li><?php print $port['private']; if (isset($port['public'])): print ' > ' . $port['public'];  endif; ?></li>
                   <?php endforeach; ?>
-                  </table>
+                </ul>
                 </td>
                 <td><code class="copy"><?php print $container['name']; ?></code></td>
                 <td><code class="copy"><?php print $container['ip']; ?></code></td>
                 <td>
-                  <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="logs" data-container="<?php print $container['id']; ?>">Logs</button>
-                  <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal" data-action="top" data-container="<?php print $container['id']; ?>">Top</button>
+                  <button class="btn btn-outline-dark btn-sm" data-toggle="modal" data-target="#myModal" data-action="logs" data-container="<?php print $container['id']; ?>">Logs</button>
+                  <button class="btn btn-outline-dark btn-sm" data-toggle="modal" data-target="#myModal" data-action="top" data-container="<?php print $container['id']; ?>">Top</button>
                 </td>
                 <!-- <td>
                   <?php if ($container['state_raw'] == 'running'): ?>
-                 <button type="button" data-loading-text="Restarting..." class="btn btn-primary btn-xs action" autocomplete="off" data-container="<?php print $container['id'] ?>" data-action="restart">
+                 <button data-loading-text="Restarting..." class="btn btn-primary btn-sm action" autocomplete="off" data-container="<?php print $container['id'] ?>" data-action="restart">
                   Restart
                  </button>
                 <?php endif; ?>
@@ -121,10 +142,10 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <?php endforeach; ?>
           </table>
 
-          <div class="panel-footer">
+          <div class="card-footer">
             <div class="form-inline">
-            <label for="exec">Quick command on </label>
-            <select class="form-control input-sm" name="id" id="exec">
+            <label for="exec">Quick command on</label>
+            <select class="form-control form-control-sm ml-1" name="id" id="exec">
               <option value="_none">- Select -</option>
               <?php foreach ($app->containers as $c): ?>
               <option value="<?php print $c['id']; ?>"><?php print $c['service']; ?></option>
@@ -138,9 +159,9 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           </div>
         </section>
 
-        <section class="panel panel-default">
-          <div class="panel-heading">Services</div>
-          <table class="table table-condensed table-hover">
+        <section class="card mb-3">
+          <div class="card-header">Services</div>
+          <table class="table table-hover table-sm table-responsive mb-0">
             <thead>
               <tr>
                 <th></th>
@@ -154,22 +175,22 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                   <th><?php print $container['service']; ?></th>
                   <td>
                     <?php if ($container['is_public']): ?>
-                      <table>
+                      <ul class="list-unstyled mb-0">
                       <?php foreach ($container['ports'] AS $port): ?>
                         <?php if (isset($port['public']) && $port['mode']): ?>
-                          <tr><td><a target="_blank" href="<?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?>"><?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?></a></td></tr>
+                          <li><a target="_blank" href="<?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?>"><?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?></a></li>
                         <?php endif; ?>
                       <?php endforeach; ?>
-                      </table>
+                      </ul>
                     <?php endif; ?>
                   </td>
                   <td>
-                    <table>
+                    <ul class="list-unstyled mb-0">
                     <?php foreach ($container['ports'] AS $port): ?>
-                      <tr><td><?php print $service . ':' . $port['private']; ?></td></tr>
+                      <li><?php print $service . ':' . $port['private']; ?></li>
                     <?php endforeach; ?>
-                    </table>
-                    </td>
+                    </ul>
+                  </td>
                 </tr>
               <?php endif; ?>
             <?php endforeach; ?>
@@ -179,16 +200,16 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
       </div>
 
-      <div class="col-md-5">
+      <div class="col">
 
-        <section class="panel panel-default">
-          <div class="panel-heading">Development tools</div>
-          <table class="table table-condensed table-hover">
+        <section class="card mb-3">
+          <div class="card-header">Development tools</div>
+          <table class="table table-hover table-sm table-responsive mb-0">
             <?php foreach ($app->vars['tools'] AS $tool): ?>
               <tr>
                 <th><?php print str_replace('.php', '', ucfirst($tool)); ?></th>
                 <td class="text-center">
-                  <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . $tool; ?>" class="btn btn-info btn-xs" role="button">Access</a>
+                  <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . $tool; ?>" class="btn btn-info btn-sm" role="button">Access</a>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -197,9 +218,9 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
         <?php foreach ($app->containers AS $service => $container): ?>
         <?php if (in_array($service, array_keys($app::$db_services))): ?>
-        <section class="panel panel-default">
-          <div class="panel-heading"><strong><?php print ucfirst($service); ?></strong> connection information</div>
-          <table class="table table-condensed table-hover">
+        <section class="card mb-3">
+          <div class="card-header"><strong><?php print ucfirst($service); ?></strong> connection information</div>
+          <table class="table table-hover table-sm table-responsive mb-0">
             <tr>
               <th>Hostname</th>
               <td><code><?php print $service; ?></code></td>
@@ -223,17 +244,17 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <?php endforeach; ?>
             <?php endif; ?>
           </table>
-          <div class="panel-footer">
+          <div class="card-footer">
             <?php if (isset($app->vars['db_services_env'][$service])): ?>
-            <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?<?php print $service; ?>=<?php print $service; ?>&amp;server=<?php print $service; ?>&amp;username=<?php print $app->vars['db_services_env'][$service]['username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['db']; ?>" class="btn btn-info btn-xs" role="button">Adminer connection</a>
+            <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?<?php print $service; ?>=<?php print $service; ?>&amp;server=<?php print $service; ?>&amp;username=<?php print $app->vars['db_services_env'][$service]['username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['db']; ?>" class="btn btn-info btn-sm" role="button">Adminer connection</a>
             <?php endif; ?>
           </div>
         </section>
         <?php endif; ?>
         <?php endforeach; ?>
-        <section class="panel panel-default">
-          <div class="panel-heading">PHP information</div>
-          <table class="table table-condensed table-hover">
+        <section class="card mb-3">
+          <div class="card-header">PHP information</div>
+          <table class="table table-hover table-sm table-responsive mb-0">
             <tr>
               <th>PHP Version</th>
               <td><code><?php print $app->getPhpVersion(); ?></code></td>
@@ -259,7 +280,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
               </tr>
             <?php endforeach; ?>
           </table>
-          <div class="panel-footer">
+          <div class="card-footer">
             <small><a target="_blank" href="/tools/phpinfo.php">View more details in the server's phpinfo() report</a>.</small>
           </div>
         </section>
@@ -270,8 +291,8 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <!-- Footer -->
     <footer>
         <div class="row">
-            <div class="col-lg-12">
-              <?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?> <a type="button" class="btn btn-xs btn-info" href="/server-status" target="_blank">Server status</a> <a type="button" class="btn btn-xs btn-info" href="/server-info" target="_blank">server info</a>
+            <div class="col">
+              <?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?> <a class="btn btn-sm btn-info" href="/server-status" target="_blank">Server status</a> <a class="btn btn-sm btn-info" href="/server-info" target="_blank">server info</a>
             </div>
         </div>
     </footer>
@@ -280,29 +301,47 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
   <!-- /.container -->
 
   <!-- Modal -->
-  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="myModalLabel"></h4>
-        </div>
-        <div class="modal-body"></div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <button type="button" data-loading-text="Refreshing..." class="btn btn-primary refresh" autocomplete="off"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh</button>
-        </div>
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" data-loading-text="Refreshing..." class="btn btn-primary refresh" autocomplete="off"><span class="octicon octicon-sync" aria-hidden="true"></span> Refresh</button>
       </div>
     </div>
   </div>
+</div>
   <!-- /.Modal -->
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+  <!-- Octicons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.min.css">
+
   <!-- jQuery -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+  <!-- Bootstrap + Popper-->
+  <script
+  src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"
+  integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
+  crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"
+  integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
+  crossorigin="anonymous"></script>
+
   <script src="https://cdn.jsdelivr.net/clipboard.js/1.6.1/clipboard.min.js"></script>
   <!-- Bootstrap -->
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
   <!-- Terminal -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.5.3/js/jquery.terminal.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.5.3/css/jquery.terminal.min.css" rel="stylesheet"/>
