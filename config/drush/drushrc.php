@@ -249,7 +249,7 @@ $options['structure-tables']['common'] = array('cachetags', 'cache_*', 'history'
  * non-Drupal tables used by some other application or during a migration for
  * example.  You may add new tables to the existing array or add a new element.
  */
-# $options['skip-tables']['common'] = array('migration_*');
+$options['skip-tables']['common'] = array('migration_*');
 
 /**
  * Override specific entries in Drupal's variable system or settings.php (D6/D7 only).
@@ -294,7 +294,7 @@ $options['structure-tables']['common'] = array('cachetags', 'cache_*', 'history'
 # $command_specific['pm-updatecode'] = array('notes' => TRUE);
 
 // Set a predetermined username and password when using site-install.
-# $command_specific['site-install'] = array('account-name' => 'alice', 'account-pass' => 'secret');
+$command_specific['site-install'] = array('db-url' => 'mysql://drupal:drupal@mysql/drupal');
 
 // Use Drupal version specific CLI history instead of per site.
 # $command_specific['core-cli'] = array('version-history' => TRUE);

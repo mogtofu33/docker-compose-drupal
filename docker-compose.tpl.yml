@@ -51,6 +51,9 @@ services:
       ## Optional Drush alias and drushrc files (or any other config)
       - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
       - ./config/drush/drushrc.php:/etc/drush/drushrc.php
+      ## Optional Drush 9 alias and drushrc files (or any other config)
+      - ./config/drush/aliases.yml:/etc/drush/aliases.yml
+      - ./config/drush/drushrc.yml:/etc/drush/drushrc.yml
       ## Used by dashboard and tools.
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
