@@ -14,12 +14,6 @@
 #   get-tools install | update | delete
 #
 # Depends on:
-#  list
-#  of
-#  programs
-#  expected
-#  in
-#  environment
 #  git
 #
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
