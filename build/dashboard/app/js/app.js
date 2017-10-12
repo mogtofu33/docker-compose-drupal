@@ -1,6 +1,7 @@
 // Docker Compose Drupal minimal dashboard js.
 
 jQuery( document ).ready(function( $ ) {
+
   // Clipboard copy js.
   $('.copy').each(function(i, e) {
     $(this).after('<button title="Copy to clipboard" class="copy btn btn-sm btn-link" data-clipboard-text="' + $(this).text() + '"><span class="octicon octicon-clippy"></span></button>');
@@ -18,28 +19,46 @@ jQuery( document ).ready(function( $ ) {
     var $id = $btn.data('container');
     var $action = $btn.data('action');
     var modal = $(this);
+
     modal.find('.modal-body').html('');
 
-    modal.find('.modal-title').text($action + ' for ' + $id);
-    // Request to endpoint.
-    $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
-      if (response != "null") {
-        modal.find('.modal-title').html(response.message);
-        for (var key in response.result) {
-          modal.find('.modal-body').append('<label>' + key + '</label><pre class="pre-scrollable">' + response.result[key] + '</pre>');
-        }
-      }
-    });
-    $(this).find('button.refresh').on('click', function (event) {
-      var $btnrefresh = $(this).button('loading');
+    if ($action == 'get') {
+      modal.find('.modal-title').text($btn.data('title'));
+      modal.find('.modal-body').html(
+        '<div class="padding-zero embed-responsive embed-responsive-21by9">' +
+        '<iframe id="iframe" class="embed-responsive-item" src="' + $btn.data('url') + '"></iframe>' +
+        '</div>'
+      );
+    }
+    else {
+      modal.find('.modal-title').text($action + ' for ' + $id);
+      // Request to endpoint.
       $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
-        modal.find('.modal-body').html('');
         if (response != "null") {
+          modal.find('.modal-title').html(response.message);
           for (var key in response.result) {
             modal.find('.modal-body').append('<label>' + key + '</label><pre class="pre-scrollable">' + response.result[key] + '</pre>');
           }
         }
       });
+    }
+
+    $(this).find('button.refresh').on('click', function (event) {
+      // modal.find('.modal-body').html('');
+      var $btnrefresh = $(this).button('loading');
+      if ($action == 'get') {
+        $('#iframe').attr('src', function (i, val) { return val; });
+      }
+      else {
+        $.getJSON("/index.php", { action : $action, id: $id }, function(response) {
+          if (response != "null") {
+            modal.find('.modal-body').html('');
+            for (var key in response.result) {
+              modal.find('.modal-body').append('<label>' + key + '</label><pre class="pre-scrollable">' + response.result[key] + '</pre>');
+            }
+          }
+        });
+      }
       $btnrefresh.button('reset');
     });
   });

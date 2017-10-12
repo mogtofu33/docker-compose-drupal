@@ -6,7 +6,7 @@ $app = new App();
 
 // Handle POST/GET requests.
 if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
-  echo $app->processAction($_REQUEST['action'], $_REQUEST['id'], $_REQUEST);
+  echo $app->processAction($_REQUEST['action'], $_REQUEST['id']);
   exit;
 }
 ?>
@@ -44,6 +44,10 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     }
     body .btn-link {
       color: #5f6a75;
+    }
+    /* Extend modal width */
+    .modal-lg {
+      max-width: 80% !important;
     }
     </style>
 </head>
@@ -87,13 +91,15 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                 <th>Document Root</th>
             </thead>
             <tbody>
-              <?php foreach ($app->vars['dashboard']['root'] as $host => $doc_root): ?>
+              <?php foreach ($app->vars['dashboard']['root'] as $host): ?>
                 <tr>
                   <td>
-                    <a target="_blank" href="//<?php print $host; ?>"><?php print $host; ?></a>
+                    <a target="_blank" href="<?php ($host['port'] == '443') ? print 'https:' : ''; ?>//<?php print $host['host']; ?>">
+                      <?php print $host['host'] . ':' . $host['port']; ?>
+                    </a>
                   </td>
                   <td>
-                    <code><?php print $doc_root; ?></code>
+                    <code><?php print $host['root']; ?></code>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -271,7 +277,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
               <tr>
                 <th><?php print $label; ?></th>
                 <td>
-                <?php if ($label == 'Opcache' || $label == 'Xdebug'): ?>
+                <?php if ($label == 'Opcache' || $label == 'Xdebug' || $label == 'PhpFpm'): ?>
                   <?php print $value; ?>
                 <?php else: ?>
                 <code><?php print $value; ?></code>
@@ -292,7 +298,18 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <footer>
         <div class="row">
             <div class="col">
-              <?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?> <a class="btn btn-sm btn-info" href="/server-status" target="_blank">Server status</a> <a class="btn btn-sm btn-info" href="/server-info" target="_blank">server info</a>
+              <ul class="list-inline">
+                <li class="list-inline-item"><?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?></li>
+                <li class="list-inline-item">
+                  <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#myModal" data-action="get" data-url="server-status" data-title="Server status">Server status</button>
+                </li>
+                <li class="list-inline-item">
+                  <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#myModal" data-action="get" data-url="server-info" data-title="Server info">Server info</button>
+                </li>
+                <li>
+
+                </li>
+              </ul>
             </div>
         </div>
     </footer>
