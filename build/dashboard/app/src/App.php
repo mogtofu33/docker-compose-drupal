@@ -122,7 +122,18 @@ Class App {
    */
   protected function initFolders($path = '/var/www/dashboard/', $project_path = '/var/www/localhost') {
     // Get tools from folder.
-    $this->vars['tools'] = @array_diff(scandir($path . 'tools'), array('..', '.', '.htaccess'));
+    $tools = @array_diff(scandir($path . 'tools'), array('..', '.', '.htaccess'));
+    $formatted_tools = [];
+    foreach ($tools as $k => $tool) {
+      $formatted_tools[$k]['name'] = str_replace('.php', '', str_replace('/index.php', '', ucfirst($tool)));
+      if (substr($tool, -4) !== '.php') {
+        $formatted_tools[$k]['href'] = '/tools/' . $tool . '/index.php';
+      }
+      else {
+        $formatted_tools[$k]['href'] = '/tools/' .$tool;
+      }
+    }
+    $this->vars['tools'] = $formatted_tools;
     // Get current folders exept drupal and tools.
     $this->vars['folders'] = @array_diff(scandir($project_path), array('..', '.', '.htaccess', 'cgi-bin'));
   }
@@ -154,6 +165,7 @@ Class App {
       // Get container info.
       $container = $this->docker->getContainerManager()->find($id);
       $name = str_replace('/', '', $container->getName());
+
       // Process actions.
       switch ($action) {
         case 'restart':
