@@ -6,7 +6,7 @@ use Docker\Docker;
 use Docker\API\Model\ExecConfig;
 use Docker\API\Model\ExecStartConfig;
 use Docker\Manager\ExecManager;
-use Apache_Config_Parser;
+use GuzzleHttp\Client;
 
 // use Symfony\Component\Debug\Debug;
 // Debug::enable();
@@ -133,14 +133,14 @@ Class App {
    * @param string $action
    *   The action name.
    * @param string $id
-   *   The container id.
+   *   The container id or an url.
    * @param array $request
    *   The full HTTP request.
    *
    * @return string
    *   A json response keyed with message, result, id, action and level.
    */
-  public function processAction($action = 'state', $id = NULL, $request = []) {
+ public function processAction($action = 'state', $id = NULL, $request = []) {
     // Default message returned.
     $response = [
       'action' => $action,
@@ -197,18 +197,18 @@ Class App {
             $response['level'] = 'warning';
           }
           break;
-          case 'exec':
-            $exec = $this->exec($id, explode(' ', $request['cmd']));
-            $response['level'] = 'success';
-            if (strpos($exec['stdout'], 'rpc error') !== FALSE) {
-              $response['level'] = 'error';
-            }
-            $response['result']['stdout'] = $exec['stdout'];
-            if (!empty($exec['stderr'])) {
-              $response['level'] = 'error';
-              $response['result']['stderr'] = $exec['stderr'];
-            }
-            break;
+        case 'exec':
+          $exec = $this->exec($id, explode(' ', $request['cmd']));
+          $response['level'] = 'success';
+          if (strpos($exec['stdout'], 'rpc error') !== FALSE) {
+            $response['level'] = 'error';
+          }
+          $response['result']['stdout'] = $exec['stdout'];
+          if (!empty($exec['stderr'])) {
+            $response['level'] = 'error';
+            $response['result']['stderr'] = $exec['stderr'];
+          }
+          break;
         default:
           $response['level'] = 'error';
           $response['message'] = 'Invalid action.';
@@ -293,6 +293,7 @@ Class App {
   public function getPhpInfo() {
     $info = ini_get_all(NULL, FALSE);
     $result = [
+      'PhpFpm' => $this->checkPhpFpm(),
       'Memory limit' => $info['memory_limit'],
       'Max execution time' => $info['max_execution_time'],
       'Upload max filesize' => $info['upload_max_filesize'],
@@ -300,11 +301,45 @@ Class App {
       'Display errors' => ($info['display_errors'] === "1") ? 'On' : 'Off',
       'Date timezone' => $info['date.timezone'],
       'Sendmail' => $info['sendmail_path'],
-      'Opcache' => ($info['opcache.enable'] === "1") ? '<span class="label label-success">Enabled</span>' : '<span class="label label-warning">Disabled</span>',
-      'Xdebug' => ($info['xdebug.default_enable'] === "1") ? '<span class="label label-warning">Enabled</span>' : '<span class="label label-success">Disabled</span>',
+      'Opcache' => ($info['opcache.enable'] === "1") ? '<span class="badge badge-success">Enabled</span>' : '<span class="badge badge-warning">Disabled</span>',
+      'Xdebug' => ($info['xdebug.default_enable'] === "1") ? '<span class="badge badge-success">Enabled</span>' : '<span class="badge badge-warning">Disabled</span>',
       'Xdebug max nesting level' => $info['xdebug.max_nesting_level'],
     ];
     return $result;
+  }
+
+  /**
+   * Get php info from cmd on the apache container.
+   *
+   * @return array
+   *   Php result information formatted.
+   */
+  public function checkPhpFpm() {
+    $response = $this->getUrl('fpm-ping');
+    if ($response) {
+      return '<span class="badge badge-success">' . $response . '</span>
+      <small class="badge badge-info">
+      <a href="#" data-toggle="modal" data-target="#myModal" data-action="get" data-url="fpm-status?html&full" data-title="PhpFpm status">Status</a>
+      </small>';
+    }
+    else {
+      return '<span class="badge badge-alert>Disabled</span>';
+    }
+  }
+
+  /**
+   * Hlper for http request GET.
+   *
+   * @return array
+   *   Result information formatted.
+   */
+  public function getUrl($url) {
+    $client = new \GuzzleHttp\Client();
+    $response = $client->request('GET', $this->vars['dashboard']['full'] . '/' . $url);
+    if ($response->getStatusCode() == 200) {
+      return $response->getBody();
+    }
+    return NULL;
   }
 
   /**
@@ -364,6 +399,15 @@ Class App {
     return ['stdout' => $stdoutResult, 'stderr' => $stderrResult];
   }
 
+  /**
+   * Helper to parse apavche vhost file.
+   *
+   * @param string $host
+   *   Container identifier
+   *
+   * @return array
+   *   Keyed stdout and stderr result.
+   */
   private function parseVhost($host) {
     $hosts = [];
     $vhost = trim(file_get_contents('/etc/apache2/vhost/vhost.conf'));
@@ -377,13 +421,16 @@ Class App {
       }
       preg_match('#<VirtualHost (.*?)>#', $vhost_line, $match_port);
       if (isset($match_port[1])) {
-        $vhost_port = str_replace('*:', $host . ':', $match_port[1]);
+        $vhost_port = [
+          'host' => $host,
+          'port' => str_replace('*:', '', $match_port[1]),
+        ];
       }
 
       preg_match("/^(?P<key>\w+)\s+(?P<value>.*)/", $vhost_line, $matches);
       if (isset($matches['key'])) {
         if ($matches['key'] == 'DocumentRoot' && $matches['value']  != getenv('DOCUMENT_ROOT')) {
-          $apache_root[$vhost_port] = $matches['value'];
+          $apache_root[] = $vhost_port + ['root' => str_replace('"', '', $matches['value'])];
         }
       }
     }
@@ -391,7 +438,11 @@ Class App {
       return $apache_root;
     }
     else {
-      return ['localhost:80' => '/var/www/localhost'];
+      return [[
+        "host" => "localhost",
+        "port" => "80",
+        "root" => "/var/www/localhost/drupal/web",
+      ]];
     }
   }
 }

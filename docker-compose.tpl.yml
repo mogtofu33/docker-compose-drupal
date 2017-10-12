@@ -44,16 +44,22 @@ services:
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
       - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/apache2
-      - ./config/php/:/etc/php7/conf.d/
+      # Php configuration.
+      - ./config/php/php.ini:/etc/php7/php.ini
+      - ./config/php/php-fpm.conf:/etc/php7/php-fpm.conf
+      - ./config/php/conf.d/:/etc/php7/conf.d/
+      - ./config/php/php-fpm.d/:/etc/php7/php-fpm.d/
+      # Apache configuration with SSL support.
       - ./config/apache/httpd.conf:/etc/apache2/httpd.conf
       - ./config/apache/vhost.conf:/etc/apache2/vhost/vhost.conf
       - ./config/apache/conf.d/:/etc/apache2/conf.d/
-      ## Optional Drush alias and drushrc files (or any other config)
+      - ./config/apache/ssl/:/etc/ssl/apache2/
+      # Drush alias and drushrc files (or any other config)
       - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
       - ./config/drush/drushrc.php:/etc/drush/drushrc.php
-      ## Optional Drush 9 alias and drushrc files (or any other config)
+      ## Drush 9 alias and drushrc files (or any other config)
       - ./config/drush/aliases.yml:/etc/drush/aliases.yml
-      - ./config/drush/drushrc.yml:/etc/drush/drushrc.yml
+      - ./config/drush/drush.yml:/etc/drush/drush.yml
       ## Used by dashboard and tools.
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
