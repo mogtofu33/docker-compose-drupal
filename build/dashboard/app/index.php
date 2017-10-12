@@ -6,7 +6,7 @@ $app = new App();
 
 // Handle POST/GET requests.
 if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
-  echo $app->processAction($_REQUEST['action'], $_REQUEST['id']);
+  echo $app->processAction($_REQUEST['action'], $_REQUEST['id'], $_REQUEST);
   exit;
 }
 ?>
@@ -96,6 +96,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                   <td>
                     <a target="_blank" href="<?php ($host['port'] == '443') ? print 'https:' : ''; ?>//<?php print $host['host']; ?>">
                       <?php print $host['host'] . ':' . $host['port']; ?>
+                      <span class="octicon octicon-link-external" aria-hidden="true"></span>
                     </a>
                   </td>
                   <td>
@@ -184,7 +185,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                       <ul class="list-unstyled mb-0">
                       <?php foreach ($container['ports'] AS $port): ?>
                         <?php if (isset($port['public']) && $port['mode']): ?>
-                          <li><a target="_blank" href="<?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?>"><?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?></a></li>
+                          <li><a target="_blank" href="<?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?>"><?php print $port['mode']; ?>://<?php print $app->vars['dashboard']['host'] . ':' . $port['public']; ?> <span class="octicon octicon-link-external" aria-hidden="true"></span></a></li>
                         <?php endif; ?>
                       <?php endforeach; ?>
                       </ul>
@@ -213,10 +214,15 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           <table class="table table-hover table-sm table-responsive mb-0">
             <?php foreach ($app->vars['tools'] AS $tool): ?>
               <tr>
-                <th><?php print str_replace('.php', '', ucfirst($tool)); ?></th>
+                <th><?php print $tool['name']; ?></th>
                 <td class="text-center">
-                  <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . $tool; ?>" class="btn btn-info btn-sm" role="button">Access</a>
-                </td>
+                  <?php if ($tool['name'] == 'Adminer' || $tool['name'] == 'AdminerExtended'): ?>
+                  <a target="_blank" href="<?php print $tool['href']; ?>" class="btn btn-info btn-sm" role="button">Access <span class="octicon octicon-link-external" aria-hidden="true"></span></a>
+                  <?php else: ?>
+                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#myModal" data-action="get" data-url="<?php print $tool['href']; ?>" data-title="<?php print $tool['name']; ?>">Access</button>
+                    <small><a target="_blank" title="Open in a new window" href="<?php print $tool['href']; ?>" class="badge badge-light" role="button"><span class="octicon octicon-link-external" aria-hidden="true"></span></a></small>
+                  <?php endif; ?>
+                  </td>
               </tr>
             <?php endforeach; ?>
           </table>
@@ -287,7 +293,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <?php endforeach; ?>
           </table>
           <div class="card-footer">
-            <small><a target="_blank" href="/tools/phpinfo.php">View more details in the server's phpinfo() report</a>.</small>
+            <small>View more details in the server's <a target="_blank" href="/tools/phpinfo.php">phpinfo() <span class="octicon octicon-link-external" aria-hidden="true"></span></a> report</small>
           </div>
         </section>
 
@@ -302,12 +308,11 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                 <li class="list-inline-item"><?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?></li>
                 <li class="list-inline-item">
                   <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#myModal" data-action="get" data-url="server-status" data-title="Server status">Server status</button>
+                  <a target="_blank" title="Open in a new window" href="/server-status" class="badge badge-light" role="button"><span class="octicon octicon-link-external" aria-hidden="true"></span></a>
                 </li>
                 <li class="list-inline-item">
                   <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#myModal" data-action="get" data-url="server-info" data-title="Server info">Server info</button>
-                </li>
-                <li>
-
+                  <a target="_blank" title="Open in a new window" href="/server-info" class="badge badge-light" role="button"><span class="octicon octicon-link-external" aria-hidden="true"></span></a>
                 </li>
               </ul>
             </div>
