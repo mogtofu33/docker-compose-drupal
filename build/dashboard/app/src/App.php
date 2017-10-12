@@ -81,8 +81,8 @@ Class App {
 
     $host_root = getenv('HOST_WEB_ROOT');
 
-    if (isset($_ENV['APACHE_HOST_HTTP_PORT'])) {
-      $port = $_ENV['APACHE_HOST_HTTP_PORT'] == "80" ? "" : ":" . $_ENV['APACHE_HOST_HTTP_PORT'];
+    if (null !== getenv('APACHE_HOST_HTTP_PORT')) {
+      $port = getenv('APACHE_HOST_HTTP_PORT') == "80" ? "" : ":" . getenv('APACHE_HOST_HTTP_PORT');
     }
     else {
       $port = '';
@@ -92,23 +92,35 @@ Class App {
 
     $this->vars['dashboard']['root'] = $this->parseVhost($host);
 
-    // Get db information from .env file stored in $_ENV in the container.
+    // Get db information from .env docker file stored in any container.
+    $first_id = reset($this->containers)['id'];
+    $container = $this->docker->getContainerManager()->find($first_id);
+    $env_array = $container->getConfig()->getEnv();
+    $env = [];
+    foreach ($env_array as $env_value) {
+      $val = explode('=', $env_value);
+      $env[$val[0]] = $val[1];
+    }
+
     $this->vars['db_services_env'] = [];
-    foreach ($_ENV as $k => $env) {
+
+    foreach ($env as $k => $e) {
       foreach ($this::$db_services as $service => $value) {
         if (strpos($k, $value) !== FALSE) {
-          $this->vars['db_services_env'][$service][$k] = $env;
-          $string = explode('_', $k);
-          $name = end($string);
-          if (strpos($name, 'USER') !== FALSE) {
-            $this->vars['db_services_env'][$service]['username'] = $env;
-          }
+          $name = str_ireplace($service, '', $k);
+          $name = trim(str_replace('_', ' ', $name));
           if (strpos($name, 'DB') !== FALSE || strpos($name, 'DATABASE') !== FALSE) {
-            $this->vars['db_services_env'][$service]['db'] = $env;
+            $this->vars['db_services_env'][$service]['Database'] = $e;
+          }
+          else if (strpos($name, 'USER') !== FALSE) {
+            $this->vars['db_services_env'][$service]['Username'] = $e;
+          }
+          else {
+            $label = ucfirst(strtolower(str_replace('_', ' ', $name)));
+            $this->vars['db_services_env'][$service][$label] = $e;
           }
         }
       }
-
     }
   }
 

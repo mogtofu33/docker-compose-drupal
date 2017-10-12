@@ -247,18 +247,16 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
             <?php if (isset($app->vars['db_services_env'][$service])): ?>
             <?php foreach ($app->vars['db_services_env'][$service] AS $env => $value): ?>
             </tr>
-              <?php if (getenv($env)): ?>
                 <tr>
                   <th><?php print $env; ?></th>
                   <td><code class="copy"><?php print $value; ?></code></td>
                 </tr>
-              <?php endif; ?>
             <?php endforeach; ?>
             <?php endif; ?>
           </table>
           <div class="card-footer">
             <?php if (isset($app->vars['db_services_env'][$service])): ?>
-            <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?<?php print $service; ?>=<?php print $service; ?>&amp;server=<?php print $service; ?>&amp;username=<?php print $app->vars['db_services_env'][$service]['username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['db']; ?>" class="btn btn-info btn-sm" role="button">Adminer connection</a>
+            <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?<?php print $service; ?>=<?php print $service; ?>&amp;server=<?php print $service; ?>&amp;username=<?php print $app->vars['db_services_env'][$service]['Username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['Database']; ?>" class="btn btn-info btn-sm" role="button">Managment <span class="octicon octicon-link-external" aria-hidden="true"></span></a>
             <?php endif; ?>
           </div>
         </section>
@@ -308,11 +306,11 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                 <li class="list-inline-item"><?php if (!empty($_SERVER['SERVER_SIGNATURE'])) print $_SERVER['SERVER_SIGNATURE']; ?></li>
                 <li class="list-inline-item">
                   <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#myModal" data-action="get" data-url="server-status" data-title="Server status">Server status</button>
-                  <a target="_blank" title="Open in a new window" href="/server-status" class="badge badge-light" role="button"><span class="octicon octicon-link-external" aria-hidden="true"></span></a>
+                  <a target="_blank" title="Open in a new window" href="/server-status" class="btn btn-sm btn-link" role="button"><span class="octicon octicon-link-external" aria-hidden="true"></span></a>
                 </li>
                 <li class="list-inline-item">
                   <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#myModal" data-action="get" data-url="server-info" data-title="Server info">Server info</button>
-                  <a target="_blank" title="Open in a new window" href="/server-info" class="badge badge-light" role="button"><span class="octicon octicon-link-external" aria-hidden="true"></span></a>
+                  <a target="_blank" title="Open in a new window" href="/server-info" class="btn btn-sm btn-link" role="button"><span class="octicon octicon-link-external" aria-hidden="true"></span></a>
                 </li>
               </ul>
             </div>
