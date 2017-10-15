@@ -62,6 +62,7 @@ packages:
   - ca-certificates
   - git-core
   - docker-engine
+  - php7.0-bcmath
   - php7.0-curl
   - php7.0-zip
   - php7.0-mbstring
