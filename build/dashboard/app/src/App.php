@@ -6,7 +6,6 @@ use Docker\Docker;
 use Docker\API\Model\ExecConfig;
 use Docker\API\Model\ExecStartConfig;
 use Docker\Manager\ExecManager;
-use GuzzleHttp\Client;
 
 // use Symfony\Component\Debug\Debug;
 // Debug::enable();
@@ -317,7 +316,7 @@ Class App {
   public function getPhpInfo() {
     $info = ini_get_all(NULL, FALSE);
     $result = [
-      'PhpFpm' => $this->checkPhpFpm(),
+      'PhpFpm' => '<span class="badge badge-info get-data" data-url="fpm-ping">Checking...</span>',
       'Memory limit' => $info['memory_limit'],
       'Max execution time' => $info['max_execution_time'],
       'Upload max filesize' => $info['upload_max_filesize'],
@@ -330,40 +329,6 @@ Class App {
       'Xdebug max nesting level' => $info['xdebug.max_nesting_level'],
     ];
     return $result;
-  }
-
-  /**
-   * Get php info from cmd on the apache container.
-   *
-   * @return array
-   *   Php result information formatted.
-   */
-  public function checkPhpFpm() {
-    $response = $this->getUrl('fpm-ping');
-    if ($response) {
-      return '<span class="badge badge-success">' . $response . '</span>
-      <small class="badge badge-info">
-      <a href="#" data-toggle="modal" data-target="#myModal" data-action="get" data-url="fpm-status?html&full" data-title="PhpFpm status">Status</a>
-      </small>';
-    }
-    else {
-      return '<span class="badge badge-alert>Disabled</span>';
-    }
-  }
-
-  /**
-   * Hlper for http request GET.
-   *
-   * @return array
-   *   Result information formatted.
-   */
-  public function getUrl($url) {
-    $client = new \GuzzleHttp\Client();
-    $response = $client->request('GET', $this->vars['dashboard']['full'] . '/' . $url);
-    if ($response->getStatusCode() == 200) {
-      return $response->getBody();
-    }
-    return NULL;
   }
 
   /**
