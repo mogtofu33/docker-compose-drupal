@@ -13,6 +13,17 @@ jQuery( document ).ready(function( $ ) {
     e.clearSelection();
   });
 
+  // Load external ressources.
+  $('.get-data').each(function(i, e) {
+    var $url = $(this).data('url');
+    var $result = $(this);
+    $.get('/' + $url, function(response) {
+      if (response != "null") {
+        $result.html(response);
+      }
+    });
+  });
+
   // Modal actions.
   $('#myModal').on('show.bs.modal', function (event) {
     var $btn = $(event.relatedTarget);
