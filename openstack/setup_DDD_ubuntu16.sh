@@ -8,6 +8,7 @@
 
 # Variables.
 docker_stack_repo="https://github.com/Mogtofu33/docker-compose-drupal.git"
+docker_stack_branch=${1-"master"}
 project_path="$HOME/docker-compose-drupal"
 project_container_apache="ddd-apache"
 project_root="$project_path/data/www"
@@ -18,7 +19,7 @@ sudo chown -R ubuntu:ubuntu $HOME
 # Get a Docker compose stack (Apache/Php/Mysql/Mailhog/Solr).
 if [ ! -d "$project_path" ]; then
   echo "[setup::info] Clone Docker stack and tools..."
-  git clone $docker_stack_repo $project_path
+  git clone -b $docker_stack_branch $docker_stack_repo $project_path
   # set up tools from stack
   cd $project_path;
   ./scripts/get-tools.sh
