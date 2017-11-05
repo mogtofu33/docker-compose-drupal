@@ -18,38 +18,9 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>Drupal Docker Compose - Dev stack</title>
-    <!-- https://getbootstrap.com/docs/4.0/content/typography/#responsive-typography -->
-    <style>
-    html {
-      font-size: 14px;
-    }
-    @include media-breakpoint-up(sm) {
-      html {
-        font-size: 16px;
-      }
-    }
-    @include media-breakpoint-up(md) {
-      html {
-        font-size: 20px;
-      }
-    }
-    @include media-breakpoint-up(lg) {
-      html {
-        font-size: 28px;
-      }
-    }
-    /* Fix Bs4 default a flashy color. */
-    body a {
-      color: #337ab7;
-    }
-    body .btn-link {
-      color: #5f6a75;
-    }
-    /* Extend modal width */
-    .modal-lg {
-      max-width: 80% !important;
-    }
-    </style>
+
+    <link rel="stylesheet" href="css/styles.css">
+
 </head>
 <body>
   <!-- Page Content -->
@@ -83,8 +54,8 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <div class="row">
       <div class="col">
         <section class="card mb-3">
-          <div class="card-header">Your sites</div>
-          <table class="table table-hover table-sm table-responsive mb-0">
+          <div class="card-header">Your sites <small>(You can edit config/apache/vhost.conf)</small></div>
+          <table class="table table-hover table-sm table-responsive-md mb-0">
             <thead>
               <tr>
                 <th>Host</th>
@@ -111,13 +82,14 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
         <section class="card mb-3">
           <div class="card-header">Containers running</div>
-          <table class="table table-hover table-sm table-responsive mb-0">
+          <table class="table table-hover table-sm table-responsive-md mb-0">
             <thead>
               <tr>
                 <th></th>
                 <th>Port(s)<br><small>(Internal | Public)</small></th>
                 <th>Container name</th>
                 <th>Container IP</th>
+                <th>Status</th>
                 <th>Details</th>
                 <!-- <th>Actions</th> -->
             </thead>
@@ -135,15 +107,16 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                 <td><code class="copy"><?php print $container['name']; ?></code></td>
                 <td><code class="copy"><?php print $container['ip']; ?></code></td>
                 <td>
+                  <?php print $container['status']; ?>
+                </td>
+                <td>
                   <button class="btn btn-outline-dark btn-sm" data-toggle="modal" data-target="#myModal" data-action="logs" data-container="<?php print $container['id']; ?>">Logs</button>
                   <button class="btn btn-outline-dark btn-sm" data-toggle="modal" data-target="#myModal" data-action="top" data-container="<?php print $container['id']; ?>">Top</button>
                 </td>
                 <!-- <td>
-                  <?php if ($container['state_raw'] == 'running'): ?>
-                 <button data-loading-text="Restarting..." class="btn btn-primary btn-sm action" autocomplete="off" data-container="<?php print $container['id'] ?>" data-action="restart">
-                  Restart
+                 <button class="btn btn-primary btn-sm action" autocomplete="off" data-container="<?php print $container['id'] ?>" data-action="restart">
+                  <span class="octicon" aria-hidden="true"></span> Restart
                  </button>
-                <?php endif; ?>
                 </td> -->
               </tr>
             <?php endforeach; ?>
@@ -168,7 +141,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
         <section class="card mb-3">
           <div class="card-header">Services</div>
-          <table class="table table-hover table-sm table-responsive mb-0">
+          <table class="table table-hover table-sm table-responsive-md mb-0">
             <thead>
               <tr>
                 <th></th>
@@ -211,7 +184,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
         <section class="card mb-3">
           <div class="card-header">Development tools</div>
-          <table class="table table-hover table-sm table-responsive mb-0">
+          <table class="table table-hover table-sm table-responsive-md mb-0">
             <?php foreach ($app->vars['tools'] AS $tool): ?>
               <tr>
                 <th><?php print $tool['name']; ?></th>
@@ -232,7 +205,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
         <?php if (in_array($service, array_keys($app::$db_services))): ?>
         <section class="card mb-3">
           <div class="card-header"><strong><?php print ucfirst($service); ?></strong> connection information</div>
-          <table class="table table-hover table-sm table-responsive mb-0">
+          <table class="table table-hover table-sm table-responsive-md mb-0">
             <tr>
               <th>Hostname</th>
               <td><code><?php print $service; ?></code></td>
@@ -256,7 +229,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           </table>
           <div class="card-footer">
             <?php if (isset($app->vars['db_services_env'][$service])): ?>
-            <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?<?php print $service; ?>=<?php print $service; ?>&amp;server=<?php print $service; ?>&amp;username=<?php print $app->vars['db_services_env'][$service]['Username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['Database']; ?>" class="btn btn-info btn-sm" role="button">Managment <span class="octicon octicon-link-external" aria-hidden="true"></span></a>
+            <a target="_blank" href="http://<?php print $app->vars['dashboard']['tools'] . 'adminer.php'; ?>?<?php print $service; ?>=<?php print $service; ?>&amp;server=<?php print $service; ?>&amp;username=<?php print $app->vars['db_services_env'][$service]['Username']; ?>&db=<?php print $app->vars['db_services_env'][$service]['Database']; ?>" class="btn btn-info btn-sm" role="button">Manage <span class="octicon octicon-link-external" aria-hidden="true"></span></a>
             <?php endif; ?>
           </div>
         </section>
@@ -264,7 +237,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
         <?php endforeach; ?>
         <section class="card mb-3">
           <div class="card-header">PHP information</div>
-          <table class="table table-hover table-sm table-responsive mb-0">
+          <table class="table table-hover table-sm table-responsive-md mb-0">
             <tr>
               <th>PHP Version</th>
               <td><code><?php print $app->getPhpVersion(); ?></code></td>
@@ -333,35 +306,35 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
       <div class="modal-body"></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" data-loading-text="Refreshing..." class="btn btn-primary refresh" autocomplete="off"><span class="octicon octicon-sync" aria-hidden="true"></span> Refresh</button>
+        <button type="button" class="btn btn-primary refresh" autocomplete="off"><span class="octicon octicon-sync" aria-hidden="true"></span> Refresh</button>
       </div>
     </div>
   </div>
 </div>
   <!-- /.Modal -->
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
 
   <!-- Octicons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.min.css">
 
   <!-- jQuery -->
   <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
-  <!-- Bootstrap + Popper-->
+    src="https://code.jquery.com/jquery-3.2.1.min.js"
+    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+    crossorigin="anonymous"></script>
+
+  <!-- Bootstrap 4 + Popper-->
   <script
-  src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"
-  integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
+  src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
+  integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
   crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"
-  integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+  integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
   crossorigin="anonymous"></script>
 
   <script src="https://cdn.jsdelivr.net/clipboard.js/1.6.1/clipboard.min.js"></script>
-  <!-- Bootstrap -->
-  <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
+
   <!-- Terminal -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.5.3/js/jquery.terminal.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.5.3/css/jquery.terminal.min.css" rel="stylesheet"/>
