@@ -91,9 +91,21 @@ Class App {
 
     $this->vars['dashboard']['root'] = $this->parseVhost($host);
 
-    // Get db information from .env docker file stored in any container.
     $first_id = reset($this->containers)['id'];
-    $container = $this->docker->getContainerManager()->find($first_id);
+    $this->vars['db_services_env'] = $this->dbInfoFromEnv($first_id);
+  }
+
+  /**
+   * Get db information from .env file from a container.
+   *
+   * @param int $id
+   *   A container id.
+   *
+   * @return array
+   *   Database informations.
+   */
+  private function dbInfoFromEnv($id) {
+    $container = $this->docker->getContainerManager()->find($id);
     $env_array = $container->getConfig()->getEnv();
     $env = [];
     foreach ($env_array as $env_value) {
@@ -101,7 +113,7 @@ Class App {
       $env[$val[0]] = $val[1];
     }
 
-    $this->vars['db_services_env'] = [];
+    $db_services_env = [];
 
     foreach ($env as $k => $e) {
       foreach ($this::$db_services as $service => $value) {
@@ -109,18 +121,20 @@ Class App {
           $name = str_ireplace($service, '', $k);
           $name = trim(str_replace('_', ' ', $name));
           if (strpos($name, 'DB') !== FALSE || strpos($name, 'DATABASE') !== FALSE) {
-            $this->vars['db_services_env'][$service]['Database'] = $e;
+            $db_services_env[$service]['Database'] = $e;
           }
           else if (strpos($name, 'USER') !== FALSE) {
-            $this->vars['db_services_env'][$service]['Username'] = $e;
+            $db_services_env[$service]['Username'] = $e;
           }
           else {
             $label = ucfirst(strtolower(str_replace('_', ' ', $name)));
-            $this->vars['db_services_env'][$service][$label] = $e;
+            $db_services_env[$service][$label] = $e;
           }
         }
       }
     }
+
+    return $db_services_env;
   }
 
   /**
@@ -325,9 +339,14 @@ Class App {
       'Date timezone' => $info['date.timezone'],
       'Sendmail' => $info['sendmail_path'],
       'Opcache' => ($info['opcache.enable'] === "1") ? '<span class="badge badge-success">Enabled</span>' : '<span class="badge badge-warning">Disabled</span>',
-      'Xdebug' => ($info['xdebug.default_enable'] === "1") ? '<span class="badge badge-success">Enabled</span>' : '<span class="badge badge-warning">Disabled</span>',
-      'Xdebug max nesting level' => $info['xdebug.max_nesting_level'],
+      'Xdebug' => '<span class="badge badge-warning">Disabled</span>',
     ];
+    if (isset($info['xdebug.default_enable'])) {
+      $result['Xdebug'] = ($info['xdebug.default_enable'] === "1") ? '<span class="badge badge-success">Enabled</span>' : '<span class="badge badge-warning">Disabled</span>';
+      if (isset($info['xdebug.max_nesting_level'])) {
+        $result['Xdebug max nesting level'] = $info['xdebug.max_nesting_level'];
+      }
+    }
     return $result;
   }
 
