@@ -6,6 +6,6 @@
  * cd build/dashboard/app
  * composer install --no-dev
  * vendor/bin/phar-builder package
- * cp -r js/* ../build/js/
+ * cp -r js css ../build/
  */
 require "dashboard.phar";
