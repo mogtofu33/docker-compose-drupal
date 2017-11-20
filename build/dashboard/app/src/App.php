@@ -420,7 +420,6 @@ Class App {
     $hosts = [];
     $vhost = trim(file_get_contents('/etc/apache2/vhost/vhost.conf'));
     $vhost_lines = explode("\n", $vhost);
-
     $apache_root = [];
     foreach ($vhost_lines as $vhost_line) {
       $vhost_line = trim($vhost_line);
@@ -434,9 +433,15 @@ Class App {
           'port' => str_replace('*:', '', $match_port[1]),
         ];
       }
-
       preg_match("/^(?P<key>\w+)\s+(?P<value>.*)/", $vhost_line, $matches);
+
       if (isset($matches['key'])) {
+        if ($matches['key'] == 'ServerName') {
+          $vhost_port['name'] = $matches['value'];
+        }
+        if ($matches['key'] == 'ServerAlias') {
+          $vhost_port['alias'] = $matches['value'];
+        }
         if ($matches['key'] == 'DocumentRoot' && $matches['value']  != getenv('DOCUMENT_ROOT')) {
           $apache_root[] = $vhost_port + ['root' => str_replace('"', '', $matches['value'])];
         }
@@ -448,6 +453,8 @@ Class App {
     else {
       return [[
         "host" => "localhost",
+        "name" => "",
+        "alias" => "",
         "port" => "80",
         "root" => "/var/www/localhost/drupal/web",
       ]];
