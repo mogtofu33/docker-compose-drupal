@@ -58,7 +58,8 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           <table class="table table-hover table-sm table-responsive-md mb-0">
             <thead>
               <tr>
-                <th>Host</th>
+                <th>Name</th>
+                <th>Alias</th>
                 <th>Document Root</th>
             </thead>
             <tbody>
@@ -67,6 +68,12 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                   <td>
                     <a target="_blank" href="<?php ($host['port'] == '443') ? print 'https:' : ''; ?>//<?php print $host['host']; ?>">
                       <?php print $host['host'] . ':' . $host['port']; ?>
+                      <span class="octicon octicon-link-external" aria-hidden="true"></span>
+                    </a>
+                  </td>
+                  <td>
+                     <a target="_blank" href="<?php ($host['port'] == '443') ? print 'https:' : ''; ?>//<?php print $host['alias']; ?>">
+                      <?php print $host['alias']; ?>
                       <span class="octicon octicon-link-external" aria-hidden="true"></span>
                     </a>
                   </td>
@@ -313,32 +320,41 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 </div>
   <!-- /.Modal -->
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
-
-  <!-- Octicons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.min.css">
-
+  <!-- Css: Bootstrap -->
+  <link
+    rel="stylesheet"
+    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+    integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
+    crossorigin="anonymous">
+  <!-- Css: Octicons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.min.css">
   <!-- jQuery -->
   <script
     src="https://code.jquery.com/jquery-3.2.1.min.js"
     integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
     crossorigin="anonymous"></script>
-
   <!-- Bootstrap 4 + Popper-->
   <script
-  src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
-  integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
-  crossorigin="anonymous"></script>
+    src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+    integrity="sha256-pS96pU17yq+gVu4KBQJi38VpSuKN7otMrDQprzf/DWY="
+    crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
-  integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
-  crossorigin="anonymous"></script>
-
-  <script src="https://cdn.jsdelivr.net/clipboard.js/1.6.1/clipboard.min.js"></script>
-
+    integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
+    crossorigin="anonymous"></script>
+  <!-- Clipboard -->
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@1/dist/clipboard.min.js"></script>
   <!-- Terminal -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.5.3/js/jquery.terminal.min.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.5.3/css/jquery.terminal.min.css" rel="stylesheet"/>
-
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.10.1/js/jquery.terminal.js"
+    integrity="sha256-/dY7WzTiHP4Z39jXg+KTLMHXKfFqzfWIrdc1M6XZ5rY="
+    crossorigin="anonymous"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.10.1/css/jquery.terminal.min.css"
+    integrity="sha256-IVoPNmmjjN4wZ2OJ2vAPdKX+MHReNkbceOxYnzZEVJE="
+    crossorigin="anonymous" />
   <!-- Custom script -->
   <script src="js/app.js"></script>
   <script src="js/unix_formatting.js"></script>
