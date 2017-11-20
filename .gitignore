@@ -11,3 +11,4 @@ tools/*
 # ignore tmp or specific files
 tmp*
 myscripts*
+.phpintel
