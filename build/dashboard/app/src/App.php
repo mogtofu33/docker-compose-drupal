@@ -357,8 +357,6 @@ Class App {
    *   Php version.
    */
   public function getPhpVersion() {
-    // $cmd = $this->exec('ddd-apache', ["php", "-r", "print phpversion();"]);
-    // return $cmd['stdout'];
     return phpversion();
   }
 
@@ -411,14 +409,25 @@ Class App {
    * Helper to parse apavche vhost file.
    *
    * @param string $host
-   *   Container identifier
+   *   Localhost default name.
    *
    * @return array
    *   Keyed stdout and stderr result.
    */
   private function parseVhost($host) {
+
+    if (isset($this->containers['apache'])) {
+      $id = $this->containers['apache']['id'];
+      $cmd = $this->exec($id, ["cat", "/etc/apache2/vhost.conf"]);
+      if ($cmd['stdout']) {
+        $vhost = trim($cmd['stdout']);
+      }
+      else {
+        return [];
+      }
+    }
+
     $hosts = [];
-    $vhost = trim(file_get_contents('/etc/apache2/vhost/vhost.conf'));
     $vhost_lines = explode("\n", $vhost);
     $apache_root = [];
     foreach ($vhost_lines as $vhost_line) {
@@ -451,13 +460,7 @@ Class App {
       return $apache_root;
     }
     else {
-      return [[
-        "host" => "localhost",
-        "name" => "",
-        "alias" => "",
-        "port" => "80",
-        "root" => "/var/www/localhost/drupal/web",
-      ]];
+      return [];
     }
   }
 }

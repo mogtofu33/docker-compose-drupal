@@ -58,8 +58,8 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
           <table class="table table-hover table-sm table-responsive-md mb-0">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Alias</th>
+                <th>Host</th>
+                <!-- <th>Alias</th> -->
                 <th>Document Root</th>
             </thead>
             <tbody>
@@ -71,12 +71,12 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                       <span class="octicon octicon-link-external" aria-hidden="true"></span>
                     </a>
                   </td>
-                  <td>
+<!--                   <td>
                      <a target="_blank" href="<?php ($host['port'] == '443') ? print 'https:' : ''; ?>//<?php print $host['alias']; ?>">
                       <?php print $host['alias']; ?>
                       <span class="octicon octicon-link-external" aria-hidden="true"></span>
                     </a>
-                  </td>
+                  </td> -->
                   <td>
                     <code><?php print $host['root']; ?></code>
                   </td>
@@ -114,7 +114,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
                 <td><code class="copy"><?php print $container['name']; ?></code></td>
                 <td><code class="copy"><?php print $container['ip']; ?></code></td>
                 <td>
-                  <?php print $container['status']; ?>
+                  <?php print $container['state']; ?>
                 </td>
                 <td>
                   <button class="btn btn-outline-dark btn-sm" data-toggle="modal" data-target="#myModal" data-action="logs" data-container="<?php print $container['id']; ?>">Logs</button>
