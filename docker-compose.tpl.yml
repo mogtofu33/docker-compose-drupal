@@ -26,48 +26,59 @@
 version: '3'
 services:
   apache:
-    image: mogtofu33/apache-php:1.${PHP_VERSION:-7.1}
+    image: mogtofu33/apache
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
       # Used by dashboard.
       - 8181:8181
     links:
-      ## Choose database, uncomment service concerned below.
-      - mysql
-      - pgsql
-      ## Choose optionnal services.
-      - memcache
-      - redis
-      - solr
-      - mailhog
+      - php
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
-      - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/apache2
-      # Php configuration.
-      - ./config/php/php.ini:/etc/php7/php.ini
-      - ./config/php/php-fpm.conf:/etc/php7/php-fpm.conf
-      - ./config/php/conf.d/:/etc/php7/conf.d/
-      - ./config/php/php-fpm.d/:/etc/php7/php-fpm.d/
       # Apache configuration with SSL support.
       - ./config/apache/httpd.conf:/etc/apache2/httpd.conf
-      - ./config/apache/vhost.conf:/etc/apache2/vhost/vhost.conf
+      - ./config/apache/vhost.conf:/etc/apache2/vhost.conf
       - ./config/apache/conf.d/:/etc/apache2/conf.d/
       - ./config/apache/ssl/:/etc/ssl/apache2/
-      # Drush alias and drushrc files (or any other config)
-      - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
-      - ./config/drush/drushrc.php:/etc/drush/drushrc.php
-      ## Drush 9 alias and drushrc files (or any other config)
-      - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml
-      - ./config/drush/drush.yml:/etc/drush/drush.yml
       ## Used by dashboard and tools.
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
       - /var/run/docker.sock:/var/run/docker.sock
-      ## If you have composer set locally, share cache to speed up.
-      # - $HOME/.composer/cache:/composer/cache
     env_file: .env
     container_name: ddd-apache
+    ## Remove to avoid starting on system reboot.
+    restart: always
+  php:
+    image: mogtofu33/php
+    volumes:
+      - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
+      - ./config/php/php.ini:/etc/php7/php.ini
+      - ./config/php/php-fpm.conf:/etc/php7/php-fpm.conf
+      - ./config/php/conf.d/:/etc/php7/conf.d/
+      - ./config/php/php-fpm.d/:/etc/php7/php-fpm.d/
+      # Drush alias and drushrc files (or any other config)
+      - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
+      - ./config/drush/drushrc.php:/etc/drush/drushrc.php
+      # Drush 9 alias and drushrc files (or any other config)
+      - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml
+      - ./config/drush/drush.yml:/etc/drush/drush.yml
+      # Used by dashboard and tools.
+      - ./build/dashboard/app:/var/www/dashboard
+      - ./tools:/var/www/dashboard/tools
+      - /var/run/docker.sock:/var/run/docker.sock
+      ## If you have composer set locally, share cache to speed up.
+      # - $HOME/.composer/cache:/composer/cache
+    links:
+      # Choose database, uncomment service concerned below.
+      - mysql
+      - pgsql
+      # Choose optionnal services.
+      - memcache
+      - redis
+      - solr
+      - mailhog
+    env_file: .env
     ## Remove to avoid starting on system reboot.
     restart: always
   mysql:
@@ -75,7 +86,6 @@ services:
     expose:
       - "3306"
     volumes:
-      - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/mysql
       ## Comment these two lines on Windows system, permissions issue.
       - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
       - ./config/mysql:/etc/mysql
@@ -127,8 +137,6 @@ services:
   #     - "6082:6082"
   #   links:
   #     - apache
-  #   volumes:
-  #     - ${HOST_LOGS_ROOT:-./data/logs}:/var/log/varnish
   #   env_file: .env
   #   ## Remove to avoid starting on system reboot.
   #   restart: always

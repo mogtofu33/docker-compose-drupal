@@ -112,7 +112,7 @@ HEREDOC
 ###############################################################################
 
 # Default local variables.
-container='ddd-apache'
+container='dcd-php'
 user='apache'
 drupal_root='--root=/var/www/localhost/drupal/web'
 drush_bin='/var/www/localhost/drupal/vendor/bin/drush'
@@ -125,7 +125,7 @@ _check_docker() {
 
 _set_variables_container() {
   # Get first apache container running.
-  WEB_RUNNING=$(docker ps -f "name=apache" -f "status=running" -q | head -1 2> /dev/null)
+  WEB_RUNNING=$(docker ps -f "name=php" -f "status=running" -q | head -1 2> /dev/null)
   if [ -z "$WEB_RUNNING" ]; then
     die "No running Apache container found, do you run docker-compose up -d ?"
   else
