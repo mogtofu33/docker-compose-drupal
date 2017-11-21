@@ -121,7 +121,7 @@ HEREDOC
 ###############################################################################
 
 _PROGRAMS=(
-  "potsky/PimpMyLog.git:PimpMyLog"
+  # "potsky/PimpMyLog.git:PimpMyLog"
   "wp-cloud/phpmemcacheadmin.git:PhpMemcachedAdmin"
   "amnuts/opcache-gui.git:Opcache-gui"
   "splitbrain/xdebug-trace-tree.git:Xdebug-trace"
@@ -130,7 +130,7 @@ _PROGRAMS=(
   "nrk/predis.git:phpRedisAdmin/vendor"
 )
 _CONFIG=(
-  "pimpmylog/config.user.php:PimpMyLog"
+  # "pimpmylog/config.user.php:PimpMyLog"
   "memcache/Memcache.php:PhpMemcachedAdmin"
   "redis/config.inc.php:phpRedisAdmin"
 )

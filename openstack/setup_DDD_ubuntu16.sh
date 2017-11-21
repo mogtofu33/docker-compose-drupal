@@ -10,8 +10,13 @@
 docker_stack_repo="https://github.com/Mogtofu33/docker-compose-drupal.git"
 docker_stack_branch=${1-"master"}
 project_path="$HOME/docker-compose-drupal"
-project_container_apache="ddd-apache"
+project_container_php="dcd-php"
 project_root="$project_path/data/www"
+project_container_root="/var/www/localhost/drupal"
+project_container_web_root="$project_container_root/web"
+drupal_bin="$project_container_root/vendor/bin/drupal"
+drush_bin="$project_container_root/vendor/bin/drush"
+drush_root="--root=$project_container_web_root"
 
 # Fix permissions.
 sudo chown -R ubuntu:ubuntu $HOME
@@ -56,9 +61,9 @@ if [ -f "$HOME/.config/composer/vendor/bin/phpcs" ]; then
 fi
 
 # Check if containers are up...
-RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_apache 2> /dev/null)
+RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_php 2> /dev/null)
 if [ $? -eq 1 ]; then
-  echo "[setup::ERROR] Container $project_container_apache does not exist..."
+  echo "[setup::ERROR] Container $project_container_php does not exist..."
   # Wait a bit for stack to be up....
   sleep 30s
 fi
@@ -68,8 +73,14 @@ cat <<EOT >> $HOME/.profile
 PATH=\$PATH:$HOME/.config/composer/vendor/bin
 # Docker stack variables.
 PROJECT_PATH="$project_path"
-PROJECT_ROOT="$project_path/data/www"
-PROJECT_CONTAINER_NAME="$project_container_apache"
+PROJECT_ROOT="$project_root"
+PROJECT_CONTAINER_NAME="$project_container_php"
+PROJECT_CONTAINER_ROOT="$project_container_root"
+PROJECT_CONTAINER_WEB_ROOT="$project_container_web_root"
+DRUPAL_BIN="$drupal_bin"
+DRUSH_BIN="$drush_bin"
+DRUSH_ROOT="--root=$project_container_web_root"
+DRUSH_CMD="$drush_bin --root=$project_container_web_root"
 EOT
 
 # Add docker and phpcs aliases.
@@ -92,7 +103,7 @@ sudo chown ubuntu:ubuntu /usr/local/bin/dcmd
 sudo chmod +x /usr/local/bin/dcmd
 cat <<EOT > /usr/local/bin/dcmd
 #!/bin/bash
-docker exec -it --user apache $project_container_apache \$@
+docker exec -it --user apache $project_container_php \$@
 EOT
 
 # Convenient links.

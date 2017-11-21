@@ -8,11 +8,8 @@
 # For Sass support on Ubuntu 16.04 you need
 #   ruby-full ruby-compass ruby-sass ruby-bootstrap-sass
 
-# These variables should be cleaned as we use a setup script before this one.
+# Variables, most variables are from previous script.
 source $HOME/.profile
-project_container_root="/var/www/localhost/drupal"
-project_container_web_root="$project_container_root/web"
-drush_cmd="$project_container_root/vendor/bin/drush --root=$project_container_web_root"
 
 # Base variables for this script, can be edited.
 name="bootstrap_sass"
@@ -69,9 +66,9 @@ compass compile $PROJECT_ROOT/drupal/web/themes/custom/$name
 
 # Run drush commands to enable this theme.
 echo "[setup::info] Enable $title subtheme..."
-$docker_cmd $drush_cmd -y en bootstrap
-$docker_cmd $drush_cmd -y en bootstrap_sass
-$docker_cmd $drush_cmd -y config-set system.theme default bootstrap_sass
+$docker_cmd $DRUSH_CMD -y en bootstrap
+$docker_cmd $DRUSH_CMD -y en bootstrap_sass
+$docker_cmd $DRUSH_CMD -y config-set system.theme default bootstrap_sass
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 echo -e "[setup::info] Bootstrap Sass subtheme installed!\n"

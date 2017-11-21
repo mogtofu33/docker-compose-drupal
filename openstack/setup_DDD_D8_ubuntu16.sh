@@ -4,13 +4,9 @@
 # This script must be run as ubuntu user with sudo privileges without password.
 # This script is used with a cloud config setup from this folder.
 
-# Variables, some variables are from previous script.
+# Variables, most variables are from previous script.
 source $HOME/.profile
-project_container_root="/var/www/localhost/drupal"
-project_container_web_root="$project_container_root/web"
-drupal_bin="$project_container_root/vendor/bin/drupal"
-drush_bin="$project_container_root/vendor/bin/drush"
-drush_root="--root=$project_container_web_root"
+
 drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=password"
 
 # Setup Drupal 8 composer project.
@@ -20,13 +16,13 @@ drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=passwo
 # Set-up Drupal.
 echo "[setup::info] Install Drupal 8..."
 #docker exec -t $PROJECT_CONTAINER_NAME chown -R apache: /www
-docker exec -t --user apache $PROJECT_CONTAINER_NAME $drush_bin $drush_root -y site-install $drush_options >> $PROJECT_PATH/drupal-install.log
-docker exec -t --user apache $PROJECT_CONTAINER_NAME $drush_bin $drush_root -y en admin_toolbar >> /dev/null
+docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y site-install $drush_options >> $PROJECT_PATH/drupal-install.log
+docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y en admin_toolbar >> /dev/null
 
 # Add project variables to environment.
 cat <<EOT >> $HOME/.profile
-DRUSH_CONTAINER_BIN="$drush_bin"
-DRUSH_CONTAINER_ROOT="--root=$project_container_web_root"
+DRUSH_CONTAINER_BIN="$DRUSH_BIN"
+DRUSH_CONTAINER_ROOT="--root=$PROJECT_CONTAINER_WEB_ROOT"
 EOT
 
 # Add drush and drupal bin shortcut.
@@ -37,14 +33,14 @@ sudo chmod +x /usr/local/bin/drush /usr/local/bin/drupal
 cat <<EOT > /usr/local/bin/drush
 #!/bin/bash
 # Drush within Docker, should be used with aliases.
-docker exec -it --user apache $PROJECT_CONTAINER_NAME $drush_bin \$@
+docker exec -it --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN \$@
 EOT
 
 cat <<EOT > /usr/local/bin/drupal
 #!/bin/bash
 # Drupal console within Docker.
-cmd="$drupal_bin \$@"
-docker exec -it --user apache $PROJECT_CONTAINER_NAME bash -c 'cd '"$project_container_web_root"'; \$1' -- "\$cmd"
+cmd="$DRUPAL_BIN \$@"
+docker exec -it --user apache $PROJECT_CONTAINER_NAME bash -c 'cd '"$PROJECT_CONTAINER_WEB_ROOT"'; \$1' -- "\$cmd"
 EOT
 
 echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"

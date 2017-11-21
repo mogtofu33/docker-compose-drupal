@@ -82,7 +82,7 @@ Setup a new Drupal 8 based on a composer template (yes it's slower, but this is 
 Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/), using [Composer](https://getcomposer.org) in the docker service:
 
 <pre>
-docker exec -it -u apache ddd-apache \
+docker exec -it -u apache dcd-php \
 composer create-project drupal-composer/drupal-project:8.x-dev /var/www/localhost/drupal --stability dev --no-interaction
 </pre>
 
@@ -96,7 +96,7 @@ composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal -
 To use PostGresSQL change _mysql_ to _pgsql_
 
 <pre>
-docker exec -it -u apache ddd-apache /var/www/localhost/drupal/vendor/bin/drush -y si \
+docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si \
 --root=/var/www/localhost/drupal/web \
 --account-name=admin \
 --account-pass=password \
