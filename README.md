@@ -2,8 +2,8 @@
 
 ## Require
 
-* Docker engine 1.13+: https://docs.docker.com/engine/installation/
-* Docker compose 1.15+: https://docs.docker.com/compose/install/
+* Docker engine 1.13+ / 17+: https://docs.docker.com/engine/installation/
+* Docker compose 1.17+: https://docs.docker.com/compose/install/
 
 ## Introduction
 
@@ -114,7 +114,7 @@ http://localhost/user/login
 #### Daily usage, add some modules
 
 <pre>
-docker exec -it -u apache ddd-apache \
+docker exec -it -u apache dcd-php \
 composer -d=/var/www/localhost/drupal require \
 drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 </pre>
@@ -122,7 +122,7 @@ drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 #### Daily usage, enable some modules
 
 <pre>
-docker exec -it -u apache ddd-apache \
+docker exec -it -u apache dcd-php \
 /var/www/localhost/drupal/vendor/bin/drush -y en \
 --root=/var/www/localhost/drupal/web \
 admin_toolbar ctools ctools_block ctools_views panels token pathauto
@@ -131,13 +131,13 @@ admin_toolbar ctools ctools_block ctools_views panels token pathauto
 #### Daily usage, run a command on the server
 
 <pre>
-docker exec -it -u apache ddd-apache \
+docker exec -it -u apache dcd-php \
 ls -lah /var/www/localhost/drupal
 </pre>
 
 #### Login in the Apache to run commands
 <pre>
-docker exec -it -u apache ddd-apache bash
+docker exec -it -u apache dcd-php bash
 </pre>
 
 ## Reset the stack
