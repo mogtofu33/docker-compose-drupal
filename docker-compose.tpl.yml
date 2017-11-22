@@ -63,7 +63,7 @@ services:
       - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml
       - ./config/drush/drush.yml:/etc/drush/drush.yml
       # Used by dashboard and tools.
-      - ./build/dashboard/app:/var/www/dashboard
+      - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
       - /var/run/docker.sock:/var/run/docker.sock
       ## If you have composer set locally, share cache to speed up.
