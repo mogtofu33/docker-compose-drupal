@@ -44,7 +44,6 @@ services:
       ## Used by dashboard and tools.
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
-      - /var/run/docker.sock:/var/run/docker.sock
     env_file: .env
     container_name: dcd-apache
     ## Remove to avoid starting on system reboot.
