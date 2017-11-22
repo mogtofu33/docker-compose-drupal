@@ -46,7 +46,7 @@ services:
       - ./tools:/var/www/dashboard/tools
       - /var/run/docker.sock:/var/run/docker.sock
     env_file: .env
-    container_name: ddd-apache
+    container_name: dcd-apache
     ## Remove to avoid starting on system reboot.
     restart: always
   php:
@@ -79,6 +79,7 @@ services:
       - solr
       - mailhog
     env_file: .env
+    container_name: dcd-php
     ## Remove to avoid starting on system reboot.
     restart: always
   mysql:
