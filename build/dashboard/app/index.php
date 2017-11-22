@@ -17,7 +17,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>Drupal Docker Compose - Dev stack</title>
+    <title>Docker Compose Drupal - Dev stack</title>
 
     <link rel="stylesheet" href="css/styles.css">
 
@@ -29,7 +29,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     <div class="row">
       <div class="col">
         <h4>
-          <a href="https://github.com/Mogtofu33/docker-compose-drupal" target="_blank"><span class="badge badge-info">Drupal Docker Compose</span></a>
+          <a href="https://github.com/Mogtofu33/docker-compose-drupal" target="_blank"><span class="badge badge-info">Docker Compose Drupal</span></a>
           <small>Docker full stack for simple Drupal dev.</small>
         </h4>
         <p>
