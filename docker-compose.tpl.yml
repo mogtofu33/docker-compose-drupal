@@ -30,6 +30,8 @@ services:
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
+      # Web root access, optionnal.
+      - 81:81
       # Used by dashboard.
       - 8181:8181
     links:
@@ -41,7 +43,7 @@ services:
       - ./config/apache/vhost.conf:/etc/apache2/vhost.conf
       - ./config/apache/conf.d/:/etc/apache2/conf.d/
       - ./config/apache/ssl/:/etc/ssl/apache2/
-      ## Used by dashboard and tools.
+      # Used by dashboard and tools.
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
     env_file: .env
