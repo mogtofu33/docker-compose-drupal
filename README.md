@@ -2,7 +2,7 @@
 
 ## Require
 
-* Docker engine 1.13+ / 17+: https://docs.docker.com/engine/installation/
+* Docker engine 1.13+ / 17+: https://docs.docker.com/engine/installation/ (without need to sudo)
 * Docker compose 1.17+: https://docs.docker.com/compose/install/
 
 ## Introduction
@@ -162,4 +162,16 @@ You can find a script in scripts/get-tools.sh folder to download or update all t
 cd THIS_PROJECT/scripts/
 chmod +x get-tools.sh
 ./get-tools.sh
+</pre>
+
+## Troubleshooting
+
+When accessing http://localhost:8181/ error:
+<pre>
+Fatal error: Uncaught Http\Client\Socket\Exception\ConnectionException: Permission denied in phar:///var/www/dashboard/dashboard.phar/vendor/php-http/socket-client/src/Client.php:114...
+</pre>
+
+Solution, fix local /var/run/docker.sock permission to local user:
+<pre>
+chown $USER:$USER /var/run/docker.sock
 </pre>
