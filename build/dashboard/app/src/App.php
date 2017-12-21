@@ -437,10 +437,17 @@ Class App {
       }
       preg_match('#<VirtualHost (.*?)>#', $vhost_line, $match_port);
       if (isset($match_port[1])) {
+        $port = str_replace('*:', '', $match_port[1]);
         $vhost_port = [
           'host' => $host,
-          'port' => str_replace('*:', '', $match_port[1]),
+          'port' => $port,
         ];
+        if ($port == '443') {
+          $vhost_port['link'] = 'https://' . $host;
+        }
+        else {
+          $vhost_port['link'] = 'http://' . $host . ':' . $port;
+        }
       }
       preg_match("/^(?P<key>\w+)\s+(?P<value>.*)/", $vhost_line, $matches);
 

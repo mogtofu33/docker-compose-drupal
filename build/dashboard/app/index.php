@@ -66,7 +66,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
               <?php foreach ($app->vars['dashboard']['root'] as $host): ?>
                 <tr>
                   <td>
-                    <a target="_blank" href="<?php ($host['port'] == '443') ? print 'https:' : ''; ?>//<?php print $host['host']; ?>">
+                    <a target="_blank" href="<?php print $host['link']; ?>">
                       <?php print $host['host'] . ':' . $host['port']; ?>
                       <span class="octicon octicon-link-external" aria-hidden="true"></span>
                     </a>
