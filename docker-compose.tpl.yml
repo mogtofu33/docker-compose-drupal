@@ -24,6 +24,8 @@
 #
 ################################################################################
 version: '3'
+volumes:
+  sock:
 services:
   apache:
     image: mogtofu33/apache
@@ -46,6 +48,8 @@ services:
       # Used by dashboard and tools.
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
+      # Php FPM socket
+      - sock:/sock
     env_file: .env
     container_name: dcd-apache
     ## Remove to avoid starting on system reboot.
@@ -68,6 +72,8 @@ services:
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
       - /var/run/docker.sock:/var/run/docker.sock
+      # Php FPM socket
+      - sock:/sock
       ## If you have composer set locally, share cache to speed up.
       # - $HOME/.composer/cache:/composer/cache
     links:
@@ -81,7 +87,9 @@ services:
       - mailhog
     env_file: .env
     container_name: dcd-php
-    ## Remove to avoid starting on system reboot.
+    # privileged is needed to access docker.sock
+    privileged: true
+    # Remove to avoid starting on system reboot.
     restart: always
   mysql:
     image: mariadb:latest
@@ -154,15 +162,5 @@ services:
   #     - ldap
   #   ports:
   #     - "8443:8443"
-  #   ## Remove to avoid starting on system reboot.
-  #   restart: always
-  ## Optionnal Docker ui, uncomment to enable and access at localhot:9000.
-  # docker-ui:
-  #   image: uifd/ui-for-docker:latest
-  #   ports:
-  #     - "9000:9000"
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   privileged: true
   #   ## Remove to avoid starting on system reboot.
   #   restart: always
