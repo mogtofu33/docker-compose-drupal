@@ -55,7 +55,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
       <div class="col">
         <section class="card mb-3">
           <div class="card-header">Your sites <small>(You can edit config/apache/vhost.conf)</small></div>
-          <table class="table table-hover table-sm table-responsive-md mb-0">
+          <table class="table table-hover table-sm table-responsive-sm mb-0">
             <thead>
               <tr>
                 <th>Host</th>
@@ -89,7 +89,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
         <section class="card mb-3">
           <div class="card-header">Containers running</div>
-          <table class="table table-hover table-sm table-responsive-md mb-0">
+          <table class="table table-hover table-sm table-responsive-sm mb-0">
             <thead>
               <tr>
                 <th></th>
@@ -148,7 +148,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
         <section class="card mb-3">
           <div class="card-header">Services</div>
-          <table class="table table-hover table-sm table-responsive-md mb-0">
+          <table class="table table-hover table-sm table-responsive-sm mb-0">
             <thead>
               <tr>
                 <th></th>
@@ -191,7 +191,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
 
         <section class="card mb-3">
           <div class="card-header">Development tools</div>
-          <table class="table table-hover table-sm table-responsive-md mb-0">
+          <table class="table table-hover table-sm table-responsive-sm mb-0">
             <?php foreach ($app->vars['tools'] AS $tool): ?>
               <tr>
                 <th><?php print $tool['name']; ?></th>
@@ -212,7 +212,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
         <?php if (in_array($service, array_keys($app::$db_services))): ?>
         <section class="card mb-3">
           <div class="card-header"><strong><?php print ucfirst($service); ?></strong> connection information</div>
-          <table class="table table-hover table-sm table-responsive-md mb-0">
+          <table class="table table-hover table-sm table-responsive-sm mb-0">
             <tr>
               <th>Hostname</th>
               <td><code><?php print $service; ?></code></td>
@@ -244,7 +244,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
         <?php endforeach; ?>
         <section class="card mb-3">
           <div class="card-header">PHP information</div>
-          <table class="table table-hover table-sm table-responsive-md mb-0">
+          <table class="table table-hover table-sm table-responsive-sm mb-0">
             <tr>
               <th>PHP Version</th>
               <td><code><?php print $app->getPhpVersion(); ?></code></td>
@@ -321,11 +321,7 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
   <!-- /.Modal -->
 
   <!-- Css: Bootstrap -->
-  <link
-    rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
-    integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
-    crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
   <!-- Css: Octicons -->
   <link
     rel="stylesheet"
@@ -340,21 +336,12 @@ if (isset($_REQUEST['action']) && isset($_REQUEST['id'])) {
     src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
     integrity="sha256-pS96pU17yq+gVu4KBQJi38VpSuKN7otMrDQprzf/DWY="
     crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
-    integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
-    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
   <!-- Clipboard -->
   <script src="https://cdn.jsdelivr.net/npm/clipboard@1/dist/clipboard.min.js"></script>
   <!-- Terminal -->
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.10.1/js/jquery.terminal.js"
-    integrity="sha256-/dY7WzTiHP4Z39jXg+KTLMHXKfFqzfWIrdc1M6XZ5rY="
-    crossorigin="anonymous"></script>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.10.1/css/jquery.terminal.min.css"
-    integrity="sha256-IVoPNmmjjN4wZ2OJ2vAPdKX+MHReNkbceOxYnzZEVJE="
-    crossorigin="anonymous" />
+  <script src="https://cdn.jsdelivr.net/npm/jquery.terminal@1/js/jquery.terminal.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.terminal@1/css/jquery.terminal.min.css">
   <!-- Custom script -->
   <script src="js/app.js"></script>
   <script src="js/unix_formatting.js"></script>

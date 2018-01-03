@@ -48,7 +48,7 @@ jQuery( document ).ready(function( $ ) {
         if (response != "null") {
           modal.find('.modal-title').html(response.message);
           for (var key in response.result) {
-            modal.find('.modal-body').append('<label>' + key + '</label><pre class="pre-scrollable">' + response.result[key] + '</pre>');
+            modal.find('.modal-body').append('<label>' + key + '</label><pre>' + response.result[key] + '</pre>');
           }
         }
       });
@@ -65,7 +65,7 @@ jQuery( document ).ready(function( $ ) {
           if (response != "null") {
             modal.find('.modal-body').html('');
             for (var key in response.result) {
-              modal.find('.modal-body').append('<label>' + key + '</label><pre class="pre-scrollable">' + response.result[key] + '</pre>');
+              modal.find('.modal-body').append('<label>' + key + '</label><pre>' + response.result[key] + '</pre>');
             }
           }
         });
