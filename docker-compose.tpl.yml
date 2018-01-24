@@ -35,7 +35,7 @@ services:
       # Web root access, optionnal.
       - 81:81
       # Used by dashboard.
-      - 8181:8181
+      - "${APACHE_HOST_DASHBORAD_PORT:-8181}:8181"
     links:
       - php
     volumes:
@@ -93,6 +93,7 @@ services:
     restart: always
   mysql:
     image: mariadb:latest
+    # image: mysql:latest
     expose:
       - "3306"
     volumes:
