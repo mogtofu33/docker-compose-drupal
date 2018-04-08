@@ -27,7 +27,7 @@ if [ ! -d "$project_path" ]; then
   git clone -b $docker_stack_branch $docker_stack_repo $project_path
   # set up tools from stack
   cd $project_path;
-  ./scripts/get-tools.sh install
+  scripts/get-tools.sh install
 else
   echo "[setup::info] Docker stack already here!"
 fi
