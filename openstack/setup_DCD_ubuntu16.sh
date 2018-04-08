@@ -68,6 +68,9 @@ if [ $? -eq 1 ]; then
   sleep 30s
 fi
 
+# Fix sock for privilleged.
+sudo chown ubuntu:ubuntu /var/run/docker.sock
+
 # Add project variables to environment.
 cat <<EOT >> $HOME/.profile
 PATH=\$PATH:$HOME/.config/composer/vendor/bin
