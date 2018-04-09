@@ -11,7 +11,7 @@ drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=passwo
 
 # Setup Drupal 8 composer project.
 /usr/bin/composer create-project drupal-composer/drupal-project:8.x-dev $PROJECT_ROOT/drupal --stability dev --no-interaction
-/usr/bin/composer -d=$PROJECT_ROOT/drupal require "drupal/devel" "drupal/admin_toolbar"
+/usr/bin/composer --working-dir=${PROJECT_ROOT}/drupal require "drupal/devel" "drupal/admin_toolbar"
 
 # Set-up Drupal.
 echo "[setup::info] Install Drupal 8..."

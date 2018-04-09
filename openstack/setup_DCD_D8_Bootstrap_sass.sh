@@ -23,7 +23,7 @@ docker_cmd="docker exec -t --user apache $PROJECT_CONTAINER_NAME "
 
 # Add Bootstrap theme of Drupal 8 with composer.
 echo "[setup::info] Install Bootstrap for Drupal 8..."
-/usr/bin/composer -d=$PROJECT_ROOT/drupal require "drupal/bootstrap:^3"
+/usr/bin/composer --working-dir=${PROJECT_ROOT}/drupal require "drupal/bootstrap:^3"
 
 # Create bootstrap subtheme.
 # see https://drupal-bootstrap.org/api/bootstrap/starterkits%21sass%21README.md/group/sub_theming_sass/8
