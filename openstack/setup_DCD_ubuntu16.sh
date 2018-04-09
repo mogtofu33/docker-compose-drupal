@@ -69,7 +69,7 @@ if [ $? -eq 1 ]; then
 fi
 
 # Fix sock for privilleged.
-sudo chown ubuntu:ubuntu /var/run/docker.sock
+sudo chown 1000:1000 /var/run/docker.sock
 
 # Add project variables to environment.
 cat <<EOT >> $HOME/.profile

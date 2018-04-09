@@ -42,7 +42,7 @@ for i in $theme/custom/$name/config/optional/*.yml; do
 done
 
 # Get Bootstrap sass source.
-wget -O $theme/custom/$name/$bootstrap_version.tar.gz https://github.com/twbs/bootstrap-sass/archive/v$bootstrap_version.tar.gz
+wget -O -q $theme/custom/$name/$bootstrap_version.tar.gz https://github.com/twbs/bootstrap-sass/archive/v$bootstrap_version.tar.gz
 tar -xvzf $theme/custom/$name/$bootstrap_version.tar.gz -C $theme/custom/$name/
 mv $theme/custom/$name/bootstrap-sass-$bootstrap_version $theme/custom/$name/bootstrap
 rm -f $theme/custom/$name/$bootstrap_version.tar.gz
@@ -53,7 +53,7 @@ mv $theme/custom/$name/config/install/THEMENAME.settings.yml $theme/custom/$name
 mv $theme/custom/$name/config/schema/THEMENAME.schema.yml $theme/custom/$name/config/schema/$name.schema.yml
 
 # We need a config file for compiling.
-wget -O $theme/custom/$name/config.rb $config_rb
+wget -O -q $theme/custom/$name/config.rb $config_rb
 
 # Locally edit files.
 sed -i -e "s/THEMETITLE/${title}/g" $PROJECT_ROOT/drupal/web/themes/custom/$name/$name.info.yml
