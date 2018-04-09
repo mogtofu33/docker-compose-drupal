@@ -14,7 +14,7 @@ drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=passwo
 /usr/bin/composer --working-dir=${PROJECT_ROOT}/drupal require "drupal/devel" "drupal/admin_toolbar"
 
 # Set-up Drupal.
-echo "[setup::info] Install Drupal 8..."
+echo -e "\n>>>>\n[setup::info] Install Drupal 8...\n<<<<\n"
 #docker exec -t $PROJECT_CONTAINER_NAME chown -R apache: /www
 docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y site-install $drush_options >> $PROJECT_PATH/drupal-install.log
 docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y en admin_toolbar >> /dev/null
@@ -43,6 +43,6 @@ cmd="$DRUPAL_BIN \$@"
 docker exec -it --user apache $PROJECT_CONTAINER_NAME bash -c 'cd '"$PROJECT_CONTAINER_WEB_ROOT"'; \$1' -- "\$cmd"
 EOT
 
-echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
-echo -e "[setup::info] Drupal 8 installed, account: admin, password: password\n"
-echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+echo -e "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
+[setup::info] Drupal 8 installed, account: admin, password: password\n
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"

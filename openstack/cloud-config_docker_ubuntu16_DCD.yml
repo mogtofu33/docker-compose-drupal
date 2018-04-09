@@ -28,7 +28,7 @@ runcmd:
   - chmod +x /usr/local/bin/docker-compose
   # External script to setup properly Docker-compose, and Drupal Docker Compose
   # dev stack (this project) with user ubuntu.
-  - wget -q -O /home/ubuntu/setup-docker-stack.sh -q "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_ubuntu16.sh"
+  - wget -q -O /home/ubuntu/setup-docker-stack.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_ubuntu16.sh"
   - chmod +x /home/ubuntu/setup-docker-stack.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup-docker-stack.sh
   - su -c "/home/ubuntu/setup-docker-stack.sh" ubuntu

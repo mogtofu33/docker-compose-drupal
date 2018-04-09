@@ -23,17 +23,17 @@ sudo chown -R ubuntu:ubuntu $HOME
 
 # Get a Docker compose stack (Apache/Php/Mysql/Mailhog/Solr).
 if [ ! -d "$project_path" ]; then
-  echo "[setup::info] Clone Docker stack and tools..."
+  echo -e "\n>>>>\n[setup::info] Clone Docker stack and tools...\n<<<<\n"
   git clone -b $docker_stack_branch $docker_stack_repo $project_path
   # set up tools from stack
   cd $project_path;
   scripts/get-tools.sh install
 else
-  echo "[setup::info] Docker stack already here!"
+  echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
 
 # Set-up and launch this Docker compose stack.
-echo "[setup::info] Prepare Docker stack and set-up tools..."
+echo -e "\n>>>>\n[setup::info] Prepare Docker stack and set-up tools...\n<<<<\n"
 cp $project_path/default.env $project_path/.env
 # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
 cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
@@ -42,20 +42,20 @@ docker-compose build && docker-compose up -d
 
 # Set-up composer.
 if [ ! -f "/usr/bin/composer" ]; then
-  echo "[setup::info] Set-up Composer and dependencies..."
+  echo -e "\n>>>>\n[setup::info] Set-up Composer and dependencies...\n<<<<\n"
   cd $HOME
   curl -sS https://getcomposer.org/installer | php -- --install-dir=$HOME --filename=composer
   sudo mv $HOME/composer /usr/bin/composer
   sudo chmod +x /usr/bin/composer
   /usr/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
 else
-  echo "[setup::info] Composer already here!"
+  echo -e "\n>>>>\n[setup::notice] Composer already here!\n<<<<\n"
   # Install dependencies just in case.
   /usr/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
 fi
 
 # Set-up Code sniffer.
-echo "[setup::info] Set-up Code sniffer and final steps..."
+echo -e "\n>>>>\n[setup::info] Set-up Code sniffer and final steps...\n<<<<\n"
 if [ -f "$HOME/.config/composer/vendor/bin/phpcs" ]; then
   $HOME/.config/composer/vendor/bin/phpcs --config-set installed_paths $HOME/.config/composer/vendor/drupal/coder/coder_sniffer
 fi
@@ -63,13 +63,10 @@ fi
 # Check if containers are up...
 RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_php 2> /dev/null)
 if [ $? -eq 1 ]; then
-  echo "[setup::ERROR] Container $project_container_php does not exist..."
+  echo -e "\n>>>>\n[setup::ERROR] Container $project_container_php does not exist...\n<<<<\n"
   # Wait a bit for stack to be up....
   sleep 30s
 fi
-
-# Fix sock for privilleged.
-sudo chown 1000:1000 /var/run/docker.sock
 
 # Add project variables to environment.
 cat <<EOT >> $HOME/.profile
@@ -115,6 +112,9 @@ sudo ln -s $project_root /www
 sudo chown ubuntu: /www
 ln -s $project_path $HOME/root
 
-echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
-echo -e "[setup::info] Docker compose stack install finished!\n"
-echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+# Fix sock for privilleged.
+sudo chown 1000:1000 /var/run/docker.sock
+
+echo -e "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
+[setup::info] Docker compose stack install finished!\n
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"

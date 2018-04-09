@@ -19,15 +19,14 @@ config_rb="https://gist.githubusercontent.com/Mogtofu33/c8bd086d12a6b65407636108
 
 # Cmd and path variables.
 theme="$PROJECT_ROOT/drupal/web/themes"
-docker_cmd="docker exec -t --user apache $PROJECT_CONTAINER_NAME "
 
 # Add Bootstrap theme of Drupal 8 with composer.
-echo "[setup::info] Install Bootstrap for Drupal 8..."
+echo -e "\n>>>>\n[setup::info] Install Bootstrap for Drupal 8...\n<<<<\n"
 /usr/bin/composer --working-dir=${PROJECT_ROOT}/drupal require "drupal/bootstrap:^3"
 
 # Create bootstrap subtheme.
 # see https://drupal-bootstrap.org/api/bootstrap/starterkits%21sass%21README.md/group/sub_theming_sass/8
-echo "[setup::info] Create $title subtheme..."
+echo -e "\n>>>>\n[setup::info] Create $title subtheme...\n<<<<\n"
 mkdir -p $theme/custom
 cp -r $theme/contrib/bootstrap/starterkits/sass/ $theme/custom/$name
 
@@ -62,14 +61,22 @@ sed -i -e "s/THEMETITLE/${title}/g" $PROJECT_ROOT/drupal/web/themes/custom/$name
 sed -i -e "s/THEMENAME/${name}/g" $PROJECT_ROOT/drupal/web/themes/custom/$name/config/schema/$name.schema.yml
 
 # Compass compile.
-compass compile $PROJECT_ROOT/drupal/web/themes/custom/$name
+if [ -f "/usr/local/bin/drush" ]; then
+  /usr/bin/compass compile $PROJECT_ROOT/drupal/web/themes/custom/$name
+else
+  echo -e "\n>>>>\n[setup::warning] could not find compass and compile $PROJECT_ROOT/drupal/web/themes/custom/$name\n<<<<\n"
+fi
 
-# Run drush commands to enable this theme.
-echo "[setup::info] Enable $title subtheme..."
-$docker_cmd $DRUSH_CMD -y en bootstrap
-$docker_cmd $DRUSH_CMD -y en bootstrap_sass
-$docker_cmd $DRUSH_CMD -y config-set system.theme default bootstrap_sass
+# Run drush commands to enable this theme with drush bin from previous script (setup_DCD_D8_ubuntu16.sh).
+echo -e "\n>>>>\n[setup::info] Enable $title subtheme...\n<<<<\n"
+if [ -f "/usr/local/bin/drush" ]; then
+  /usr/local/bin/drush -y theme:enable bootstrap
+  /usr/local/bin/drush -y theme:enable $name
+  /usr/local/bin/drush -y cset system.theme default $name
+else
+  echo -e "\n>>>>\n[setup::warning] could not find drush and enable $title\n<<<<\n"
+fi
 
-echo -e ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
-echo -e "[setup::info] Bootstrap Sass subtheme installed!\n"
-echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+echo -e "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
+[setup::info] Bootstrap Sass subtheme installed!\n
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
