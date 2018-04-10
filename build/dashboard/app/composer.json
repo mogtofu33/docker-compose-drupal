@@ -5,12 +5,12 @@
     "type": "project",
     "require": {
         "php": ">=5.5.9",
-        "docker-php/docker-php": "^1.24",
+        "docker-php/docker-php": "^1",
         "guzzlehttp/guzzle": "~6.0",
         "macfja/phar-builder": "^0.2.6"
     },
     "require-dev": {
-        "symfony/var-dumper": "^3.3"
+        "symfony/var-dumper": "^3.4"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
