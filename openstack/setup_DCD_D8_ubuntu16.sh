@@ -19,12 +19,6 @@ echo -e "\n>>>>\n[setup::info] Install Drupal 8...\n<<<<\n"
 docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y site-install $drush_options >> $PROJECT_PATH/drupal-install.log
 docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y en admin_toolbar >> /dev/null
 
-# Add project variables to environment.
-cat <<EOT >> $HOME/.profile
-DRUSH_CONTAINER_BIN="$DRUSH_BIN"
-DRUSH_CONTAINER_ROOT="--root=$PROJECT_CONTAINER_WEB_ROOT"
-EOT
-
 # Add drush and drupal bin shortcut.
 sudo touch /usr/local/bin/drush
 sudo touch /usr/local/bin/drupal

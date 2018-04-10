@@ -61,7 +61,7 @@ sed -i -e "s/THEMETITLE/${title}/g" $PROJECT_ROOT/drupal/web/themes/custom/$name
 sed -i -e "s/THEMENAME/${name}/g" $PROJECT_ROOT/drupal/web/themes/custom/$name/config/schema/$name.schema.yml
 
 # Compass compile.
-if [ -f "/usr/local/bin/drush" ]; then
+if [ -f "/usr/bin/compass" ]; then
   /usr/bin/compass compile $PROJECT_ROOT/drupal/web/themes/custom/$name
 else
   echo -e "\n>>>>\n[setup::warning] could not find compass and compile $PROJECT_ROOT/drupal/web/themes/custom/$name\n<<<<\n"
@@ -70,9 +70,9 @@ fi
 # Run drush commands to enable this theme with drush bin from previous script (setup_DCD_D8_ubuntu16.sh).
 echo -e "\n>>>>\n[setup::info] Enable $title subtheme...\n<<<<\n"
 if [ -f "/usr/local/bin/drush" ]; then
-  /usr/local/bin/drush -y theme:enable bootstrap
-  /usr/local/bin/drush -y theme:enable $name
-  /usr/local/bin/drush -y cset system.theme default $name
+  docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y theme:enable bootstrap
+  docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y theme:enable $name
+  docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y cset system.theme default $name
 else
   echo -e "\n>>>>\n[setup::warning] could not find drush and enable $title\n<<<<\n"
 fi
