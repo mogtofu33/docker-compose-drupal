@@ -112,7 +112,8 @@ sudo ln -s $project_root /www
 sudo chown ubuntu: /www
 ln -s $project_path $HOME/root
 
-# Fix sock for privilleged.
+# Fix sock for privilleged, wait a bit for stack to be up....
+sleep 30s
 sudo chown 1000:1000 /var/run/docker.sock
 
 echo -e "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
