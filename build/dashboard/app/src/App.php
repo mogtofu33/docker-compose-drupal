@@ -25,6 +25,13 @@ Class App {
   protected $docker;
 
   /**
+   * The socket status.
+   *
+   * @var Array
+   */
+  public $valid;
+
+  /**
    * Retain information on host, web host and services.
    *
    * @var Array
@@ -59,10 +66,31 @@ Class App {
    * Constructs a new App object.
    */
   public function __construct() {
-    $this->docker = new Docker();
-    $this->containers = $this->getContainers();
-    $this->initFolders();
-    $this->init();
+    $this->valid = $this->socketValid();
+    if ($this->valid['valid']) {
+      $this->docker = new Docker();
+      $this->containers = $this->getContainers();
+      $this->initFolders();
+      $this->init();
+    }
+  }
+
+  /**
+   * check and validate docker socket.
+   */
+  protected function socketValid() {
+    $response = array(
+      'valid' => TRUE,
+      'error_id' => 0,
+      'msg' => '',
+    );
+    $fp = @fsockopen('unix:///var/run/docker.sock', -1, $errno, $errstr, 30);
+    if (!$fp) {
+      $response['valid'] = FALSE;
+      $response['error_id'] = $errno;
+      $response['msg'] = $errstr;
+    }
+    return $response;
   }
 
   /**
@@ -268,7 +296,9 @@ Class App {
     $containers_list = [];
 
     // Get our main source of information.
-    $containers = $this->docker->getContainerManager()->findAll();
+    if (!$containers = $this->docker->getContainerManager()->findAll()) {
+      return [];
+    }
 
     // Pre-format our values.
     foreach ($containers AS $c) {
@@ -466,8 +496,8 @@ Class App {
     if (count($apache_root)) {
       return $apache_root;
     }
-    else {
-      return [];
-    }
+
+    return [];
   }
+
 }
