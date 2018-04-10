@@ -2,8 +2,8 @@
 
 ## Require
 
-* Docker engine 1.13+ / 17+: https://docs.docker.com/engine/installation/ (without need to sudo)
-* Docker compose 1.17+: https://docs.docker.com/compose/install/
+* Docker engine 18+: https://docs.docker.com/engine/installation/ (without need to sudo)
+* Docker compose 1.20+: https://docs.docker.com/compose/install/
 
 ## Introduction
 
@@ -11,7 +11,7 @@ Focus on simple set-up, based on Docker official images and lightweight Alpine L
 
 ### Include
 _Every service is optional as declared in the yml file._
-* Apache with Php 7 and Xdebug
+* Apache with Php 7/5 fpm and Xdebug
 * MySQL/MariaDB
 * PostgreSQL
 * [Memcache](https://hub.docker.com/_/memcached)
@@ -21,8 +21,8 @@ _Every service is optional as declared in the yml file._
 * [OpenLdap](https://www.openldap.org)
 * [Varnish](https://varnish-cache.org)
 
-### Optional Php Tools
-* [Adminer](https://www.adminer.org) (Database management)
+### Database management
+* [Adminer](https://www.adminer.org)
 
 ## Quick launch new Drupal 8 project
 
