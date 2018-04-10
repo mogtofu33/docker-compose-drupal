@@ -21,6 +21,9 @@ drush_root="--root=$project_container_web_root"
 # Fix permissions.
 sudo chown -R ubuntu:ubuntu $HOME
 
+# Set Docker group to ubuntu user.
+sudo usermod -a -G docker ubuntu
+
 # Get a Docker compose stack (Apache/Php/Mysql/Mailhog/Solr).
 if [ ! -d "$project_path" ]; then
   echo -e "\n>>>>\n[setup::info] Clone Docker stack and tools...\n<<<<\n"
