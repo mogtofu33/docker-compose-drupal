@@ -159,8 +159,8 @@ docker exec -it -u apache dcd-php bash
 
 You can find a script in scripts/get-tools.sh folder to download or update all tools.
 <pre>
-cd THIS_PROJECT/scripts/
-chmod +x get-tools.sh
+cd THIS_PROJECT
+chmod +x scripts/get-tools.sh
 ./get-tools.sh
 </pre>
 
@@ -175,3 +175,9 @@ Solution, fix local /var/run/docker.sock permission to local user:
 <pre>
 chown $USER:$USER /var/run/docker.sock
 </pre>
+
+Permanent solution, add docker group to your user :
+<pre>
+sudo usermod -aG docker $USER
+</pre>
+

@@ -202,10 +202,13 @@ _main() {
   fi
 
   # Check where this script is run to fix base path.
-  if [[ "${_SOURCE}" = ./${_ME}  ]]
+  if [[ "${_SOURCE}" = ./${_ME} ]]
   then
     _BASE_PATH="./../"
-  elif [[ "${_SOURCE}" = scripts/${_ME}  ]]
+  elif [[ "${_SOURCE}" = scripts/${_ME} ]]
+  then
+    _BASE_PATH="./"
+  elif [[ "${_SOURCE}" = ./scripts/${_ME} ]]
   then
     _BASE_PATH="./"
   else
@@ -213,13 +216,13 @@ _main() {
   fi
 
   # Run actions.
-  if [[ "${1:-}" =~ ^install$  ]]
+  if [[ "${1:-}" =~ ^install$ ]]
   then
     _install
-  elif [[ "${1:-}" =~ ^delete$  ]]
+  elif [[ "${1:-}" =~ ^delete$ ]]
   then
     _delete
-  elif [[ "${1:-}" =~ ^update$  ]]
+  elif [[ "${1:-}" =~ ^update$ ]]
   then
     _update
   else
