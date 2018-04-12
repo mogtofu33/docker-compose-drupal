@@ -58,10 +58,10 @@ services:
     image: mogtofu33/php:${PHP_VERSION:-7}
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
-      - ./config/php/${PHP_VERSION:-7}/php.ini:/etc/php${PHP_VERSION:-7}/php.ini
-      - ./config/php/${PHP_VERSION:-7}/php-fpm.conf:/etc/php${PHP_VERSION:-7}/php-fpm.conf
-      - ./config/php/${PHP_VERSION:-7}/conf.d/:/etc/php${PHP_VERSION:-7}/conf.d/
-      - ./config/php/${PHP_VERSION:-7}/php-fpm.d/:/etc/php${PHP_VERSION:-7}/php-fpm.d/
+      - ./config/php/${PHP_MAJOR_VERSION:-7}/php.ini:/etc/php${PHP_MAJOR_VERSION:-7}/php.ini
+      - ./config/php/${PHP_MAJOR_VERSION:-7}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf
+      - ./config/php/${PHP_MAJOR_VERSION:-7}/conf.d/:/etc/php${PHP_MAJOR_VERSION:-7}/conf.d/
+      - ./config/php/${PHP_MAJOR_VERSION:-7}/php-fpm.d/:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.d/
       # Drush alias and drushrc files (or any other config)
       - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
       - ./config/drush/drushrc.php:/etc/drush/drushrc.php
