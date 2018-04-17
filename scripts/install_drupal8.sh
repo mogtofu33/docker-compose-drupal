@@ -6,14 +6,14 @@
 # |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
 #                               |_|
 #
-# Helper to execute Composer as a standalone docker container.
+# Install and prepare a Drupal 8 project.
 # https://github.com/Mogtofu33/docker-compose-drupal
 #
 # Usage:
-#   composer.sh
+#   install_drupal8.sh
 #
 # Depends on:
-#  docker
+#  composer docker
 #
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
@@ -104,14 +104,11 @@ _print_help() {
  |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
                                 |_|
 
-Helper to execute Composer as a standalone docker container, see
-https://getcomposer.org/doc/03-cli.md for commands details.
-For require command it's recommended to use --ignore-platform-
-and --no-scripts options.
+Install and prepare a Drupal 8 project with Drupal template.
+https://github.com/drupal-composer/drupal-project
 
 Usage:
-  ${_ME} [status | require | remove | outdated | ... ]
-  ${_ME} -h | --help
+  ${_ME} -h | --helpcd 
 
 Options:
   -h --help  Show this screen.
@@ -119,32 +116,33 @@ HEREDOC
 }
 
 ###############################################################################
-# Program Variables
+# Variables
 ###############################################################################
-
-_DRUPAL_ROOT="/drupal"
-_BASE_SOURCE=$(pwd)
-_BASE_SOURCE=${_BASE_SOURCE%/scripts}
 
 # Check where this script is run to fix base path.
 if [[ "${_SOURCE}" = ./${_ME} ]]
 then
-  _BASE_PATH="../"
-elif [ "${_SOURCE}" = scripts/"${_ME}" ] || [ "${_SOURCE}" = ./scripts/"${_ME}" ]
+  die "This script must be run from the ROOT DCD project. Invalid command : ${_SOURCE}"
+elif [[ "${_SOURCE}" = scripts/${_ME} ]]
 then
-  _BASE_PATH="./"
+    _BASE_PATH="./"
+elif [[ "${_SOURCE}" = ./scripts/${_ME} ]]
+then
+    _BASE_PATH="./"
 else
-  die "This script must be run within DCD project. Invalid command : ${_SOURCE} $0"
+  die "This script must be run within DCD project. Invalid command : ${_SOURCE}"
 fi
 
-source "${_BASE_PATH}.env"
+source ${_BASE_PATH}.env
 
-_DRUPAL_ROOT=$(echo "${_BASE_SOURCE}${HOST_WEB_ROOT}${_DRUPAL_ROOT}" | sed -e 's/\.//g')
-
+# _DRUPAL_ROOT=$(echo "$(pwd)${HOST_WEB_ROOT}"/drupal | sed -e 's/\.//g')
+_DRUPAL_CONTAINER_ROOT="/var/www/localhost/drupal"
+_PROJECT_CONTAINER_NAME="dcd-php"
+_DRUSH_BIN="/var/www/localhost/drupal/vendor/bin/drush"
+_DRUSH_ROOT="--root=/var/www/localhost/drupal/web"
+_DRUSH_OPTIONS="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=password"
+_COMPOSER=$(which composer)
 _DOCKER=$(which docker)
-
-tty=
-tty -s && tty=--tty
 
 ###############################################################################
 # Program Functions
@@ -152,10 +150,31 @@ tty -s && tty=--tty
 
 _check_dependencies() {
 
+  if ! [ -x "$(command -v composer)" ]; then
+    die "Composer is not installed. Please install to use this script.\n"
+  fi
+
   if ! [ -x "$(command -v docker)" ]; then
     die "Docker is not installed. Please install to use this script.\n"
   fi
 
+  # Check if containers are up...
+  RUNNING=$(docker inspect --format="{{ .State.Running }}" "${_PROJECT_CONTAINER_NAME}" 2> /dev/null)
+  if [ $? -eq 1 ]; then
+    die "Container ${_PROJECT_CONTAINER_NAME} do not exist or is not running, run docker-compose up -d\n"
+  fi
+}
+
+_get_drupal() {
+  # Setup Drupal 8 composer project.
+  $_COMPOSER create-project drupal-composer/drupal-project:8.x-dev "${_DRUPAL_CONTAINER_ROOT}" --stability dev --no-interaction
+  $_COMPOSER --working-dir="${_DRUPAL_CONTAINER_ROOT}" require "drupal/devel" "drupal/admin_toolbar"
+}
+
+_install_drupal() {
+  #docker exec -t $PROJECT_CONTAINER_NAME chown -R apache: /www
+  $_DOCKER exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y site:install "${_DRUSH_OPTIONS}" >> "${_DRUPAL_CONTAINER_ROOT}/drupal-install.log"
+  $_DOCKER exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y pm:enable admin_toolbar >> /dev/null
 }
 
 ###############################################################################
@@ -173,22 +192,20 @@ _main() {
 
   _check_dependencies
 
-  # Avoid complex option parsing when only one program option is expected.
-  if [[ "${1:-}" =~ ^-h|--help$  ]]
+  # Run actions.
+  if [[ "${1:-}" =~ ^install$ ]]
   then
-    _print_help
+    _get_drupal
+    _install_drupal
+  elif [[ "${1:-}" =~ ^get-only$ ]]
+  then
+    _get_drupal
+  elif [[ "${1:-}" =~ ^install-only$ ]]
+  then
+    _install_drupal
   else
-    $_DOCKER run \
-      $tty \
-      --interactive \
-      --rm \
-      --user "${LOCAL_UID}":"${LOCAL_GID}" \
-      --volume /etc/passwd:/etc/passwd:ro \
-      --volume /etc/group:/etc/group:ro \
-      --volume "${_DRUPAL_ROOT}":/app \
-        composer --working-dir=/app "$@"
+    _print_help
   fi
-
 }
 
 # Call `_main` after everything has been defined.

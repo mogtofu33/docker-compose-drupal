@@ -46,7 +46,7 @@ _ERROR=0
 # be either `echo`, `printf`, or `cat`.
 _die() {
   # Prefix die message with "cross mark (U+274C)", often displayed as a red x.
-  printf "${RED}❌${NC}  "
+  printf "${RED}❌${NC} "
   "${@}" 1>&2
   _ERROR=1
 }
@@ -129,12 +129,12 @@ _set_variables_container() {
   if [ -z "$WEB_RUNNING" ]; then
     die "No running Apache container found, do you run docker-compose up -d ?"
   else
-    container=$(docker inspect --format="{{ .Name }}" $WEB_RUNNING)
+    container=$(docker inspect --format="{{ .Name }}" "$WEB_RUNNING")
     container="${container///}"
   fi
 
   # Check if this container exist.
-  RUNNING=$(docker inspect --format="{{ .State.Running }}" $container 2> /dev/null)
+  RUNNING=$(docker inspect --format="{{ .State.Running }}" "$container" 2> /dev/null)
   if [ $? -eq 1 ]; then
     _die printf "Container %s does not exist, here is all running containers:\n%s\n" \
       "$container" \
@@ -147,9 +147,9 @@ _set_variables() {
     drupal_root="--root=${1}"
   fi
 
-  if [[ !$2 ]]; then
+  if [[ ! $2 ]]; then
     # Check if this drush is valid.
-    TEST_DRUSH_BIN=$(docker exec $container cat $drush_bin 2> /dev/null)
+    TEST_DRUSH_BIN=$(docker exec "$container" cat "$drush_bin" 2> /dev/null)
     if [ $? -eq 1 ]; then
       die "Project do not contain drush, please specify a path within the container. Path tested:\n${drush_bin}"
     fi
@@ -168,7 +168,7 @@ _set_alias() {
   export DK_DRUSH_BIN=$drush_bin
   export DK_DRUPAL_ROOT=$drupal_root
   export DK_TMP_PS1=$PS1
-  alias drush="docker exec --user $DK_USER --interactive $DK_CONTAINER $DK_DRUSH_BIN $DK_DRUPAL_ROOT"
+  alias drush="docker exec --user ${DK_USER} --interactive $DK_CONTAINER $DK_DRUSH_BIN $DK_DRUPAL_ROOT"
   PS1="$PS1\[${BLUE_BOLD}[drush|$DK_CONTAINER]> ${NC}"
   echo -e "${GREEN}Alias set!${NC} to stop it and restore your drush, run:\nsource drush.sh --end"
 }
@@ -192,7 +192,7 @@ _check_help() {
 
 _check_end() {
   if [ "${1:-}" == "--end" ] || [ "${1:-}" == "-e" ] ; then
-    if [ -z ${DK_TMP_PS1+x} ]; then
+    if [ -z "${DK_TMP_PS1+x}" ]; then
       echo -e "${BLUE_BOLD}[info]${NC} Drush alias is not set, nothing to restore."
       _ERROR=1
     else
@@ -211,7 +211,7 @@ _check_source() {
 }
 
 _check_alias() {
-  if [ ${DK_TMP_PS1+x} ]; then
+  if [ "${DK_TMP_PS1+x}" ]; then
     echo -e "${BLUE_BOLD}[info]${NC} Drush alias is already set, to restore close this terminal or run:\nsource drush.sh --end"
     _ERROR=1
   fi

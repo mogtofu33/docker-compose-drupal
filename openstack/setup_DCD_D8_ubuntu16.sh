@@ -16,8 +16,8 @@ drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=passwo
 # Set-up Drupal.
 echo -e "\n>>>>\n[setup::info] Install Drupal 8...\n<<<<\n"
 #docker exec -t $PROJECT_CONTAINER_NAME chown -R apache: /www
-docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y site-install $drush_options >> $PROJECT_PATH/drupal-install.log
-docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y en admin_toolbar >> /dev/null
+docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y site:install $drush_options >> $PROJECT_PATH/drupal-install.log
+docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y pm:enable admin_toolbar >> /dev/null
 
 # Add drush and drupal bin shortcut.
 sudo touch /usr/local/bin/drush

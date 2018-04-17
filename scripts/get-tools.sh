@@ -117,7 +117,7 @@ HEREDOC
 }
 
 ###############################################################################
-# Program Functions
+# Variables
 ###############################################################################
 
 _PROGRAMS=(
@@ -135,6 +135,32 @@ _CONFIG=(
   "redis/config.inc.php:phpRedisAdmin"
 )
 
+# Check where this script is run to fix base path.
+if [[ "${_SOURCE}" = ./${_ME} ]]
+then
+  _BASE_PATH="./../"
+elif [[ "${_SOURCE}" = scripts/${_ME} ]]
+then
+  _BASE_PATH="./"
+elif [[ "${_SOURCE}" = ./scripts/${_ME} ]]
+then
+  _BASE_PATH="./"
+else
+  die "This script must be run within DCD project. Invalid command : $0"
+fi
+
+###############################################################################
+# Program Functions
+###############################################################################
+
+_check_dependencies() {
+
+  if ! [ -x "$(command -v git)" ]; then
+    die "Git is not installed. Please install to use this script.\n"
+  fi
+
+}
+
 _install() {
   printf "Install started, clone projects...\n"
   if [ ! -d "${_BASE_PATH}tools" ]; then
@@ -142,22 +168,22 @@ _install() {
   fi
   for i in "${_PROGRAMS[@]:-}"
   do
-    arr=($(echo $i | tr ':' "\n"))
+    arr=($(echo "$i" | tr ':' "\n"))
     repo=${arr[0]}
     program=${arr[1]}
     if [ ! -d "${_BASE_PATH}tools/${program}" ]
     then
-    	git clone https://github.com/${repo:-} ${_BASE_PATH}tools/${program:-}
+    	git clone "https://github.com/${repo:-}" "${_BASE_PATH}tools/${program:-}"
     else
       printf "Program already installed, you should run update ?: %s\n" "${program}"
     fi
   done
   for i in "${_CONFIG[@]:-}"
   do
-    arr=($(echo $i | tr ':' "\n"))
+    arr=($(echo "$i" | tr ':' "\n"))
     file=${arr[0]}
     destination=${arr[1]}
-    cp ${_BASE_PATH}config/${file} ${_BASE_PATH}tools/${destination:-}/
+    cp "${_BASE_PATH}config/${file}" "${_BASE_PATH}tools/${destination:-}/"
   done
   printf "Install finished!\n"
 }
@@ -165,10 +191,10 @@ _install() {
 _update() {
   for i in "${_PROGRAMS[@]:-}"
   do
-    arr=($(echo $i | tr ':' "\n"))
+    arr=($(echo "$i" | tr ':' "\n"))
     dir=${arr[1]}
     program=${arr[1]}
-    printf "Update ${program}...\n"
+    printf "Update %s...\n" "${program}"
     git -C "${_BASE_PATH}tools/${dir}" pull origin
   done
   printf "Update finished!\n"
@@ -177,7 +203,7 @@ _update() {
 _delete() {
   for i in "${_PROGRAMS[@]:-}"
   do
-    arr=($(echo $i | tr ':' "\n"))
+    arr=($(echo "$i" | tr ':' "\n"))
     dir=${arr[1]}
     echo "rm -rf ${_BASE_PATH}tools/${dir}"
   done
@@ -197,23 +223,7 @@ _delete() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
-  if ! [ -x "$(command -v git)" ]; then
-    die "Git is not installed. Please install to use this script.\n"
-  fi
-
-  # Check where this script is run to fix base path.
-  if [[ "${_SOURCE}" = ./${_ME} ]]
-  then
-    _BASE_PATH="./../"
-  elif [[ "${_SOURCE}" = scripts/${_ME} ]]
-  then
-    _BASE_PATH="./"
-  elif [[ "${_SOURCE}" = ./scripts/${_ME} ]]
-  then
-    _BASE_PATH="./"
-  else
-    die "This script must be run within DCD project. Invalid command : $0"
-  fi
+  _check_dependencies
 
   # Run actions.
   if [[ "${1:-}" =~ ^install$ ]]

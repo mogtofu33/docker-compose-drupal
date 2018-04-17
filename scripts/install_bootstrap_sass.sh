@@ -112,7 +112,7 @@ For more details see:
 https://drupal-bootstrap.org/api/bootstrap/starterkits%21sass%21README.md/group/sub_theming_sass/8
 
 Usage:
-  ${_ME} [install | enable | update]
+  ${_ME} [install | enable ]
   ${_ME} -h | --help
 
 Options:
@@ -146,7 +146,7 @@ fi
 
 source ${_BASE_PATH}.env
 
-_DRUPAL_ROOT=$(echo $(pwd)${HOST_WEB_ROOT}/drupal | sed -e 's/\.//g')
+_DRUPAL_ROOT=$(echo "$(pwd)${HOST_WEB_ROOT}"/drupal | sed -e 's/\.//g')
 _THEME_PATH="${_DRUPAL_ROOT}/web/themes"
 _PROJECT_CONTAINER_NAME="dcd-php"
 _DRUSH_BIN="/var/www/localhost/drupal/vendor/bin/drush"
@@ -174,63 +174,61 @@ _check_dependencies() {
 
 _install_bootstrap() {
   # Add Bootstrap theme of Drupal 8 with composer.
-  echo -e "\n>>>>\n[setup::info] Install Bootstrap for Drupal 8...\n<<<<\n"
-  composer --working-dir=${_DRUPAL_ROOT} require "drupal/bootstrap:^3"
+  printf ">> [setup::info] Install Bootstrap for Drupal 8.\\n"
+  composer --working-dir="${_DRUPAL_ROOT}" require "drupal/bootstrap:^3"
+}
 
+_install_bootstrap_subtheme() {
   # Create bootstrap subtheme.
   # see https://drupal-bootstrap.org/api/bootstrap/starterkits%21sass%21README.md/group/sub_theming_sass/8
-  echo -e "\n>>>>\n[setup::info] Create ${_THEME_TITLE} subtheme...\n<<<<\n"
-  mkdir -p ${_THEME_PATH}/custom
-  cp -r ${_THEME_PATH}/contrib/bootstrap/starterkits/sass/ ${_THEME_PATH}/custom/${_THEME_NAME}
+  printf ">> [setup::info] Create %s subtheme.\\n" "${_THEME_TITLE}"
+  mkdir -p "${_THEME_PATH}"/custom
+  cp -r "${_THEME_PATH}"/contrib/bootstrap/starterkits/sass/ "${_THEME_PATH}"/custom/"${_THEME_NAME}"
 
   # Copy and adpat config to get a default block position.
-  cp -r ${_THEME_PATH}/contrib/bootstrap/config/optional/ ${_THEME_PATH}/custom/${_THEME_NAME}/config/
-  for i in ${_THEME_PATH}/custom/${_THEME_NAME}/config/optional/*.yml; do
-    new_file=$(echo $i | sed "s/block\.bootstrap\_/block\.${_THEME_NAME}\_/g");
-    mv $i $new_file;
-    sed -i -e "s/id: bootstrap_/id: ${_THEME_NAME}_/g" $new_file;
-    sed -i -e "s/theme: bootstrap/theme: ${_THEME_NAME}/g" $new_file;
-    sed -i -e "s/\- bootstrap/\- ${_THEME_NAME}/g" $new_file;
+  cp -r "${_THEME_PATH}"/contrib/bootstrap/config/optional/ "${_THEME_PATH}"/custom/"${_THEME_NAME}"/config/
+  for i in "${_THEME_PATH}"/custom/"${_THEME_NAME}"/config/optional/*.yml; do
+    new_file=$(echo "$i" | sed "s/block\.bootstrap\_/block\.${_THEME_NAME}\_/g");
+    mv "$i" "$new_file";
+    sed -i -e "s/id: bootstrap_/id: ${_THEME_NAME}_/g" "$new_file";
+    sed -i -e "s/theme: bootstrap/theme: ${_THEME_NAME}/g" "$new_file";
+    sed -i -e "s/\- bootstrap/\- ${_THEME_NAME}/g" "$new_file";
   done
 
   # Get Bootstrap sass source.
-  wget -q -O ${_THEME_PATH}/custom/${_THEME_NAME}/${_BOOTSTRAP_VERSION}.tar.gz https://github.com/twbs/bootstrap-sass/archive/v${_BOOTSTRAP_VERSION}.tar.gz
-  tar -xvzf ${_THEME_PATH}/custom/${_THEME_NAME}/${_BOOTSTRAP_VERSION}.tar.gz -C ${_THEME_PATH}/custom/${_THEME_NAME}/
-  mv ${_THEME_PATH}/custom/${_THEME_NAME}/bootstrap-sass-${_BOOTSTRAP_VERSION} ${_THEME_PATH}/custom/${_THEME_NAME}/bootstrap
-  rm -f ${_THEME_PATH}/custom/${_THEME_NAME}/${_BOOTSTRAP_VERSION}.tar.gz
-  mv ${_THEME_PATH}/custom/${_THEME_NAME}/THEMENAME.starterkit.yml ${_THEME_PATH}/custom/${_THEME_NAME}/${_THEME_NAME}.info.yml
-  mv ${_THEME_PATH}/custom/${_THEME_NAME}/THEMENAME.libraries.yml ${_THEME_PATH}/custom/${_THEME_NAME}/${_THEME_NAME}.libraries.yml
-  mv ${_THEME_PATH}/custom/${_THEME_NAME}/THEMENAME.theme ${_THEME_PATH}/custom/${_THEME_NAME}/${_THEME_NAME}.theme
-  mv ${_THEME_PATH}/custom/${_THEME_NAME}/config/install/THEMENAME.settings.yml ${_THEME_PATH}/custom/${_THEME_NAME}/config/install/${_THEME_NAME}.settings.yml
-  mv ${_THEME_PATH}/custom/${_THEME_NAME}/config/schema/THEMENAME.schema.yml ${_THEME_PATH}/custom/${_THEME_NAME}/config/schema/${_THEME_NAME}.schema.yml
+  wget -q -O "${_THEME_PATH}"/custom/"${_THEME_NAME}"/${_BOOTSTRAP_VERSION}.tar.gz https://github.com/twbs/bootstrap-sass/archive/v${_BOOTSTRAP_VERSION}.tar.gz
+  tar -xvzf "${_THEME_PATH}"/custom/"${_THEME_NAME}"/${_BOOTSTRAP_VERSION}.tar.gz -C "${_THEME_PATH}"/custom/"${_THEME_NAME}"/
+  mv "${_THEME_PATH}"/custom/"${_THEME_NAME}"/bootstrap-sass-${_BOOTSTRAP_VERSION} "${_THEME_PATH}"/custom/"${_THEME_NAME}"/bootstrap
+  rm -f "${_THEME_PATH}"/custom/"${_THEME_NAME}"/${_BOOTSTRAP_VERSION}.tar.gz
+  mv "${_THEME_PATH}"/custom/"${_THEME_NAME}"/THEMENAME.starterkit.yml "${_THEME_PATH}"/custom/"${_THEME_NAME}"/"${_THEME_NAME}".info.yml
+  mv "${_THEME_PATH}"/custom/"${_THEME_NAME}"/THEMENAME.libraries.yml "${_THEME_PATH}"/custom/"${_THEME_NAME}"/"${_THEME_NAME}".libraries.yml
+  mv "${_THEME_PATH}"/custom/"${_THEME_NAME}"/THEMENAME.theme "${_THEME_PATH}"/custom/"${_THEME_NAME}"/"${_THEME_NAME}".theme
+  mv "${_THEME_PATH}"/custom/"${_THEME_NAME}"/config/install/THEMENAME.settings.yml "${_THEME_PATH}"/custom/"${_THEME_NAME}"/config/install/"${_THEME_NAME}".settings.yml
+  mv "${_THEME_PATH}"/custom/"${_THEME_NAME}"/config/schema/THEMENAME.schema.yml "${_THEME_PATH}"/custom/"${_THEME_NAME}"/config/schema/"${_THEME_NAME}".schema.yml
 
   # We need a config file for compiling.
-  wget -q -O ${_THEME_PATH}/custom/${_THEME_NAME}/config.rb ${_CONFIG_RB}
+  wget -q -O "${_THEME_PATH}"/custom/"${_THEME_NAME}"/config.rb ${_CONFIG_RB}
 
   # Locally edit files.
-  sed -i -e "s/THEMETITLE/${_THEME_TITLE}/g" $HOST_WEB_ROOT/drupal/web/themes/custom/${_THEME_NAME}/${_THEME_NAME}.info.yml
-  sed -i -e "s/THEMENAME/${_THEME_NAME}/g" $HOST_WEB_ROOT/drupal/web/themes/custom/${_THEME_NAME}/${_THEME_NAME}.info.yml
-  sed -i -e "s/THEMETITLE/${_THEME_TITLE}/g" $HOST_WEB_ROOT/drupal/web/themes/custom/${_THEME_NAME}/config/schema/${_THEME_NAME}.schema.yml
-  sed -i -e "s/THEMENAME/${_THEME_NAME}/g" $HOST_WEB_ROOT/drupal/web/themes/custom/${_THEME_NAME}/config/schema/${_THEME_NAME}.schema.yml
+  sed -i -e "s/THEMETITLE/${_THEME_TITLE}/g" "${HOST_WEB_ROOT}"/drupal/web/themes/custom/"${_THEME_NAME}"/"${_THEME_NAME}".info.yml
+  sed -i -e "s/THEMENAME/${_THEME_NAME}/g" "${HOST_WEB_ROOT}"/drupal/web/themes/custom/"${_THEME_NAME}"/"${_THEME_NAME}".info.yml
+  sed -i -e "s/THEMETITLE/${_THEME_TITLE}/g" "${HOST_WEB_ROOT}"/drupal/web/themes/custom/"${_THEME_NAME}"/config/schema/"${_THEME_NAME}".schema.yml
+  sed -i -e "s/THEMENAME/${_THEME_NAME}/g" "${HOST_WEB_ROOT}"/drupal/web/themes/custom/"${_THEME_NAME}"/config/schema/"${_THEME_NAME}".schema.yml
 
   # Compass compile.
-  compass compile $HOST_WEB_ROOT/drupal/web/themes/custom/${_THEME_NAME}
+  compass compile "${HOST_WEB_ROOT}"/drupal/web/themes/custom/"${_THEME_NAME}"
 
-  echo -e "================================================================================
-= [setup::info] Bootstrap Sass subtheme installed!                             =
-================================================================================"
+  printf ">> [setup::info] Bootstrap Sass subtheme installed!\\n"
 }
 
 _enable_bootstrap() {
   # Run drush commands to enable this theme with drush bin from previous script (setup_DCD_D8_ubuntu16.sh).
-  echo -e "\n>>>>\n[setup::info] Enable ${_THEME_TITLE} subtheme...\n<<<<\n"
-  docker exec -t --user apache ${_PROJECT_CONTAINER_NAME} ${_DRUSH_BIN} ${_DRUSH_ROOT} -y theme:enable bootstrap
-  docker exec -t --user apache ${_PROJECT_CONTAINER_NAME} ${_DRUSH_BIN} ${_DRUSH_ROOT} -y theme:enable ${_THEME_NAME}
-  docker exec -t --user apache ${_PROJECT_CONTAINER_NAME} ${_DRUSH_BIN} ${_DRUSH_ROOT} -y config:set system.theme default ${_THEME_NAME}
+  printf "[setup::info] Enable %s subtheme.\\n" "${_THEME_TITLE}"
+  docker exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y theme:enable bootstrap
+  docker exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y theme:enable "${_THEME_NAME}"
+  docker exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y config:set system.theme default "${_THEME_NAME}"
 
-  echo -e "================================================================================
-= [setup::info] Bootstrap Sass subtheme enabled!                               =
-================================================================================"
+  printf "[setup::info] Bootstrap Sass subtheme enabled!\\n"
 }
 
 ###############################################################################
@@ -266,14 +264,11 @@ _main() {
   if [[ "${1:-}" =~ ^install$ ]]
   then
     _install_bootstrap
+    _install_bootstrap_subtheme
     _enable_bootstrap
   elif [[ "${1:-}" =~ ^enable$ ]]
   then
     _enable_bootstrap
-  elif [[ "${1:-}" =~ ^update$ ]]
-  then
-    # _update
-    die "Update not yet implemented."
   else
     _print_help
   fi
