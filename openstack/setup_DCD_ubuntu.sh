@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is an helper to setup this docker compose Drupal stack on Ubuntu 16.04.
+# This is an helper to setup this docker compose Drupal stack on Ubuntu 16.04/18.04.
 # This script must be run as ubuntu user with sudo privileges without password.
 # We assume that docker and docker-compose is properly installed when using this
 # script (From cloud config files in this folder).

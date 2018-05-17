@@ -108,7 +108,7 @@ Install and prepare a Drupal 8 project with Drupal template.
 https://github.com/drupal-composer/drupal-project
 
 Usage:
-  ${_ME} -h | --helpcd 
+  ${_ME} [install | get-only | install-only]
 
 Options:
   -h --help  Show this screen.

@@ -9,7 +9,7 @@
 # Install and prepare a Drupal 8 Bootsrap Sass sub theme.
 # https://github.com/Mogtofu33/docker-compose-drupal
 #
-# For Sass support on Ubuntu 16.04 you need
+# For Sass support on Ubuntu 16.04/18.04 you need
 #   ruby-full ruby-compass ruby-sass ruby-bootstrap-sass
 #
 # Usage:
@@ -222,7 +222,7 @@ _install_bootstrap_subtheme() {
 }
 
 _enable_bootstrap() {
-  # Run drush commands to enable this theme with drush bin from previous script (setup_DCD_D8_ubuntu16.sh).
+  # Run drush commands to enable this theme with drush bin from previous script (setup_DCD_D8_ubuntu.sh).
   printf "[setup::info] Enable %s subtheme.\\n" "${_THEME_TITLE}"
   docker exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y theme:enable bootstrap
   docker exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y theme:enable "${_THEME_NAME}"

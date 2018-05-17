@@ -5,7 +5,7 @@
 # sudoers without password. Should be used after a setup script from this folder
 # has created a Drupal 8 instance.
 # This script is used with a cloud config setup from this folder.
-# For Sass support on Ubuntu 16.04 you need
+# For Sass support on Ubuntu 16.04/18.04 you need
 #   ruby-full ruby-compass ruby-sass ruby-bootstrap-sass
 
 # Variables, most variables are from previous script.
@@ -71,7 +71,7 @@ else
   echo -e "\n>>>>\n[setup::warning] could not find compass and compile $PROJECT_ROOT/drupal/web/themes/custom/$name\n<<<<\n"
 fi
 
-# Run drush commands to enable this theme with drush bin from previous script (setup_DCD_D8_ubuntu16.sh).
+# Run drush commands to enable this theme with drush bin from previous script (setup_DCD_D8_ubuntu.sh).
 echo -e "\n>>>>\n[setup::info] Enable $title subtheme...\n<<<<\n"
 if [ -f "/usr/local/bin/drush" ]; then
   docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y theme:enable bootstrap

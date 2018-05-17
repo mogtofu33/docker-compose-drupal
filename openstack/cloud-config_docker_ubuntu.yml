@@ -2,7 +2,7 @@
 #
 ################################################################################
 # This config is used to set-up Drupal dev environment with OpenStack based on
-# an Ubuntu 16.04 image.
+# an Ubuntu 16.04/18.04 image.
 # It's meant to be a base for Docker Compose Drupal stack to set up a full DEV
 # environment.
 # THIS SETUP IS ONLY FOR DEV, MUST NOT BE USED ON PRODUCTION.
@@ -20,11 +20,11 @@ runcmd:
   # edited. this is required for Docker.
   - apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
   - usermod -aG docker ubuntu
-  - wget -q -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.20.1/docker-compose-Linux-x86_64"
+  - wget -q -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.21.2/docker-compose-Linux-x86_64"
   - chown "ubuntu:ubuntu" /usr/local/bin/docker-compose
   - chmod +x /usr/local/bin/docker-compose
 ################################################################################
-# Basic, cloud config for Ubuntu 16.04 image with Docker.
+# Basic, cloud config for Ubuntu 16.04/18.04 image with Docker.
 # Setup Docker and git.
 packages:
   - software-properties-common
@@ -39,7 +39,7 @@ power_state:
  mode: reboot
  timeout: 10
  condition: True
-# Set-up Docker for Ubuntu 16.04, see doc at:
+# Set-up Docker for Ubuntu 16.04/18.04, see doc at:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu
 apt_sources:
  - source: deb https://download.docker.com/linux/ubuntu xenial stable

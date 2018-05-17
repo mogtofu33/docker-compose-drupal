@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script is an helper to setup this Drupal 8 with composer on Ubuntu 16.04.
+# This script is an helper to setup this Drupal 8 with composer on Ubuntu 16.04/18.04.
 # This script must be run as ubuntu user with sudo privileges without password.
 # This script is used with a cloud config setup from this folder.
 
