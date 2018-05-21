@@ -42,7 +42,7 @@ if [ ! -f "$project_path/.env" ]; then
   cp $project_path/default.env $project_path/.env
 fi
 if [ ! -f "$project_path/docker-compose.yml" ]; then
-  if [ -f "$project_path/samples/$docker_stack_base.yml"]; then
+  if [ -f "$project_path/samples/$docker_stack_base.yml" ]; then
     cp $project_path/samples/$docker_stack_base.yml $project_path/docker-compose.yml
   else
     # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
