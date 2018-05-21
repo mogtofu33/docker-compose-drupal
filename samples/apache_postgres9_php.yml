@@ -70,7 +70,7 @@ services:
     # Remove to avoid starting on system reboot.
     restart: always
   pgsql:
-    image: postgres:alpine
+    image: postgres:9-alpine
     expose:
       - "5432"
     ## Comment these two lines on Windows system, permissions issue.
