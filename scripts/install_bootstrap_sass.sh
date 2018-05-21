@@ -21,72 +21,7 @@
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
 
-# Short form: set -u
-set -o nounset
-
-# Exit immediately if a pipeline returns non-zero.
-set -o errexit
-
-# Print a helpful message if a pipeline with non-zero exit code causes the
-# script to exit as described above.
-trap 'echo "Aborting due to errexit on line $LINENO. Exit code: $?" >&2' ERR
-
-# Allow the above trap be inherited by all functions in the script.
-# Short form: set -E
-set -o errtrace
-
-# Return value of a pipeline is the value of the last (rightmost) command to
-# exit with a non-zero status, or zero if all commands in the pipeline exit
-# successfully.
-set -o pipefail
-
-# Set IFS to just newline and tab at the start
-SAFER_IFS=$'\n\t'
-IFS="${SAFER_IFS}"
-
-###############################################################################
-# Environment
-###############################################################################
-
-# $_ME
-#
-# Set to the program's basename.
-_ME=$(basename "${0}")
-
-# $_SOURCE
-#
-# Set to the program's source.
-_SOURCE="${BASH_SOURCE[0]}"
-
-###############################################################################
-# Die
-###############################################################################
-
-# _die()
-#
-# Usage:
-#   _die printf "Error message. Variable: %s\n" "$0"
-#
-# A simple function for exiting with an error after executing the specified
-# command. The command is expected to print a message and should typically
-# be either `echo`, `printf`, or `cat`.
-_die() {
-  # Prefix die message with "cross mark (U+274C)", often displayed as a red x.
-  printf "❌  "
-  "${@}" 1>&2
-  exit 1
-}
-# die()
-#
-# Usage:
-#   die "Error message. Variable: $0"
-#
-# Exit with an error and print the specified message.
-#
-# This is a shortcut for the _die() function that simply echos the message.
-die() {
-  _die echo "${@}"
-}
+source ./helpers/common.sh
 
 ###############################################################################
 # Help
@@ -130,47 +65,12 @@ _THEME_TITLE="Bootstrap Sass"
 _BOOTSTRAP_VERSION="3.3.7"
 _CONFIG_RB="https://gist.githubusercontent.com/Mogtofu33/c8bd086d12a6b6540763610893da5364/raw/fcfa4d4a15dbb45b5b6f8fc70f4d0a4bef8081f5/config_dev.rb"
 
-# Check where this script is run to fix base path.
-if [[ "${_SOURCE}" = ./${_ME} ]]
-then
-  die "This script must be run from the ROOT DCD project. Invalid command : ${_SOURCE}"
-elif [[ "${_SOURCE}" = scripts/${_ME} ]]
-then
-    _BASE_PATH="./"
-elif [[ "${_SOURCE}" = ./scripts/${_ME} ]]
-then
-    _BASE_PATH="./"
-else
-  die "This script must be run within DCD project. Invalid command : ${_SOURCE}"
-fi
-
-source ${_BASE_PATH}.env
-
 _DRUPAL_ROOT=$(echo "$(pwd)${HOST_WEB_ROOT}"/drupal | sed -e 's/\.//g')
 _THEME_PATH="${_DRUPAL_ROOT}/web/themes"
-_PROJECT_CONTAINER_NAME="dcd-php"
-_DRUSH_BIN="/var/www/localhost/drupal/vendor/bin/drush"
-_DRUSH_ROOT="--root=/var/www/localhost/drupal/web"
 
 ###############################################################################
 # Program Functions
 ###############################################################################
-
-_check_dependencies() {
-
-  if ! [ -x "$(command -v composer)" ]; then
-    die "Composer is not installed. Please install to use this script.\n"
-  fi
-
-  if ! [ -x "$(command -v compass)" ]; then
-    die "Compass is not installed. Please install to use this script.\n"
-  fi
-
-  if ! [ -x "$(command -v docker)" ]; then
-    die "Docker is not installed. Please install to use this script.\n"
-  fi
-
-}
 
 _install_bootstrap() {
   # Add Bootstrap theme of Drupal 8 with composer.
@@ -224,9 +124,9 @@ _install_bootstrap_subtheme() {
 _enable_bootstrap() {
   # Run drush commands to enable this theme with drush bin from previous script (setup_DCD_D8_ubuntu.sh).
   printf "[setup::info] Enable %s subtheme.\\n" "${_THEME_TITLE}"
-  docker exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y theme:enable bootstrap
-  docker exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y theme:enable "${_THEME_NAME}"
-  docker exec -t --user apache "${_PROJECT_CONTAINER_NAME}" "${_DRUSH_BIN}" "${_DRUSH_ROOT}" -y config:set system.theme default "${_THEME_NAME}"
+  docker exec -t --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y theme:enable bootstrap
+  docker exec -t --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y theme:enable "${_THEME_NAME}"
+  docker exec -t --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y config:set system.theme default "${_THEME_NAME}"
 
   printf "[setup::info] Bootstrap Sass subtheme enabled!\\n"
 }
@@ -244,21 +144,9 @@ _enable_bootstrap() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
-  _check_dependencies
-
-  # Check where this script is run to fix base path.
-  if [[ "${_SOURCE}" = ./${_ME} ]]
-  then
-    _BASE_PATH="../../"
-  elif [[ "${_SOURCE}" = scripts/${_ME} ]]
-  then
-    _BASE_PATH="../"
-  elif [[ "${_SOURCE}" = ./scripts/${_ME} ]]
-  then
-    _BASE_PATH="../"
-  else
-    die "This script must be run within DCD project. Invalid command : $0"
-  fi
+  _check_dependencies_composer
+  _check_dependencies_compass
+  _check_dependencies_docker
 
   # Run actions.
   if [[ "${1:-}" =~ ^install$ ]]
