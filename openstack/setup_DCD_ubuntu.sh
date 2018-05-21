@@ -37,11 +37,18 @@ fi
 
 # Set-up and launch this Docker compose stack.
 echo -e "\n>>>>\n[setup::info] Prepare Docker stack and set-up tools...\n<<<<\n"
-cp $project_path/default.env $project_path/.env
-# Default file is Apache/Mysql/Memcache/Solr/Mailhog.
-cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
+if [ ! -f "$project_path/.env" ]; then
+  cp $project_path/default.env $project_path/.env
+fi
+if [ ! -f "$project_path/docker-compose.yml" ]; then
+  # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
+  cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
+fi
 cd $project_path
 docker-compose build && docker-compose up -d
+
+# Try to fix dashboard.
+sudo chmod ubuntu:ubuntu /var/run/docker.sock
 
 # Set-up composer.
 if [ ! -f "/usr/bin/composer" ]; then
