@@ -64,43 +64,48 @@ HEREDOC
 ###############################################################################
 
 _dump() {
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" mkdir -p /dump
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "$PGSQL_USER_ID" /dump
+  docker exec -t "${PROJECT_CONTAINER_PGSQL}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
+  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "$PGSQL_USER_ID" "${PROJECT_CONTAINER_DUMP}"
 
   # If we have an existing dump.
-  rm -f ${PROJECT_PGSQL_DUMP_FOLDER}/dump_${_NOW}.pg_dump
+  docker exec -t "${PROJECT_CONTAINER_PGSQL}" rm -f "${PROJECT_CONTAINER_DUMP}"/dump_${_NOW}.pg_dump
 
   docker exec \
     -t \
     --user "${PGSQL_USER}" \
     "${PROJECT_CONTAINER_PGSQL}" \
-      pg_dump -d "${POSTGRES_DB}" -U "${PGSQL_USER}" -hlocalhost -Fc -c -b -v -f /dump/dump_${_NOW}.pg_dump \
+      pg_dump -d "${POSTGRES_DB}" -U "${PGSQL_USER}" -hlocalhost -Fc -c -b -v -f ${PROJECT_CONTAINER_DUMP}/dump_${_NOW}.pg_dump \
       --exclude-table-data '*.cache*' --exclude-table-data '*.cachetags*' \
       --exclude-table-data '*.watchdog*' --exclude-table-data '*.node_access*' \
       --exclude-table-data '*.search_api_db_*' --exclude-table-data '*.sessions*' \
-      --exclude-table-data '*.sessions*' --exclude-table-data '*.webprofiler*'
-
-  docker cp "${PROJECT_CONTAINER_PGSQL}:/dump/dump_${_NOW}.pg_dump" "${PROJECT_PGSQL_DUMP_FOLDER}/dump_${_NOW}.pg_dump" 
+      --exclude-table-data '*.sessions*' --exclude-table-data '*.webprofiler*' 
 }
 
 _restore() {
 
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" mkdir -p /dump
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "${PGSQL_USER_ID}" /dump
-  docker cp  "${PROJECT_PGSQL_DUMP_FOLDER}/dump.pg_dump" "${PROJECT_CONTAINER_PGSQL}:/dump/dump.pg_dump"
+  docker exec -t "${PROJECT_CONTAINER_PGSQL}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
+  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "${PGSQL_USER_ID}" "${PROJECT_CONTAINER_DUMP}"
 
   docker exec \
     -t \
     --user "${PGSQL_USER}" \
+    "${PROJECT_CONTAINER_PGSQL}" \
+      dropdb --if-exists "${POSTGRES_DB}"
+  docker exec \
+    -t \
+    --user "${PGSQL_USER}" \
+    "${PROJECT_CONTAINER_PGSQL}" \
       createdb -e --owner="${PGSQL_USER}" "${POSTGRES_DB}"
   docker exec \
     -t \
     --user "${PGSQL_USER}" \
+    "${PROJECT_CONTAINER_PGSQL}" \
       psql -e -d ${POSTGRES_DB} -c "GRANT ALL ON database ${POSTGRES_DB} TO ${PGSQL_USER}"
   docker exec \
     -t \
     --user "${PGSQL_USER}" \
-      pg_restore -h localhost -p 5432 --no-owner --role="${PGSQL_USER}" -U "${PGSQL_USER}" -d "${POSTGRES_DB}" -v /dump/dump.pg_dump
+    "${PROJECT_CONTAINER_PGSQL}" \
+      pg_restore -h localhost -p 5432 --no-owner --role="${PGSQL_USER}" -U "${PGSQL_USER}" -d "${POSTGRES_DB}" -v ${PROJECT_CONTAINER_DUMP}/dump.pg_dump
 }
 
 ###############################################################################
