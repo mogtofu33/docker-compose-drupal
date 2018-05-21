@@ -53,7 +53,7 @@ cd $project_path
 docker-compose build && docker-compose up -d
 
 # Try to fix dashboard.
-sudo chmod ubuntu:ubuntu /var/run/docker.sock
+sudo chown ubuntu:ubuntu /var/run/docker.sock
 
 # Set-up composer.
 if [ ! -f "/usr/bin/composer" ]; then
