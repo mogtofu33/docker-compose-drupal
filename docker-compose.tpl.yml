@@ -97,6 +97,7 @@ services:
     expose:
       - "3306"
     volumes:
+      - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
       ## Comment these two lines on Windows system, permissions issue.
       - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
       - ./config/mysql:/etc/mysql
@@ -109,6 +110,7 @@ services:
       - "5432"
     ## Comment these two lines on Windows system, permissions issue.
     volumes:
+      - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
       - ${HOST_DATABASE_POSTGRES:-./data/database/pgsql}:/var/lib/postgresql/data
     env_file: .env
     ## Remove to avoid starting on system reboot.
