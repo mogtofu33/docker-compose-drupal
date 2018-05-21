@@ -9,6 +9,7 @@
 # Variables.
 docker_stack_repo="https://github.com/Mogtofu33/docker-compose-drupal.git"
 docker_stack_branch=${1-"master"}
+docker_stack_base=${2-"all"}
 project_path="$HOME/docker-compose-drupal"
 project_container_php="dcd-php"
 project_root="$project_path/data/www"
@@ -41,8 +42,12 @@ if [ ! -f "$project_path/.env" ]; then
   cp $project_path/default.env $project_path/.env
 fi
 if [ ! -f "$project_path/docker-compose.yml" ]; then
-  # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
-  cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
+  if [ -f "$project_path/samples/$docker_stack_base.yml"]; then
+    cp $project_path/samples/$docker_stack_base.yml $project_path/docker-compose.yml
+  else
+    # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
+    cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
+  fi
 fi
 cd $project_path
 docker-compose build && docker-compose up -d
