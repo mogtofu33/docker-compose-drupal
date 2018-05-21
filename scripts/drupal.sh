@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 
 # Default local variables.
-_CONTAINER='dcd-php'
-_USER='apache'
-_DRUPAL_ROOT='--root=/var/www/localhost/drupal/web'
-_BIN='/var/www/localhost/drupal/vendor/bin/drupal'
+source .env
 
 docker exec \
-  -it \
-  --user "${_USER}" \
-  --interactive "${_CONTAINER}" \
-  "${_BIN}" "${_DRUPAL_ROOT}" "$@"
+  -t \
+  --user "${PROJECT_CONTAINER_USER}" \
+  --interactive "${PROJECT_CONTAINER_NAME}" \
+  "${DRUPAL_BIN}" "${PROJECT_CONTAINER_ROOT}" "$@"

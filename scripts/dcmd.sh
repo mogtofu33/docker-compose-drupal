@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
 # Default local variables.
-_CONTAINER='dcd-php'
-_USER='apache'
+source .env
 
 docker exec \
-  -it \
-  --user "${_USER}" \
-  --interactive "${_CONTAINER}" \
+  -t \
+  --user "${PROJECT_CONTAINER_USER}" \
+  --interactive "${PROJECT_CONTAINER_NAME}" \
   "$@"
