@@ -32,7 +32,7 @@ services:
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
-      # Web root access, optionnal.
+      # Web root access, optional but can help with multi sites.
       - 81:81
       # Used by dashboard.
       - "${APACHE_HOST_DASHBORAD_PORT:-8181}:8181"
