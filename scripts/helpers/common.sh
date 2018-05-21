@@ -106,10 +106,14 @@ die() {
 ###############################################################################
 
 # Get Stack values.
-source $_DIR/../../.env
+if [ -f $_DIR/../../.env ]; then
+  source $_DIR/../../.env
+fi
 
 # Get global values.
-source $_DIR/../.env
+if [ -f $_DIR/../.env ]; then
+  source $_DIR/../.env
+fi
 
 _NOW="$(date +'%Y%m%d.%H-%M-%S')"
 tty=
