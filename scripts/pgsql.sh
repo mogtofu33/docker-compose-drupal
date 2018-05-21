@@ -19,7 +19,15 @@
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
 
-source ./helpers/common.sh
+_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a symlink
+  _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
+  _SOURCE="$(readlink "$_SOURCE")"
+  [[ $_SOURCE != /* ]] && _SOURCE="$_DIR/$_SOURCE" # if $_SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+_DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
+
+source $_DIR/helpers/common.sh
 
 ###############################################################################
 # Help
@@ -57,16 +65,16 @@ HEREDOC
 
 _dump() {
   docker exec -t "${PROJECT_CONTAINER_PGSQL}" mkdir -p /dump
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "$_POSTGRES_ID" /dump
+  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "$PGSQL_USER_ID" /dump
 
   # If we have an existing dump.
   rm -f ${PROJECT_PGSQL_DUMP_FOLDER}/dump_${_NOW}.pg_dump
 
   docker exec \
     -t \
-    --user "${_USER}" \
+    --user "${PGSQL_USER}" \
     "${PROJECT_CONTAINER_PGSQL}" \
-      pg_dump -d "${POSTGRES_DB}" -U "${POSTGRES_USER}" -hlocalhost -Fc -c -b -v -f /dump/dump_${_NOW}.pg_dump \
+      pg_dump -d "${POSTGRES_DB}" -U "${PGSQL_USER}" -hlocalhost -Fc -c -b -v -f /dump/dump_${_NOW}.pg_dump \
       --exclude-table-data '*.cache*' --exclude-table-data '*.cachetags*' \
       --exclude-table-data '*.watchdog*' --exclude-table-data '*.node_access*' \
       --exclude-table-data '*.search_api_db_*' --exclude-table-data '*.sessions*' \
@@ -78,21 +86,21 @@ _dump() {
 _restore() {
 
   docker exec -t "${PROJECT_CONTAINER_PGSQL}" mkdir -p /dump
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "${_POSTGRES_ID}" /dump
+  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "${PGSQL_USER_ID}" /dump
   docker cp  "${PROJECT_PGSQL_DUMP_FOLDER}/dump.pg_dump" "${PROJECT_CONTAINER_PGSQL}:/dump/dump.pg_dump"
 
   docker exec \
     -t \
-    --user "${_USER}" \
-      createdb -e --owner="${POSTGRES_USER}" "${POSTGRES_DB}"
+    --user "${PGSQL_USER}" \
+      createdb -e --owner="${PGSQL_USER}" "${POSTGRES_DB}"
   docker exec \
     -t \
-    --user "${_USER}" \
-      psql -e -d ${POSTGRES_DB} -c "GRANT ALL ON database ${POSTGRES_DB} TO ${POSTGRES_USER}"
+    --user "${PGSQL_USER}" \
+      psql -e -d ${POSTGRES_DB} -c "GRANT ALL ON database ${POSTGRES_DB} TO ${PGSQL_USER}"
   docker exec \
     -t \
-    --user "${_USER}" \
-      pg_restore -h localhost -p 5432 --no-owner --role="${POSTGRES_USER}" -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -v /dump/dump.pg_dump
+    --user "${PGSQL_USER}" \
+      pg_restore -h localhost -p 5432 --no-owner --role="${PGSQL_USER}" -U "${PGSQL_USER}" -d "${POSTGRES_DB}" -v /dump/dump.pg_dump
 }
 
 ###############################################################################

@@ -19,7 +19,15 @@
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
 
-source ./helpers/common.sh
+_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a symlink
+  _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
+  _SOURCE="$(readlink "$_SOURCE")"
+  [[ $_SOURCE != /* ]] && _SOURCE="$_DIR/$_SOURCE" # if $_SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+_DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
+
+source $_DIR/helpers/common.sh
 
 ###############################################################################
 # Help
@@ -76,17 +84,17 @@ _CONFIG=(
 
 _install() {
   printf "Install started, clone projects...\n"
-  if [ ! -d "${_BASE_PATH}tools" ]; then
-    mkdir -p "${_BASE_PATH}tools"
+  if [ ! -d "${_DIR}/../../tools" ]; then
+    mkdir -p "${_DIR}/../../tools"
   fi
   for i in "${_PROGRAMS[@]:-}"
   do
     arr=($(echo "$i" | tr ':' "\n"))
     repo=${arr[0]}
     program=${arr[1]}
-    if [ ! -d "${_BASE_PATH}tools/${program}" ]
+    if [ ! -d "${_DIR}/../../tools/${program}" ]
     then
-    	git clone "https://github.com/${repo:-}" "${_BASE_PATH}tools/${program:-}"
+    	git clone "https://github.com/${repo:-}" "${_DIR}/../../tools/${program:-}"
     else
       printf "Program already installed, you should run update ?: %s\n" "${program}"
     fi
@@ -96,7 +104,7 @@ _install() {
     arr=($(echo "$i" | tr ':' "\n"))
     file=${arr[0]}
     destination=${arr[1]}
-    cp "${_BASE_PATH}config/${file}" "${_BASE_PATH}tools/${destination:-}/"
+    cp "${_DIR}/../../config/${file}" "${_DIR}/../../tools/${destination:-}/"
   done
   printf "Install finished!\n"
 }
@@ -108,7 +116,7 @@ _update() {
     dir=${arr[1]}
     program=${arr[1]}
     printf "Update %s...\n" "${program}"
-    git -C "${_BASE_PATH}tools/${dir}" pull origin
+    git -C "${_DIR}/../../tools/${dir}" pull origin
   done
   printf "Update finished!\n"
 }
@@ -118,7 +126,7 @@ _delete() {
   do
     arr=($(echo "$i" | tr ':' "\n"))
     dir=${arr[1]}
-    echo "rm -rf ${_BASE_PATH}tools/${dir}"
+    echo "rm -rf ${_DIR}/../../tools/${dir}"
   done
   printf "Tools deleted!\n"
 }
