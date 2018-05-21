@@ -22,7 +22,6 @@
 runcmd:
   # Add Docker recommended packages and add user to Docker group, should not be
   # edited. this is required for Docker.
-  - apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
   - usermod -aG docker ubuntu
   - wget -q -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE}/docker-compose-Linux-x86_64"
   - chown "ubuntu:ubuntu" /usr/local/bin/docker-compose
@@ -64,6 +63,7 @@ packages:
   - software-properties-common
   - python
   - apt-transport-https
+  - curl
   - ca-certificates
   - git-core
   - docker-ce
@@ -85,10 +85,6 @@ packages:
   - ruby-bootstrap-sass
 package_update: true
 package_upgrade: true
-power_state:
- mode: reboot
- timeout: 10
- condition: True
 # Set-up Docker for Ubuntu, see doc at:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu
 apt_sources:
