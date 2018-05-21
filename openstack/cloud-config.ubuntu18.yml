@@ -32,7 +32,12 @@ runcmd:
   - wget -q -O /home/ubuntu/setup_DCD_ubuntu.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_ubuntu.sh"
   - chmod +x /home/ubuntu/setup_DCD_ubuntu.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_ubuntu.sh
+  # Default is the whole stack, for more default stacks see:
+  # https://github.com/Mogtofu33/docker-compose-drupal/tree/master/samples
+  # This script accept branch as first argument and samples file name as second.
   - su -c "/home/ubuntu/setup_DCD_ubuntu.sh" ubuntu
+  # Replace by this for a simple Apache / Php / Postgres
+  # - su -c "/home/ubuntu/setup_DCD_ubuntu.sh master apache_postgres9_php" ubuntu
   ##############################################################################
   # This part is an example to install Drupal 8, it can be replaced by an other
   # specific script to clone an existing Drupal 8 project.
