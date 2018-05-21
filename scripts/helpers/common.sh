@@ -116,8 +116,6 @@ tty=
 tty -s && tty=--tty
 
 _DRUPAL_ROOT="/drupal"
-# _BASE_SOURCE=$(pwd)
-# _BASE_SOURCE=${_BASE_SOURCE%/scripts}
 
 # _DRUPAL_ROOT=$(echo "${_BASE_SOURCE}${HOST_WEB_ROOT}${_DRUPAL_ROOT}" | sed -e 's/\.//g')
 _DOCKER=$(which docker)
