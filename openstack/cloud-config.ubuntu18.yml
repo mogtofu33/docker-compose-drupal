@@ -1,8 +1,8 @@
 #cloud-config
-#
+
 ################################################################################
 # This config is used to set-up Drupal dev environment with OpenStack based on
-# an Ubuntu 16.04/18.04 image.
+# an Ubuntu 18 image.
 # It's meant to be a base for Docker Compose Drupal stack to set up a full DEV
 # environment.
 # THIS SETUP IS ONLY FOR DEV, MUST NOT BE USED ON PRODUCTION.
@@ -12,9 +12,10 @@
 #   Composer with minimal Php 7.
 #   Run a generic script to install Docker-compose, Composer, Code sniffer.
 #   Run a generic script to install this Docker-compose stack.
+#   Run a generic script to install Drupal 8 with Composer and Bootstrap Sass.
 #
 ################################################################################
-#
+
 # Adjust these commands to your needs and replace or add any other script.
 # Note that these commands are executed by the root user, you can use su to pass
 # it to ubuntu user.
@@ -26,14 +27,33 @@ runcmd:
   - wget -q -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.21.2/docker-compose-Linux-x86_64"
   - chown "ubuntu:ubuntu" /usr/local/bin/docker-compose
   - chmod +x /usr/local/bin/docker-compose
-  # External script to setup properly Docker-compose, and Docker Drupal Compose
+  # External script to setup properly Docker-compose, and Drupal Docker Compose
   # dev stack (this project) with user ubuntu.
   - wget -q -O /home/ubuntu/setup_DCD_ubuntu.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_ubuntu.sh"
   - chmod +x /home/ubuntu/setup_DCD_ubuntu.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_ubuntu.sh
   - su -c "/home/ubuntu/setup_DCD_ubuntu.sh" ubuntu
+  ##############################################################################
+  # This part is an example to install Drupal 8, it can be replaced by an other
+  # specific script to clone an existing Drupal 8 project.
+  # If you clone from a private repo you must add a deploy key in this config.
+  #
+  # Grab setup scripts for base Drupal 8 and run it as user ubuntu.
+  - wget -q -O /home/ubuntu/setup_DCD_D8_ubuntu.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_D8_ubuntu.sh"
+  - chmod +x /home/ubuntu/setup_DCD_D8_ubuntu.sh
+  - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_D8_ubuntu.sh
+  - su -c "/home/ubuntu/setup_DCD_D8_ubuntu.sh" ubuntu
+  ##############################################################################
+  # This part is an example to install Bootstrap Sass subtheme on Drupal 8 from
+  # previous script.
+  #
+  # Grab setup scripts for Bootstrap subtheme and run it as user ubuntu.
+  - wget -q -O /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_D8_Bootstrap_sass.sh"
+  - chmod +x /home/ubuntu/ssetup_DCD_D8_Bootstrap_sass.sh
+  - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh
+  - su -c "/home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh" ubuntu
 ################################################################################
-# Basic, cloud config for Ubuntu 16.04/18.04 image with Docker.
+# Basic, cloud config for Ubuntu image with Docker.
 # Setup Docker, minimal Php 7 for Composer and Compass with bootstrap.
 packages:
   - software-properties-common
@@ -42,18 +62,18 @@ packages:
   - ca-certificates
   - git-core
   - docker-ce
-  - php7.0-bcmath
-  - php7.0-curl
-  - php7.0-zip
-  - php7.0-mbstring
-  - php7.0-json
-  - php7.0-opcache
-  - php7.0-readline
-  - php7.0-cli
   - php-cli
   - php-cli-prompt
-  - php7.0-gd
-  - php7.0-xml
+  - php7.2-bcmath
+  - php7.2-curl
+  - php7.2-zip
+  - php7.2-mbstring
+  - php7.2-json
+  - php7.2-opcache
+  - php7.2-readline
+  - php7.2-cli
+  - php7.2-gd
+  - php7.2-xml
   - ruby-full
   - ruby-compass
   - ruby-sass
@@ -64,7 +84,7 @@ power_state:
  mode: reboot
  timeout: 10
  condition: True
-# Set-up Docker for Ubuntu 16.04/18.04, see doc at:
+# Set-up Docker for Ubuntu, see doc at:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu
 apt_sources:
  - source: deb https://download.docker.com/linux/ubuntu xenial stable

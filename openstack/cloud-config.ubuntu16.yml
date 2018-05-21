@@ -2,7 +2,7 @@
 
 ################################################################################
 # This config is used to set-up Drupal dev environment with OpenStack based on
-# an Ubuntu 16.04/18.04 image.
+# an Ubuntu 16 image.
 # It's meant to be a base for Docker Compose Drupal stack to set up a full DEV
 # environment.
 # THIS SETUP IS ONLY FOR DEV, MUST NOT BE USED ON PRODUCTION.
@@ -53,7 +53,7 @@ runcmd:
   - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh
   - su -c "/home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh" ubuntu
 ################################################################################
-# Basic, cloud config for Ubuntu 16.04/18.04 image with Docker.
+# Basic, cloud config for Ubuntu image with Docker.
 # Setup Docker, minimal Php 7 for Composer and Compass with bootstrap.
 packages:
   - software-properties-common
@@ -62,6 +62,8 @@ packages:
   - ca-certificates
   - git-core
   - docker-ce
+  - php-cli
+  - php-cli-prompt
   - php7.0-bcmath
   - php7.0-curl
   - php7.0-zip
@@ -70,8 +72,6 @@ packages:
   - php7.0-opcache
   - php7.0-readline
   - php7.0-cli
-  - php-cli
-  - php-cli-prompt
   - php7.0-gd
   - php7.0-xml
   - ruby-full
@@ -84,7 +84,7 @@ power_state:
  mode: reboot
  timeout: 10
  condition: True
-# Set-up Docker for Ubuntu 16.04/18.04, see doc at:
+# Set-up Docker for Ubuntu, see doc at:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu
 apt_sources:
  - source: deb https://download.docker.com/linux/ubuntu xenial stable
