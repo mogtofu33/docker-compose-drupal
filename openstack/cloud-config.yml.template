@@ -88,7 +88,7 @@ package_upgrade: true
 # Set-up Docker for Ubuntu, see doc at:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu
 apt_sources:
- - source: deb https://download.docker.com/linux/ubuntu xenial stable
+ - source: deb https://download.docker.com/linux/ubuntu ${UBUNTU_NAME} stable
    filename: docker.list
    key: |
       -----BEGIN PGP PUBLIC KEY BLOCK-----

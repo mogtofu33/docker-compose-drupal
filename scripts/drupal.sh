@@ -11,7 +11,8 @@ _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 source $_DIR/helpers/common.sh
 
 $_DOCKER exec \
-  -it \
+  $tty \
+  --interactive \
   --user "${PROJECT_CONTAINER_USER}" \
   "${PROJECT_CONTAINER_NAME}" \
   "${DRUPAL_BIN}" "${PROJECT_CONTAINER_ROOT}" "$@"

@@ -70,9 +70,9 @@ _get_drupal() {
 }
 
 _install_drupal() {
-  #docker exec -t $PROJECT_CONTAINER_NAME chown -R apache: /www
-  $_DOCKER exec -t --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y site:install "${DRUSH_OPTIONS}" >> "${DRUPAL_CONTAINER_ROOT}/drupal-install.log"
-  $_DOCKER exec -t --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y pm:enable admin_toolbar >> /dev/null
+  #docker exec $tty $PROJECT_CONTAINER_NAME chown -R apache: /www
+  $_DOCKER exec $tty --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y site:install "${DRUSH_OPTIONS}" >> "${DRUPAL_CONTAINER_ROOT}/drupal-install.log"
+  $_DOCKER exec $tty --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y pm:enable admin_toolbar >> /dev/null
 }
 
 ###############################################################################

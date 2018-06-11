@@ -64,14 +64,14 @@ HEREDOC
 ###############################################################################
 
 _dump() {
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "$PGSQL_USER_ID" "${PROJECT_CONTAINER_DUMP}"
+  docker exec $tty "${PROJECT_CONTAINER_PGSQL}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
+  docker exec $tty "${PROJECT_CONTAINER_PGSQL}" chown -R "$PGSQL_USER_ID" "${PROJECT_CONTAINER_DUMP}"
 
   # If we have an existing dump.
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" rm -f "${PROJECT_CONTAINER_DUMP}"/dump_${_NOW}.pg_dump
+  docker exec $tty "${PROJECT_CONTAINER_PGSQL}" rm -f "${PROJECT_CONTAINER_DUMP}"/dump_${_NOW}.pg_dump
 
   docker exec \
-    -t \
+    $tty \
     --user "${PGSQL_USER}" \
     "${PROJECT_CONTAINER_PGSQL}" \
       pg_dump -d "${POSTGRES_DB}" -U "${PGSQL_USER}" -hlocalhost -Fc -c -b -v -f ${PROJECT_CONTAINER_DUMP}/dump_${_NOW}.pg_dump \
@@ -83,26 +83,26 @@ _dump() {
 
 _restore() {
 
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
-  docker exec -t "${PROJECT_CONTAINER_PGSQL}" chown -R "${PGSQL_USER_ID}" "${PROJECT_CONTAINER_DUMP}"
+  docker exec $tty "${PROJECT_CONTAINER_PGSQL}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
+  docker exec $tty "${PROJECT_CONTAINER_PGSQL}" chown -R "${PGSQL_USER_ID}" "${PROJECT_CONTAINER_DUMP}"
 
   docker exec \
-    -t \
+    $tty \
     --user "${PGSQL_USER}" \
     "${PROJECT_CONTAINER_PGSQL}" \
       dropdb --if-exists "${POSTGRES_DB}"
   docker exec \
-    -t \
+    $tty \
     --user "${PGSQL_USER}" \
     "${PROJECT_CONTAINER_PGSQL}" \
       createdb -e --owner="${PGSQL_USER}" "${POSTGRES_DB}"
   docker exec \
-    -t \
+    $tty \
     --user "${PGSQL_USER}" \
     "${PROJECT_CONTAINER_PGSQL}" \
       psql -e -d ${POSTGRES_DB} -c "GRANT ALL ON database ${POSTGRES_DB} TO ${PGSQL_USER}"
   docker exec \
-    -t \
+    $tty \
     --user "${PGSQL_USER}" \
     "${PROJECT_CONTAINER_PGSQL}" \
       pg_restore -h localhost -p 5432 --no-owner --role="${PGSQL_USER}" -U "${PGSQL_USER}" -d "${POSTGRES_DB}" -v ${PROJECT_CONTAINER_DUMP}/dump.pg_dump

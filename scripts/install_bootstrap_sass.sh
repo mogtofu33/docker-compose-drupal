@@ -132,9 +132,9 @@ _install_bootstrap_subtheme() {
 _enable_bootstrap() {
   # Run drush commands to enable this theme with drush bin from previous script (setup_DCD_D8_ubuntu.sh).
   printf "[setup::info] Enable %s subtheme.\\n" "${_THEME_TITLE}"
-  docker exec -t --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y theme:enable bootstrap
-  docker exec -t --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y theme:enable "${_THEME_NAME}"
-  docker exec -t --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y config:set system.theme default "${_THEME_NAME}"
+  docker exec $tty --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y theme:enable bootstrap
+  docker exec $tty --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y theme:enable "${_THEME_NAME}"
+  docker exec $tty --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y config:set system.theme default "${_THEME_NAME}"
 
   printf "[setup::info] Bootstrap Sass subtheme enabled!\\n"
 }
