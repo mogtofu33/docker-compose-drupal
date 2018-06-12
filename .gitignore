@@ -2,6 +2,7 @@
 docker-compose.yml
 .env
 !scripts/.env
+!openstack/.env
 # ignore static files
 data/*
 build/dashboard/app/vendor
