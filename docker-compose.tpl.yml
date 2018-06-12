@@ -103,7 +103,9 @@ services:
     expose:
       - "3306"
     volumes:
-      - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
+      # Any .sql file will be imported in the MYSQL_DATABASE defined on your
+      # .env (default: drupal).
+      - ${HOST_DATABASE_DUMP:-./data/dump}:/docker-entrypoint-initdb.d
       ## Comment these two lines on Windows system, permissions issue.
       - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
       - ./config/mysql:/etc/mysql

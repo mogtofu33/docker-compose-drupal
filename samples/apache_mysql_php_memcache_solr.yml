@@ -76,6 +76,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # Php FPM socket
       - sock:/sock
+      # Share db dump folder.
+      - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
       ## If PgSQL, ease drush pgsql access.
       # - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
       ## If you have composer set locally, share cache to speed up.
@@ -99,7 +101,9 @@ services:
     expose:
       - "3306"
     volumes:
-      - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
+      # Any .sql file will be imported in the MYSQL_DATABASE defined on your
+      # .env (default: drupal).
+      - ${HOST_DATABASE_DUMP:-./data/dump}:/docker-entrypoint-initdb.d
       ## Comment these two lines on Windows system, permissions issue.
       - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
       - ./config/mysql:/etc/mysql

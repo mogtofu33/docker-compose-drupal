@@ -65,12 +65,12 @@ HEREDOC
 
 _dump() {
 
-  $_DOCKER exec $tty "${PROJECT_CONTAINER_PHP}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
+  $_DOCKER exec $tty "${PROJECT_CONTAINER_NAME}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
 
+  # We use drush as it manage database authentication.
   $_DOCKER exec \
     $tty \
     --interactive \
-    --user "${PROJECT_CONTAINER_USER}" \
     "${PROJECT_CONTAINER_NAME}" \
     "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" sql-dump \
       --skip-tables-list=migrate_* \
@@ -78,22 +78,29 @@ _dump() {
       --result-file=${PROJECT_CONTAINER_DUMP}/dump_${_NOW}.sql
 }
 
-_restore() {
-
+_drop() {
   $_DOCKER exec \
     $tty \
     --interactive \
     --user "${PROJECT_CONTAINER_USER}" \
     "${PROJECT_CONTAINER_NAME}" \
     "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y sql-drop
+}
+
+_restore() {
+
+  # $_DOCKER exec $tty "${PROJECT_CONTAINER_NAME}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
+
+  # Drush failed because of path.
+  # $_DOCKER exec \
+  #   --user "${PROJECT_CONTAINER_USER}" \
+  #   "${PROJECT_CONTAINER_NAME}" \
+  #     sh -c 'exec /var/www/localhost/drupal/vendor/bin/drush --root=/var/www/localhost/drupal/web sql-cli < /docker-entrypoint-initdb.d/dump.sql'
 
   $_DOCKER exec \
-    $tty \
-    --interactive \
-    --user "${PROJECT_CONTAINER_USER}" \
-    "${PROJECT_CONTAINER_NAME}" \
-    "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" st
-    #"${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" sql-cli < "${PROJECT_CONTAINER_DUMP}"/dump.sql
+    --user "${MYSQL_CONTAINER_USER}" \
+    "${PROJECT_CONTAINER_MYSQL}" \
+      sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" $MYSQL_DATABASE < /docker-entrypoint-initdb.d/dump.sql'
 }
 
 ###############################################################################
@@ -117,7 +124,11 @@ _main() {
     _dump
   elif [[ "${1:-}" =~ ^restore$ ]]
   then
+    _drop
     _restore
+  elif [[ "${1:-}" =~ ^drop$ ]]
+  then
+    _drop
   else
     _print_help
   fi
