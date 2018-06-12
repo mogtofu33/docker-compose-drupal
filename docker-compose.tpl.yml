@@ -74,6 +74,8 @@ services:
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
       - /var/run/docker.sock:/var/run/docker.sock
+      # Share db dump folder.
+      - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
       # Php FPM socket
       - sock:/sock
       ## If PgSQL, ease drush pgsql access.
