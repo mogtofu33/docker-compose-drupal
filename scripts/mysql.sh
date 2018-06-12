@@ -92,7 +92,8 @@ _restore() {
     --interactive \
     --user "${PROJECT_CONTAINER_USER}" \
     "${PROJECT_CONTAINER_NAME}" \
-    "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}"  sql-cli < "${PROJECT_CONTAINER_DUMP}"/dump.sql
+    "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" st
+    #"${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" sql-cli < "${PROJECT_CONTAINER_DUMP}"/dump.sql
 }
 
 ###############################################################################
