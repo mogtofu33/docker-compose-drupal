@@ -27,17 +27,14 @@ sudo usermod -a -G docker ubuntu
 
 # Get a Docker compose stack (Apache/Php/Mysql/Mailhog/Solr).
 if [ ! -d "$project_path" ]; then
-  echo -e "\n>>>>\n[setup::info] Clone Docker stack and tools...\n<<<<\n"
+  echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
   git clone -b $docker_stack_branch $docker_stack_repo $project_path
-  # set up tools from stack
-  cd $project_path;
-  scripts/get-tools.sh install
 else
   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
 
 # Set-up and launch this Docker compose stack.
-echo -e "\n>>>>\n[setup::info] Prepare Docker stack and set-up tools...\n<<<<\n"
+echo -e "\n>>>>\n[setup::info] Prepare Docker stack and start...\n<<<<\n"
 if [ ! -f "$project_path/.env" ]; then
   cp $project_path/default.env $project_path/.env
 fi
@@ -51,9 +48,6 @@ if [ ! -f "$project_path/docker-compose.yml" ]; then
 fi
 cd $project_path
 docker-compose build && docker-compose up -d
-
-# Try to fix dashboard.
-sudo chown ubuntu:ubuntu /var/run/docker.sock
 
 # Set-up composer.
 if [ ! -f "/usr/bin/composer" ]; then
@@ -126,6 +120,13 @@ ln -s $project_root $HOME/www
 sudo ln -s $project_root /www
 sudo chown ubuntu: /www
 ln -s $project_path $HOME/root
+
+# Set up tools from stack.
+if [ -d "$project_path" ]; then
+  echo -e "\n>>>>\n[setup::info] Setup Docker stack tools...\n<<<<\n"
+  cd $project_path;
+  scripts/get-tools.sh install
+fi
 
 # Fix sock for privilleged, wait a bit for stack to be up....
 sleep 30s
