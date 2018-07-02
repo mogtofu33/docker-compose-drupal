@@ -16,10 +16,17 @@
 #
 ################################################################################
 
-# Adjust these commands to your needs and replace or add any other script.
+# You can adjust those commands to your needs and replace or add any other
+# script.
 # Note that these commands are executed by the root user, you can use su to pass
 # it to ubuntu user.
 runcmd:
+  ##############################################################################
+  # Main scripts commands to run, should not be edited, see next example part.
+  ##############################################################################
+  #
+  # Adjust timezone.
+  - cp /usr/share/zoneinfo/Pacific/Auckland /etc/localtime
   # Add Docker recommended packages and add user to Docker group, should not be
   # edited. this is required for Docker.
   - usermod -aG docker ubuntu
@@ -31,8 +38,13 @@ runcmd:
   - wget -q -O /home/ubuntu/setup_DCD_ubuntu.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_ubuntu.sh"
   - chmod +x /home/ubuntu/setup_DCD_ubuntu.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_ubuntu.sh
+  #
+  ##############################################################################
+  # Edit this part to fit your needs.
+  ##############################################################################
+  #
   # Default is the whole stack, for more default stacks see:
-  # https://github.com/Mogtofu33/docker-compose-drupal/tree/master/samples
+  #   https://github.com/Mogtofu33/docker-compose-drupal/tree/master/samples
   # This script accept branch as first argument and samples file name as second.
   - su -c "/home/ubuntu/setup_DCD_ubuntu.sh" ubuntu
   # Replace by this for an Apache / Php / MariaDB / Memcache stack.
@@ -40,7 +52,8 @@ runcmd:
   ##############################################################################
   # This part is an example to install Drupal 8, it can be replaced by an other
   # specific script to clone an existing Drupal 8 project.
-  # If you clone from a private repo you must add a deploy key in this config.
+  # If you clone from a private repo you should add a deploy/token key or use
+  # any ssh-agent strategy.
   #
   # Grab setup scripts for base Drupal 8 and run it as user ubuntu.
   - wget -q -O /home/ubuntu/setup_DCD_D8_ubuntu.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_D8_ubuntu.sh"
@@ -56,9 +69,11 @@ runcmd:
   - chmod +x /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh
   - su -c "/home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh" ubuntu
+
 ################################################################################
 # Basic, cloud config for Ubuntu image with Docker.
 # Setup Docker, minimal Php 7 for Composer and Compass with bootstrap.
+################################################################################
 packages:
   - software-properties-common
   - python
@@ -67,30 +82,34 @@ packages:
   - ca-certificates
   - git-core
   - docker-ce
-  - php-cli
-  - php-cli-prompt
+  - php7.2-cli
+  - php7.2-common
   - php7.2-bcmath
   - php7.2-curl
-  - php7.2-zip
-  - php7.2-mbstring
+  - php7.2-gd
   - php7.2-json
+  - php7.2-mbstring
   - php7.2-opcache
   - php7.2-readline
-  - php7.2-cli
-  - php7.2-gd
   - php7.2-xml
+  - php7.2-zip
   - ruby-full
   - ruby-compass
   - ruby-sass
   - ruby-bootstrap-sass
 package_update: true
 package_upgrade: true
-# Set-up Docker for Ubuntu, see doc at:
-# https://docs.docker.com/install/linux/docker-ce/ubuntu
+
 apt_sources:
- - source: deb https://download.docker.com/linux/ubuntu xenial stable
-   filename: docker.list
-   key: |
+  # Php 7.1/7.2 for Ubuntu 16, updated php 7.2 for Ubuntu 18.
+  - source: "deb http://ppa.launchpad.net/ondrej/php/ubuntu bionic main"
+    filename: ondrej-php.list
+    keyid: 14AA40EC0831756756D7F66C4F4EA0AAE5267A6C
+  # Set-up Docker for Ubuntu, see doc at:
+  #   https://docs.docker.com/install/linux/docker-ce/ubuntu
+  - source: deb https://download.docker.com/linux/ubuntu bionic stable
+    filename: docker.list
+    key: |
       -----BEGIN PGP PUBLIC KEY BLOCK-----
 
       mQINBFit2ioBEADhWpZ8/wvZ6hUTiXOwQHXMAlaFHcPH9hAtr4F1y2+OYdbtMuth
