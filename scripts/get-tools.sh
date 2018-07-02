@@ -126,7 +126,7 @@ _delete() {
   do
     arr=($(echo "$i" | tr ':' "\n"))
     dir=${arr[1]}
-    echo "rm -rf ${_DIR}/../../tools/${dir}"
+    rm -rf ${_DIR}/../../tools/${dir}
   done
   printf "Tools deleted!\n"
 }
