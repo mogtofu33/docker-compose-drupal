@@ -7,46 +7,49 @@
 # This script is used with a cloud config setup from this folder.
 
 # Variables.
-docker_stack_repo="https://github.com/Mogtofu33/docker-compose-drupal.git"
-docker_stack_branch=${1-"master"}
-docker_stack_base=${2-"all"}
-project_path="$HOME/docker-compose-drupal"
-project_container_php="dcd-php"
-project_root="$project_path/data/www"
-project_container_root="/var/www/localhost/drupal"
-project_container_web_root="$project_container_root/web"
-drupal_bin="$project_container_root/vendor/bin/drupal"
-drush_bin="$project_container_root/vendor/bin/drush"
-drush_root="--root=$project_container_web_root"
+_USER="ubuntu"
+_GROUP="ubuntu"
+
+# Project variables.
+_REPO="https://github.com/Mogtofu33/docker-compose-drupal.git"
+_BRANCH=${1-"master"}
+_BASE=${2-"default"}
+_PROJECT_PATH="$HOME/docker-compose-drupal"
+_PHP="dcd-php"
+_PROJECT_ROOT="$_PROJECT_PATH/data/www"
+_ROOT="/var/www/localhost/drupal"
+_WEB="$_ROOT/web"
+_DRUPAL_CONSOLE="$_ROOT/vendor/bin/drupal"
+_DRUSH="$_ROOT/vendor/bin/drush"
 
 # Fix permissions.
-sudo chown -R ubuntu:ubuntu $HOME
+sudo chown -R $_USER:$_GROUP $HOME
 
-# Set Docker group to ubuntu user.
-sudo usermod -a -G docker ubuntu
+# Set Docker group to our user.
+sudo usermod -a -G docker $_USER
 
-# Get a Docker compose stack (Apache/Php/Mysql/Mailhog/Solr).
-if [ ! -d "$project_path" ]; then
+# Get a Docker compose stack.
+if [ ! -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
-  git clone -b $docker_stack_branch $docker_stack_repo $project_path
+  git clone -b $_BRANCH $_REPO $_PROJECT_PATH
 else
   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
 
 # Set-up and launch this Docker compose stack.
 echo -e "\n>>>>\n[setup::info] Prepare Docker stack and start...\n<<<<\n"
-if [ ! -f "$project_path/.env" ]; then
-  cp $project_path/default.env $project_path/.env
+if [ ! -f "$_PROJECT_PATH/.env" ]; then
+  cp $_PROJECT_PATH/default.env $_PROJECT_PATH/.env
 fi
-if [ ! -f "$project_path/docker-compose.yml" ]; then
-  if [ -f "$project_path/samples/$docker_stack_base.yml" ]; then
-    cp $project_path/samples/$docker_stack_base.yml $project_path/docker-compose.yml
+if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
+  if [ -f "$_PROJECT_PATH/samples/$_BASE.yml" ]; then
+    cp $_PROJECT_PATH/samples/$_BASE.yml $_PROJECT_PATH/docker-compose.yml
   else
     # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
-    cp $project_path/docker-compose.tpl.yml $project_path/docker-compose.yml
+    cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
   fi
 fi
-cd $project_path
+cd $_PROJECT_PATH
 docker-compose build && docker-compose up -d
 
 # Set-up composer.
@@ -70,9 +73,9 @@ if [ -f "$HOME/.config/composer/vendor/bin/phpcs" ]; then
 fi
 
 # Check if containers are up...
-RUNNING=$(docker inspect --format="{{ .State.Running }}" $project_container_php 2> /dev/null)
+RUNNING=$(docker inspect --format="{{ .State.Running }}" $_PHP 2> /dev/null)
 if [ $? -eq 1 ]; then
-  echo -e "\n>>>>\n[setup::ERROR] Container $project_container_php does not exist...\n<<<<\n"
+  echo -e "\n>>>>\n[setup::ERROR] Container $_PHP does not exist...\n<<<<\n"
   # Wait a bit for stack to be up....
   sleep 30s
 fi
@@ -81,15 +84,15 @@ fi
 cat <<EOT >> $HOME/.profile
 PATH=\$PATH:$HOME/.config/composer/vendor/bin
 # Docker stack variables.
-PROJECT_PATH="$project_path"
-PROJECT_ROOT="$project_root"
-PROJECT_CONTAINER_NAME="$project_container_php"
-PROJECT_CONTAINER_ROOT="$project_container_root"
-PROJECT_CONTAINER_WEB_ROOT="$project_container_web_root"
-DRUPAL_BIN="$drupal_bin"
-DRUSH_BIN="$drush_bin"
-DRUSH_ROOT="--root=$project_container_web_root"
-DRUSH_CMD="$drush_bin --root=$project_container_web_root"
+PROJECT_PATH="$_PROJECT_PATH"
+PROJECT_ROOT="$_PROJECT_ROOT"
+PROJECT_CONTAINER_NAME="$_PHP"
+PROJECT_CONTAINER_ROOT="$_ROOT"
+PROJECT_CONTAINER_WEB_ROOT="$_WEB"
+DRUPAL_BIN="$_DRUPAL_CONSOLE"
+DRUSH_BIN="$_DRUSH"
+DRUSH_ROOT="--root=$_WEB"
+DRUSH_CMD="$_DRUSH --root=$_WEB"
 EOT
 
 # Add docker and phpcs aliases.
@@ -108,29 +111,29 @@ EOT
 
 # Add cmd in container bin for use with ssh.
 sudo touch /usr/local/bin/dcmd
-sudo chown ubuntu:ubuntu /usr/local/bin/dcmd
+sudo chown $_USER:$_GROUP /usr/local/bin/dcmd
 sudo chmod +x /usr/local/bin/dcmd
 cat <<EOT > /usr/local/bin/dcmd
 #!/bin/bash
-docker exec -it --user apache $project_container_php \$@
+docker exec -it --user apache $_PHP \$@
 EOT
 
 # Convenient links.
-ln -s $project_root $HOME/www
-sudo ln -s $project_root /www
-sudo chown ubuntu: /www
-ln -s $project_path $HOME/root
+ln -s $_PROJECT_ROOT $HOME/www
+sudo ln -s $_PROJECT_ROOT /www
+sudo chown $_USER:$_GROUP /www
+ln -s $_PROJECT_PATH $HOME/root
 
 # Set up tools from stack.
-if [ -d "$project_path" ]; then
+if [ -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Setup Docker stack tools...\n<<<<\n"
-  cd $project_path;
+  cd $_PROJECT_PATH;
   scripts/get-tools.sh install
 fi
 
 # Fix sock for privilleged, wait a bit for stack to be up....
 sleep 30s
-sudo chown 1000:1000 /var/run/docker.sock
+sudo chown $_USER:$_GROUP /var/run/docker.sock
 
 echo -e "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
 [setup::info] Docker compose stack install finished!\n

@@ -97,6 +97,7 @@ packages:
   - ruby-compass
   - ruby-sass
   - ruby-bootstrap-sass
+  - ncurses-term
 package_update: true
 package_upgrade: true
 

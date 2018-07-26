@@ -10,10 +10,6 @@
 
 # Variables, most variables are from previous script.
 source $HOME/.profile
-# PROJECT_ROOT="$project_root"
-# PROJECT_CONTAINER_NAME="$project_container_php"
-# DRUSH_BIN="$drush_bin --root=$project_container_web_root"
-# DRUSH_ROOT="--root=$project_container_web_root"
 
 # Base variables for this script, can be edited.
 name="bootstrap_sass"
