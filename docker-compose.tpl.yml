@@ -71,9 +71,6 @@ services:
       - ./config/php/${PHP_VERSION:-7.2}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf
       - ./config/php/${PHP_VERSION:-7.2}/conf.d/:/etc/php${PHP_MAJOR_VERSION:-7}/conf.d/
       - ./config/php/${PHP_VERSION:-7.2}/php-fpm.d/:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.d/
-      # Drush alias and drushrc files (or any other config)
-      - ./config/drush/aliases.drushrc.php:/etc/drush/aliases.drushrc.php
-      - ./config/drush/drushrc.php:/etc/drush/drushrc.php
       # Drush 9 alias and drushrc files (or any other config)
       - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml
       - ./config/drush/drush.yml:/etc/drush/drush.yml
