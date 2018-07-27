@@ -130,6 +130,26 @@ _DOCKER=$(which docker)
 # Common Program Functions
 ###############################################################################
 
+# Helper to run docker run command.
+_docker_run() {
+  $_DOCKER run \
+    $tty \
+    --interactive \
+    --rm \
+    --user "${LOCAL_UID}":"${LOCAL_GID}" \
+    --volume /etc/passwd:/etc/passwd:ro \
+    --volume /etc/group:/etc/group:ro \
+    "$@"
+}
+
+# Helper to run docker exec command.
+_docker_exec() {
+  $_DOCKER exec \
+    $tty \
+    --interactive \
+    "$@"
+}
+
 _check_dependencies_docker() {
 
   if ! [ -x "$(command -v docker)" ]; then
@@ -165,9 +185,9 @@ _check_dependencies_compass() {
 _check_dependencies_docker_up() {
 
   # Check if containers are up...
-  RUNNING=$(docker inspect --format="{{ .State.Running }}" "${_PROJECT_CONTAINER_NAME}" 2> /dev/null)
+  RUNNING=$(docker inspect --format="{{ .State.Running }}" "${1}" 2> /dev/null)
   if [ $? -eq 1 ]; then
-    die "Container ${_PROJECT_CONTAINER_NAME} do not exist or is not running, run docker-compose up -d\n"
+    die "Container ${1} do not exist or is not running, run docker-compose up -d\n"
   fi
 
 }

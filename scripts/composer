@@ -6,12 +6,11 @@
 # |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
 #                               |_|
 #
-# Helper to run mysql dump/restore, part of Docker Compose Drupal project.
-# Based on Bash simple Boilerplate.
+# Helper to execute Composer as a standalone docker container.
 # https://github.com/Mogtofu33/docker-compose-drupal
 #
 # Usage:
-#   pgsql dump | restore
+#   ./composer about
 #
 # Depends on:
 #  docker
@@ -27,6 +26,10 @@ while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a sym
 done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
+if [ ! -f $_DIR/helpers/common.sh ]; then
+  echo -e "Missing helpers/common.sh file."
+  exit 1
+fi
 source $_DIR/helpers/common.sh
 
 ###############################################################################
@@ -48,59 +51,19 @@ _print_help() {
  |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
                                 |_|
 
-Helper to dump and restore MYSQL db with drush.
+Helper to execute Composer as a standalone docker container, see
+https://getcomposer.org/doc/03-cli.md for commands details.
+
+For require command it's recommended to use --ignore-platform and 
+--no-scripts options.
 
 Usage:
-  ${_ME} [dump | restore]
+  ${_ME} [status | require | remove | outdated | ... ]
   ${_ME} -h | --help
 
 Options:
   -h --help  Show this screen.
 HEREDOC
-}
-
-###############################################################################
-# Program Functions
-###############################################################################
-
-_dump() {
-
-  $_DOCKER exec $tty "${PROJECT_CONTAINER_NAME}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
-
-  # We use drush as it manage database authentication.
-  $_DOCKER exec \
-    $tty \
-    --interactive \
-    "${PROJECT_CONTAINER_NAME}" \
-    "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" sql-dump \
-      --skip-tables-list=migrate_* \
-      --structure-tables-list=cache*,history,node_counter,search_*,sessions,watchdog \
-      --result-file=${PROJECT_CONTAINER_DUMP}/dump_${_NOW}.sql
-}
-
-_drop() {
-  $_DOCKER exec \
-    $tty \
-    --interactive \
-    --user "${PROJECT_CONTAINER_USER}" \
-    "${PROJECT_CONTAINER_NAME}" \
-    "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y sql-drop
-}
-
-_restore() {
-
-  # $_DOCKER exec $tty "${PROJECT_CONTAINER_NAME}" mkdir -p "${PROJECT_CONTAINER_DUMP}"
-
-  # Drush failed because of path.
-  # $_DOCKER exec \
-  #   --user "${PROJECT_CONTAINER_USER}" \
-  #   "${PROJECT_CONTAINER_NAME}" \
-  #     sh -c 'exec /var/www/localhost/drupal/vendor/bin/drush --root=/var/www/localhost/drupal/web sql-cli < /docker-entrypoint-initdb.d/dump.sql'
-
-  $_DOCKER exec \
-    --user "${MYSQL_CONTAINER_USER}" \
-    "${PROJECT_CONTAINER_MYSQL}" \
-      sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" $MYSQL_DATABASE < /docker-entrypoint-initdb.d/dump.sql'
 }
 
 ###############################################################################
@@ -118,22 +81,17 @@ _main() {
 
   _check_dependencies_docker
 
-  # Run actions.
-  if [[ "${1:-}" =~ ^dump$ ]]
+  # Avoid complex option parsing when only one program option is expected.
+  if [[ "${1:-}" =~ ^-h|--help$  ]]
   then
-    _dump
-  elif [[ "${1:-}" =~ ^restore$ ]]
-  then
-    _drop
-    _restore
-  elif [[ "${1:-}" =~ ^drop$ ]]
-  then
-    _drop
-  else
     _print_help
+  else
+    _docker_run \
+      --volume "${_DRUPAL_ROOT}":/app \
+      composer --working-dir=/app "$@"
   fi
+
 }
 
 # Call `_main` after everything has been defined.
 _main "$@"
-

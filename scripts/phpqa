@@ -6,11 +6,11 @@
 # |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
 #                               |_|
 #
-# Helper to execute Composer as a standalone docker container.
+# Helper to execute PhpQA as a standalone docker container.
 # https://github.com/Mogtofu33/docker-compose-drupal
 #
 # Usage:
-#   composer.sh
+#   ./phpqa tools
 #
 # Depends on:
 #  docker
@@ -26,6 +26,10 @@ while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a sym
 done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
+if [ ! -f $_DIR/helpers/common.sh ]; then
+  echo -e "Missing helpers/common.sh file."
+  exit 1
+fi
 source $_DIR/helpers/common.sh
 
 ###############################################################################
@@ -53,7 +57,7 @@ For require command it's recommended to use --ignore-platform-
 and --no-scripts options.
 
 Usage:
-  ${_ME} [status | require | remove | outdated | ... ]
+  ${_ME} [tools |... ]
   ${_ME} -h | --help
 
 Options:
@@ -81,15 +85,8 @@ _main() {
   then
     _print_help
   else
-    $_DOCKER run \
-      $tty \
-      --interactive \
-      --rm \
-      --user "${LOCAL_UID}":"${LOCAL_GID}" \
-      --volume /etc/passwd:/etc/passwd:ro \
-      --volume /etc/group:/etc/group:ro \
-      --volume "${_DRUPAL_ROOT}":/app \
-        composer --working-dir=/app "$@"
+    _docker_run \
+      zdenekdrahos/phpqa:v1.19.0 phpqa "$@"
   fi
 
 }

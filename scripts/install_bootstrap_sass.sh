@@ -29,6 +29,10 @@ while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a sym
 done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
+if [ ! -f $_DIR/helpers/common.sh ]; then
+  echo -e "Missing helpers/common.sh file."
+  exit 1
+fi
 source $_DIR/helpers/common.sh
 
 ###############################################################################
@@ -55,7 +59,7 @@ For more details see:
 https://drupal-bootstrap.org/api/bootstrap/starterkits%21sass%21README.md/group/sub_theming_sass/8
 
 Usage:
-  ${_ME} [install | enable ]
+  ${_ME} [install | enable]
   ${_ME} -h | --help
 
 Options:

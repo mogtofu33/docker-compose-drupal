@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+# ____   ____   ____                         _
+# |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
+# | | | | |     | | | | '__| | | | '_ \ / _  | |
+# | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
+# |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
+#                               |_|
+#
+# Helper to run mysql dump/restore, part of Docker Compose Drupal project.
+# Based on Bash simple Boilerplate.
+# https://github.com/Mogtofu33/docker-compose-drupal
+#
+# Usage:
+#   mysql dump | restore
+#
+# Depends on:
+#  docker
+#
+# Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
+# Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
+
+_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a symlink
+  _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
+  _SOURCE="$(readlink "$_SOURCE")"
+  [[ $_SOURCE != /* ]] && _SOURCE="$_DIR/$_SOURCE" # if $_SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+_DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
+
+if [ ! -f $_DIR/helpers/common.sh ]; then
+  echo -e "Missing helpers/common.sh file."
+  exit 1
+fi
+source $_DIR/helpers/common.sh
+
+###############################################################################
+# Help
+###############################################################################
+
+# _print_help()
+#
+# Usage:
+#   _print_help
+#
+# Print the program help information.
+_print_help() {
+  cat <<HEREDOC
+  ____   ____   ____                         _
+ |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
+ | | | | |     | | | | '__| | | | '_ \ / _  | |
+ | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
+ |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
+                                |_|
+
+Helper to dump, drop and restore MYSQL/MariaDB.
+
+Usage:
+  ${_ME} [dump | dump-no-drush | restore | drop | list]
+  ${_ME} -h | --help
+
+Options:
+  -h --help  Show this screen.
+
+'dump' and 'drop' is performed with Drush, dump ignore common cache, search,
+stats and sessions tables from Drupal.
+'dump' append the current timestamp.
+
+'dump-no-drush' use mysql client and do not ignore data in Drupal temporary
+tables like watchdog, cache*...
+
+dumps are located in the ./data/dump folder of Docker Compose Drupal.
+
+HEREDOC
+}
+
+_DUMP_FILE="dump.sql"
+
+###############################################################################
+# Program Functions
+###############################################################################
+
+_dump_drush() {
+  _docker_exec \
+    "${PROJECT_CONTAINER_NAME}" \
+    "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" sql-dump \
+      --structure-tables-list=cache*,history,node_counter,search_*,sessions,watchdog \
+      --result-file=${PROJECT_CONTAINER_DUMP}/dump_${_NOW}.sql
+      # --skip-tables-list=migrate_* \
+}
+
+_drop_drush() {
+  _docker_exec \
+    --user "${PROJECT_CONTAINER_USER}" \
+    "${PROJECT_CONTAINER_NAME}" \
+    "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y sql-drop
+}
+
+_dump() {
+  _DUMP_FILE="dump_${_NOW}.sql"
+  # Non interactive command.
+  $_DOCKER exec \
+    --user "${MYSQL_CONTAINER_USER}" \
+    "${PROJECT_CONTAINER_MYSQL}" \
+      sh -c 'exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > '"$PROJECT_CONTAINER_MYSQL_DUMP"'/'"$_DUMP_FILE"''
+
+  echo -e "Database dump saved to ${_DUMP_FILE}"
+}
+
+_restore() {
+  _select_dump
+  echo -e "Restoring $_DUMP_FILE..."
+  if [ ! -z "$_DUMP_FILE" ]; then
+    # Non interactive command.
+    $_DOCKER exec \
+    --user "${MYSQL_CONTAINER_USER}" \
+    "${PROJECT_CONTAINER_MYSQL}" \
+      sh -c 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < '"$PROJECT_CONTAINER_MYSQL_DUMP"'/'"$_DUMP_FILE"''
+  fi
+  echo -e "Done!"
+}
+
+_list_dump() {
+  echo -e "Available dump files:"
+  _docker_exec "${PROJECT_CONTAINER_MYSQL}" ls -lah "${PROJECT_CONTAINER_MYSQL_DUMP}"
+}
+
+_ensure_dir() {
+  # No interactive, ensure permissions.
+  $_DOCKER exec $tty "${PROJECT_CONTAINER_MYSQL}" chown -R ${MYSQL_CONTAINER_USER}: "${PROJECT_CONTAINER_MYSQL_DUMP}"
+}
+
+_select_dump() {
+
+  _DUMPS=$($_DOCKER exec --user "${MYSQL_CONTAINER_USER}" "${PROJECT_CONTAINER_MYSQL}"  ls "${PROJECT_CONTAINER_MYSQL_DUMP}")
+  _DUMPS=(`echo $_DUMPS | sed 's/ /\n/g'`)
+
+  echo -e "Select a dump file:"
+  select opt in "${_DUMPS[@]}" "Cancel"; do
+    case $opt in
+      *.sql)
+        _DUMP_FILE=$opt
+        break
+        ;;
+      "Cancel")
+        echo "You chose to cancel"
+        _DUMP_FILE=""
+        break
+        ;;
+      *)
+        echo "This is not a number"
+        ;;
+    esac
+  done
+}
+
+###############################################################################
+# Main
+###############################################################################
+
+# _main()
+#
+# Usage:
+#   _main [<options>] [<arguments>]
+#
+# Description:
+#   Entry point for the program, handling basic option parsing and dispatching.
+_main() {
+
+  _check_dependencies_docker
+
+  # Run actions.
+  if [[ "${1:-}" =~ ^list$ ]]; then
+    _list_dump
+  elif [[ "${1:-}" =~ ^dump-no-drush$ ]]; then
+    _ensure_dir
+    _dump
+  elif [[ "${1:-}" =~ ^dump$ ]]; then
+    _ensure_dir
+    _dump_drush
+  elif [[ "${1:-}" =~ ^restore$ ]]; then
+    # _drop_drush
+    _restore
+  elif [[ "${1:-}" =~ ^drop$ ]]; then
+    _drop_drush
+  else
+    _print_help
+  fi
+}
+
+# Call `_main` after everything has been defined.
+_main "$@"
