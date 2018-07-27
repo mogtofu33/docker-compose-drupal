@@ -35,7 +35,7 @@ volumes:
   sock:
 services:
   apache:
-    image: mogtofu33/apache
+    image: mogtofu33/apache:latest
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
@@ -151,7 +151,7 @@ services:
     ## Remove to avoid starting on system reboot.
     restart: always
   solr:
-    build: ./build/solr-${SOLR_VERSION:-6}
+    build: ./build/solr-${SOLR_VERSION:-7}
     ports:
       - "8983:8983"
     environment:
