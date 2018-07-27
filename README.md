@@ -26,8 +26,11 @@ See other great project for a Docker based development:
 * https://docksal.io/
 
 ### Include
+
 _Every service is optional as declared in the yml file._
-* Apache with Php 7/5 fpm and Xdebug
+
+* Apache
+* Php 7/5 fpm with Xdebug
 * MySQL/MariaDB
 * PostgreSQL
 * [Memcache](https://hub.docker.com/_/memcached)
@@ -38,6 +41,7 @@ _Every service is optional as declared in the yml file._
 * [Varnish](https://varnish-cache.org)
 
 ### Database management
+
 * [Adminer](https://www.adminer.org)
 
 ## Quick launch new Drupal 8 project
@@ -67,13 +71,14 @@ _Every service is optional as declared in the yml file._
     # folder. If not you need to adapt Apache vhost config from config/apache/vhost.conf
     mkdir -p data/www/drupal
     cp -r _YOUR_DRUPAL_ data/www/drupal/
+    # For MySQL, copy your database dump in ./data/dump/*.sql, it will be automatically
+    # imported on the first run.
 
     # Launch the containers (first time include downloading Docker images).
     docker-compose up --build -d
 
     # Quick check logs to ensure startup is finished, mostly Apache.
     docker-compose logs apache
-
 
 Note: If you have a permission denied from now it's because of owner of <code>/var/run/docker.sock</code>, run docker and docker-compose commands as sudo.
 
@@ -100,7 +105,6 @@ _OR_ locally if you have [Composer](https://getcomposer.org/download/), from thi
 
     composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal --stability dev --no-interaction
 
-
 #### Install Drupal 8
 
 To use PostGresSQL change _mysql_ to _pgsql_
@@ -123,21 +127,17 @@ To use PostGresSQL change _mysql_ to _pgsql_
     composer -d=/var/www/localhost/drupal require \
     drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 
-#### Daily usage, enable some modules
+#### Enable some modules
 
     docker exec -it -u apache dcd-php \
     /var/www/localhost/drupal/vendor/bin/drush -y en \
     --root=/var/www/localhost/drupal/web \
     admin_toolbar ctools ctools_block ctools_views panels token pathauto
 
-#### Daily usage, run a command on the server
+#### Run a command on the server
 
     docker exec -it -u apache dcd-php \
     ls -lah /var/www/localhost/drupal
-
-#### Login in the Apache to run commands
-
-    docker exec -it -u apache dcd-php bash
 
 ## Reset the stack
 
@@ -148,6 +148,10 @@ To use PostGresSQL change _mysql_ to _pgsql_
 ### Remove your persistent data (and lost everything!)
 
     rm -rf data
+
+_OR_ Only the database
+
+    rm -rf data/databases
 
 ## Ubuntu/Linux helpers
 
