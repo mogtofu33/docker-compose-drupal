@@ -4,22 +4,19 @@
 version: '3'
 volumes:
   sock:
-  pgpass:
 services:
   apache:
     image: mogtofu33/apache
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
-      # Web root access, optionnal.
+      # Web root access, optional but can help with multi sites.
       - 81:81
       # Used by dashboard.
       - "${APACHE_HOST_DASHBORAD_PORT:-8181}:8181"
     links:
       - php
     volumes:
-      # Ease drush pgsql access.
-      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
       # Apache configuration with SSL support.
       - ./config/apache/httpd.conf:/etc/apache2/httpd.conf
@@ -31,6 +28,8 @@ services:
       - ./tools:/var/www/dashboard/tools
       # Php FPM socket
       - sock:/sock
+      ## If PgSQL, ease drush pgsql access.
+      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
     env_file: .env
     container_name: dcd-apache
     ## Remove to avoid starting on system reboot.
@@ -38,8 +37,6 @@ services:
   php:
     image: mogtofu33/php:${PHP_VERSION:-7.2}
     volumes:
-      # Ease drush pgsql access.
-      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
       - ./config/php/${PHP_VERSION:-7.2}/php.ini:/etc/php${PHP_MAJOR_VERSION:-7}/php.ini
       - ./config/php/${PHP_VERSION:-7.2}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf
@@ -52,19 +49,21 @@ services:
       - ./build/dashboard/build:/var/www/dashboard
       - ./tools:/var/www/dashboard/tools
       - /var/run/docker.sock:/var/run/docker.sock
-      # Php FPM socket
-      - sock:/sock
       # Share db dump folder.
       - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
+      # Php FPM socket
+      - sock:/sock
+      ## If PgSQL, ease drush pgsql access.
+      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
       ## If you have composer set locally, share cache to speed up.
       # - $HOME/.composer/cache:/composer/cache
     links:
-      # Choose database, uncomment service concerned below.
       - pgsql
       - mailhog
     env_file: .env
     container_name: dcd-php
-    # privileged is needed to access docker.sock
+    # Privileged is needed to access docker.sock
+    ## Not supported on Windows system yet. Cannot provide Dashboard.
     privileged: true
     # Remove to avoid starting on system reboot.
     restart: always
