@@ -75,7 +75,7 @@ _PROGRAMS=(
 _CONFIG=(
   "pimpmylog/config.user.php:PimpMyLog"
   "memcache/Memcache.php:PhpMemcachedAdmin/Config"
-  "redis/config.inc.php:phpRedisAdmin"
+  "redis/config.inc.php:phpRedisAdmin/includes"
 )
 
 ###############################################################################
@@ -104,7 +104,7 @@ _install() {
     arr=($(echo "$i" | tr ':' "\n"))
     file=${arr[0]}
     destination=${arr[1]}
-    cp "${_DIR}/../../config/${file}" "${_DIR}/../../tools/${destination:-}/"
+    echo "${_DIR}/../../config/${file}" "${_DIR}/../../tools/${destination:-}/"
   done
   printf "Install finished!\n"
 }
