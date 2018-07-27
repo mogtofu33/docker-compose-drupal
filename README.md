@@ -13,7 +13,17 @@ Mac support is **very limited** due to the fact that I don't have a Mac!
 
 ## Introduction
 
-Focus on simple set-up, based on Docker official images and lightweight Alpine Linux to ease maintenance.
+Based mostly on Docker official images and lightweight Alpine Linux to ease maintenance.
+
+The purpose is to give flexibility in managment, try to rely as much as possible on offcial tools to avoid any new custom patterns.
+If you have to learn the meta tool instead of the tool, then it's not a good one...
+
+This stack is not a one line command but more for users with a good dev-op level.
+
+See other great project for a Docker based development:
+* https://www.drupalvm.com
+* https://docs.devwithlando.io/tutorials/drupal8.html
+* https://docksal.io/
 
 ### Include
 _Every service is optional as declared in the yml file._
@@ -139,16 +149,31 @@ To use PostGresSQL change _mysql_ to _pgsql_
 
     rm -rf data
 
+## Ubuntu/Linux helpers
+
+For Ubuntu (16+) or Linux you can find in _scripts/_ multiple helpers to quickly run some daily commands:
+
+    # Run drush or drupal from the container
+    scripts/drush st
+    scripts/drupal st
+    # Run a command in the Php container
+    scripts/dcmd
+    scripts/dcmd ls -lah /var/www/localhost
+    # Quickly dump/restore/drop your DB
+    scripts/mysql
+    scripts/pgsql
+    # Run composer as a service without local installation
+    scripts/composer
+
 ## Suggested tools
 
 * [Opcache GUI](https://github.com/amnuts/opcache-gui)
-* [Pimp my Log](http://pimpmylog.com/)
 * [Phpmemcacheadmin](https://github.com/wp-cloud/phpmemcacheadmin)
 * [Xdebug GUI](https://github.com/splitbrain/xdebug-trace-tree)
 * [Adminer extended](https://github.com/dg/adminer-custom)
 * [Php Redis Admin](https://github.com/ErikDubbelboer/phpRedisAdmin)
 
-You can find a script in scripts/get-tools.sh folder to download or update all tools.
+You can find a script for Linux in scripts/get-tools.sh folder to download or update all tools:
 
     cd THIS_PROJECT
     chmod +x scripts/get-tools.sh
