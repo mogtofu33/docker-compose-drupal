@@ -159,6 +159,7 @@ _main() {
   _check_dependencies_composer
   _check_dependencies_compass
   _check_dependencies_docker
+  _set_project_container_name
 
   # Run actions.
   if [[ "${1:-}" =~ ^install$ ]]

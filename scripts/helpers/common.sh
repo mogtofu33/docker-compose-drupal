@@ -176,3 +176,33 @@ _check_dependencies_docker_up() {
   fi
 
 }
+
+_set_container_mysql() {
+  RUNNING=$(docker ps -f "name=mysql" -f "status=running" -q | head -1 2> /dev/null)
+  if [ -z "$RUNNING" ]; then
+    die "No running MySQL container found, do you run docker-compose up -d ?"
+  else
+    PROJECT_CONTAINER_MYSQL=$(docker inspect --format="{{ .Name }}" $RUNNING)
+    PROJECT_CONTAINER_MYSQL="${PROJECT_CONTAINER_MYSQL///}"
+  fi
+}
+
+_set_container_pgsql() {
+  RUNNING=$(docker ps -f "name=pgsql" -f "status=running" -q | head -1 2> /dev/null)
+  if [ -z "$RUNNING" ]; then
+    die "No running PGSQL container found, do you run docker-compose up -d ?"
+  else
+    PROJECT_CONTAINER_PGSQL=$(docker inspect --format="{{ .Name }}" $RUNNING)
+    PROJECT_CONTAINER_PGSQL="${PROJECT_CONTAINER_PGSQL///}"
+  fi
+}
+
+_set_project_container_name() {
+    RUNNING=$(docker ps -f "name=php" -f "status=running" -q | head -1 2> /dev/null)
+  if [ -z "$RUNNING" ]; then
+    die "No running PHP container found, do you run docker-compose up -d ?"
+  else
+    PROJECT_CONTAINER_NAME=$(docker inspect --format="{{ .Name }}" $RUNNING)
+    PROJECT_CONTAINER_NAME="${PROJECT_CONTAINER_NAME///}"
+  fi
+}

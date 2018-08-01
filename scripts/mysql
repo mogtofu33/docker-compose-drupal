@@ -167,6 +167,7 @@ _select_dump() {
 _main() {
 
   _check_dependencies_docker
+  _set_container_mysql
 
   # Run actions.
   if [[ "${1:-}" =~ ^list$ ]]; then
