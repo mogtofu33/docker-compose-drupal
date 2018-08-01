@@ -104,7 +104,7 @@ _install() {
     arr=($(echo "$i" | tr ':' "\n"))
     file=${arr[0]}
     destination=${arr[1]}
-    echo "${_DIR}/../../config/${file}" "${_DIR}/../../tools/${destination:-}/"
+    cp "${_DIR}/../../config/${file}" "${_DIR}/../../tools/${destination:-}/"
   done
   printf "Install finished!\n"
 }

@@ -87,7 +87,7 @@ _main() {
     _print_help
   else
     _docker_run \
-      --volume "${_DRUPAL_ROOT}":/app \
+      --volume "./":/app \
       composer --working-dir=/app "$@"
   fi
 

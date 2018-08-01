@@ -124,7 +124,7 @@ To use PostGresSQL change _mysql_ to _pgsql_
 #### Daily usage, add some modules
 
     docker exec -it -u apache dcd-php \
-    composer -d=/var/www/localhost/drupal require \
+    composer --working-dir=/var/www/localhost/drupal require \
     drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 
 #### Enable some modules

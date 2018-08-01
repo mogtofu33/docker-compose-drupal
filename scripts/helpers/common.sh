@@ -87,20 +87,6 @@ die() {
   _die echo "${@}"
 }
 
-# Check where this script is run to fix base path.
-# if [[ "${_SOURCE}" = ./${_ME} ]]
-# then
-#   die "This script must be run from the ROOT DCD project. Invalid command : ${_SOURCE}"
-# elif [[ "${_SOURCE}" = scripts/${_ME} ]]
-# then
-#     _BASE_PATH="./"
-# elif [[ "${_SOURCE}" = ./scripts/${_ME} ]]
-# then
-#     _BASE_PATH="./"
-# else
-#   die "This script must be run within DCD project. Invalid command : ${_SOURCE}"
-# fi
-
 ###############################################################################
 # Variables
 ###############################################################################
@@ -121,7 +107,6 @@ tty -s && tty=--tty
 
 _DRUPAL_ROOT="/drupal"
 
-# _DRUPAL_ROOT=$(echo "${_BASE_SOURCE}${HOST_WEB_ROOT}${_DRUPAL_ROOT}" | sed -e 's/\.//g')
 _DOCKER=$(which docker)
 _COMPOSER=$(which composer)
 _DOCKER=$(which docker)
