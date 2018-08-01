@@ -93,8 +93,6 @@ _main() {
 
   _check_dependencies_docker
   _check_dependencies_composer
-  _check_dependencies_docker_up
-  _set_project_container_name
 
   # Run actions.
   if [[ "${1:-}" =~ ^install$ ]]

@@ -167,17 +167,8 @@ _check_dependencies_compass() {
 
 }
 
-_check_dependencies_docker_up() {
-
-  # Check if containers are up...
-  RUNNING=$(docker inspect --format="{{ .State.Running }}" "${1}" 2> /dev/null)
-  if [ $? -eq 1 ]; then
-    die "Container ${1} do not exist or is not running, run docker-compose up -d\n"
-  fi
-
-}
-
 _set_container_mysql() {
+
   RUNNING=$(docker ps -f "name=mysql" -f "status=running" -q | head -1 2> /dev/null)
   if [ -z "$RUNNING" ]; then
     die "No running MySQL container found, do you run docker-compose up -d ?"
@@ -185,9 +176,11 @@ _set_container_mysql() {
     PROJECT_CONTAINER_MYSQL=$(docker inspect --format="{{ .Name }}" $RUNNING)
     PROJECT_CONTAINER_MYSQL="${PROJECT_CONTAINER_MYSQL///}"
   fi
+
 }
 
 _set_container_pgsql() {
+
   RUNNING=$(docker ps -f "name=pgsql" -f "status=running" -q | head -1 2> /dev/null)
   if [ -z "$RUNNING" ]; then
     die "No running PGSQL container found, do you run docker-compose up -d ?"
@@ -195,9 +188,11 @@ _set_container_pgsql() {
     PROJECT_CONTAINER_PGSQL=$(docker inspect --format="{{ .Name }}" $RUNNING)
     PROJECT_CONTAINER_PGSQL="${PROJECT_CONTAINER_PGSQL///}"
   fi
+
 }
 
 _set_project_container_name() {
+
     RUNNING=$(docker ps -f "name=php" -f "status=running" -q | head -1 2> /dev/null)
   if [ -z "$RUNNING" ]; then
     die "No running PHP container found, do you run docker-compose up -d ?"
@@ -205,4 +200,44 @@ _set_project_container_name() {
     PROJECT_CONTAINER_NAME=$(docker inspect --format="{{ .Name }}" $RUNNING)
     PROJECT_CONTAINER_NAME="${PROJECT_CONTAINER_NAME///}"
   fi
+
 }
+
+_set_drush_bin() {
+
+  # Check if this drush is valid.
+  TEST_DRUSH=$(docker exec $PROJECT_CONTAINER_NAME cat $DRUSH_BIN 2> /dev/null)
+  if [ $? -eq 1 ]; then
+    die "Project do not contain drush, please install or check path. Path tested: ${PROJECT_CONTAINER_NAME}:${DRUSH_BIN}"
+  fi
+
+}
+
+_set_drupal_bin() {
+
+  # Check if this drupal console is valid.
+  TEST_DRUPAL=$(docker exec $PROJECT_CONTAINER_NAME cat $DRUPAL_BIN 2> /dev/null)
+  if [ $? -eq 1 ]; then
+    die "Project do not contain Drupal Console, please install or check path. Path tested: ${PROJECT_CONTAINER_NAME}:${DRUPAL_BIN}"
+  fi
+
+}
+
+###############################################################################
+# Init
+###############################################################################
+
+# _init()
+#
+# Description:
+#   Entry point for all programs, check and set minimum variables.
+_init() {
+
+  _set_project_container_name
+  _set_drush_bin
+  _set_drupal_bin
+
+}
+
+# Call `_init` after everything has been defined.
+_init

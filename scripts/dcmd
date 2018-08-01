@@ -32,8 +32,6 @@ if [ ! -f $_DIR/helpers/common.sh ]; then
 fi
 source $_DIR/helpers/common.sh
 
-_set_project_container_name
-
 _docker_exec \
   --user "${PROJECT_CONTAINER_USER}" \
   "${PROJECT_CONTAINER_NAME}" "$@"
