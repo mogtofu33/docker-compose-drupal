@@ -1,15 +1,13 @@
-FROM mogtofu33/alpine-base:latest
-
-MAINTAINER moimog33@gmail.com
+FROM mogtofu33/alpine-base:3.8
 
 ENV VARNISH_BACKEND_IP     0.0.0.0
-ENV VARNISH_VCL            /etc/varnish/default.vcl
+ENV VARNISH_VCL            /etc/varnish/drupal.vcl
 ENV VARNISH_MEMORY         100M
 
 RUN apk add --update varnish
 
 # Copy conf
-COPY config/default.vcl /etc/varnish/default.vcl
+COPY config/drupal.vcl /etc/varnish/drupal.vcl
 COPY config/secret /etc/varnish/secret
 RUN chown -R varnish: /etc/varnish/
 

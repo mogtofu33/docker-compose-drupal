@@ -7,8 +7,7 @@ use Docker\API\Model\ExecConfig;
 use Docker\API\Model\ExecStartConfig;
 use Docker\Manager\ExecManager;
 
-// use Symfony\Component\Debug\Debug;
-// Debug::enable();
+use Symfony\Component\Debug\Debug;
 
 /**
  * Class App.
@@ -16,6 +15,13 @@ use Docker\Manager\ExecManager;
  * A minimal Docker Dashboard used for Docker Compose Drupal project.
  */
 Class App {
+
+  /**
+   * Debug flag.
+   *
+   * @var $debug
+   */
+  private $debug = FALSE;
 
   /**
    * The docker service.
@@ -66,12 +72,19 @@ Class App {
    * Constructs a new App object.
    */
   public function __construct() {
+    if (method_exists($this, 'dump')) {
+      Debug::enable();
+      $this->debug = TRUE;
+    }
     $this->valid = $this->socketValid();
     if ($this->valid['valid']) {
       $this->docker = new Docker();
       $this->containers = $this->getContainers();
       $this->initFolders();
       $this->init();
+      if ($this->debug) {
+        dump($this);
+      }
     }
   }
 
@@ -372,7 +385,7 @@ Class App {
       'Xdebug' => '<span class="badge badge-warning">Disabled</span>',
     ];
     if (isset($info['xdebug.default_enable'])) {
-      $result['Xdebug'] = ($info['xdebug.default_enable'] === "1") ? '<span class="badge badge-success">Enabled</span>' : '<span class="badge badge-warning">Disabled</span>';
+        $result['Xdebug'] = ($info['xdebug.default_enable'] === "1") ? '<span class="badge badge-success">Enabled</span>' : '<span class="badge badge-warning">Disabled</span>';
       if (isset($info['xdebug.max_nesting_level'])) {
         $result['Xdebug max nesting level'] = $info['xdebug.max_nesting_level'];
       }

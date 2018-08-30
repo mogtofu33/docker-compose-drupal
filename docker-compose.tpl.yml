@@ -21,7 +21,7 @@
 #
 # Windows limitations
 #   If you run Docker Compose from Powershell, before launch run:
-#   $Env:COMPOSE_CONVERT_WINDOWS_PATHS=1
+#   :COMPOSE_CONVERT_WINDOWS_PATHS=1
 #
 #   Ownership do not permit to use the dashboard and to share db directory for
 #   MySQL/MariaDB or PgSQL. See comments below.
@@ -58,7 +58,7 @@ services:
       # Php FPM socket
       - sock:/sock
       ## If PgSQL, ease drush pgsql access.
-      # - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
+      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
     env_file: .env
     container_name: dcd-apache
     ## Remove to avoid starting on system reboot.
@@ -83,9 +83,9 @@ services:
       # Php FPM socket
       - sock:/sock
       ## If PgSQL, ease drush pgsql access.
-      # - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
+      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
       ## If you have composer set locally, share cache to speed up.
-      # - $HOME/.composer/cache:/composer/cache
+      - /home/jeanv/.composer/cache:/composer/cache
     links:
       # Choose database, uncomment service concerned below.
       - mysql
@@ -104,7 +104,6 @@ services:
     restart: always
   mysql:
     image: mariadb:latest
-    # image: mysql:latest
     expose:
       - "3306"
     volumes:
@@ -131,7 +130,7 @@ services:
     ## Remove to avoid starting on system reboot.
     restart: always
   mailhog:
-    image: mailhog/mailhog
+    image: mailhog/mailhog:latest
     expose:
       - "1025"
     ports:
@@ -158,27 +157,13 @@ services:
       - EXTRA_ACCESS="/solr/drupal"
     ## Remove to avoid starting on system reboot.
     restart: always
-  # varnish:
-  #   build: ./build/varnish
-  #   ports:
-  #     - "${VARNISH_HOST_PORT:-8080}:80"
-  #     - "6082:6082"
-  #   links:
-  #     - apache
-  #   env_file: .env
-  #   ## Remove to avoid starting on system reboot.
-  #   restart: always
-  # ldap:
-  #   image: osixia/openldap:latest
-  #   ports:
-  #     - "389:389"
-  #   ## Remove to avoid starting on system reboot.
-  #   restart: always
-  # ldapadmin:
-  #   image: osixia/phpldapadmin:latest
-  #   links:
-  #     - ldap
-  #   ports:
-  #     - "8443:8443"
-  #   ## Remove to avoid starting on system reboot.
-  #   restart: always
+  varnish:
+    build: ./build/varnish
+    ports:
+      - "${VARNISH_HOST_PORT:-8080}:80"
+      - "6082:6082"
+    links:
+      - apache
+    env_file: .env
+    ## Remove to avoid starting on system reboot.
+    restart: always
