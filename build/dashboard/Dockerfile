@@ -1,7 +1,5 @@
 FROM composer:latest
 
-MAINTAINER moimog33@gmail.com
-
 COPY app/ /var/www/html/
 RUN chown -R www-data: /var/www/html/
 

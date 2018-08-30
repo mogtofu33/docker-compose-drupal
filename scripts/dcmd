@@ -32,6 +32,10 @@ if [ ! -f $_DIR/helpers/common.sh ]; then
 fi
 source $_DIR/helpers/common.sh
 
+if [ -z $@ ]; then
+  die "Run command in the web container, eg: scripts/dcmd ls -lah /var/www/localchost/drupal/web"
+fi
+
 _docker_exec \
   --user "${PROJECT_CONTAINER_USER}" \
   "${PROJECT_CONTAINER_NAME}" "$@"

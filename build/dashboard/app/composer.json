@@ -21,13 +21,14 @@
         "psr-4": { "Dashboard\\": "src/" }
     },
     "extra": {
-      "phar-builder": {
-          "compression": "GZip",
-          "name": "dashboard.phar",
-          "output-dir": "../build/",
-          "entry-point": "index.php",
-          "skip-shebang": true,
-          "include-dev": false
-      }
+        "phar-builder": {
+            "compression": "GZip",
+            "name": "dashboard.phar",
+            "output-dir": "../build/",
+            "include": ["js", "css"],
+            "entry-point": "index.php",
+            "skip-shebang": true,
+            "include-dev": false
+        }
     }
 }

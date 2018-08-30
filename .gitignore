@@ -1,5 +1,6 @@
 # Docker compose files
 docker-compose.yml
+docker-compose.test*
 .env
 !scripts/.env
 !openstack/.env
