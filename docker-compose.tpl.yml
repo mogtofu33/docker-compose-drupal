@@ -64,13 +64,13 @@ services:
     ## Remove to avoid starting on system reboot.
     restart: always
   php:
-    image: mogtofu33/php:${PHP_VERSION:-7.2}
+    image: mogtofu33/php:${PHP_VERSION:-7.1}
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
-      - ./config/php/${PHP_VERSION:-7.2}/php.ini:/etc/php${PHP_MAJOR_VERSION:-7}/php.ini
-      - ./config/php/${PHP_VERSION:-7.2}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf
-      - ./config/php/${PHP_VERSION:-7.2}/conf.d/:/etc/php${PHP_MAJOR_VERSION:-7}/conf.d/
-      - ./config/php/${PHP_VERSION:-7.2}/php-fpm.d/:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.d/
+      - ./config/php/${PHP_VERSION:-7.1}/php.ini:/etc/php${PHP_MAJOR_VERSION:-7}/php.ini
+      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf
+      - ./config/php/${PHP_VERSION:-7.1}/conf.d/:/etc/php${PHP_MAJOR_VERSION:-7}/conf.d/
+      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.d/:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.d/
       # Drush 9 alias and drushrc files (or any other config)
       - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml
       - ./config/drush/drush.yml:/etc/drush/drush.yml
@@ -85,7 +85,7 @@ services:
       ## If PgSQL, ease drush pgsql access.
       - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
       ## If you have composer set locally, share cache to speed up.
-      - /home/jeanv/.composer/cache:/composer/cache
+      # - REPLACE_WITH_COMPOSER_HOME_PATH/.composer/cache:/composer/cache
     links:
       # Choose database, uncomment service concerned below.
       - mysql
@@ -95,6 +95,7 @@ services:
       - redis
       - solr
       - mailhog
+      # - varnish
     env_file: .env
     container_name: dcd-php
     # Privileged is needed to access docker.sock
@@ -157,13 +158,13 @@ services:
       - EXTRA_ACCESS="/solr/drupal"
     ## Remove to avoid starting on system reboot.
     restart: always
-  varnish:
-    build: ./build/varnish
-    ports:
-      - "${VARNISH_HOST_PORT:-8080}:80"
-      - "6082:6082"
-    links:
-      - apache
-    env_file: .env
-    ## Remove to avoid starting on system reboot.
-    restart: always
+  # varnish:
+  #   build: ./build/varnish
+  #   ports:
+  #     - "${VARNISH_HOST_PORT:-8080}:80"
+  #     - "6082:6082"
+  #   links:
+  #     - apache
+  #   env_file: .env
+  #   ## Remove to avoid starting on system reboot.
+  #   restart: always
