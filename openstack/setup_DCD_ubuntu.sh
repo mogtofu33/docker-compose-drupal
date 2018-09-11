@@ -127,8 +127,7 @@ ln -s $_PROJECT_PATH $HOME/root
 # Set up tools from stack.
 if [ -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Setup Docker stack tools...\n<<<<\n"
-  cd $_PROJECT_PATH;
-  scripts/get-tools.sh install
+  $_PROJECT_PATH/scripts/get-tools.sh install
 fi
 
 # Fix sock for privilleged, wait a bit for stack to be up....
