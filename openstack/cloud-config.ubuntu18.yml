@@ -30,7 +30,7 @@ runcmd:
   # Add Docker recommended packages and add user to Docker group, should not be
   # edited. this is required for Docker.
   - usermod -aG docker ubuntu
-  - wget -q -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.21.2/docker-compose-Linux-x86_64"
+  - wget -q -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-Linux-x86_64"
   - chown "ubuntu:ubuntu" /usr/local/bin/docker-compose
   - chmod +x /usr/local/bin/docker-compose
   # External script to setup properly Docker-compose, and Drupal Docker Compose
