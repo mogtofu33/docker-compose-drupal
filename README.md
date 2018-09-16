@@ -18,7 +18,7 @@ Based mostly on Docker official images and lightweight Alpine Linux to ease main
 The purpose is to give flexibility in managment, try to rely as much as possible on offcial tools to avoid any new custom patterns.
 If you have to learn the meta tool instead of the tool, then it's not a good one...
 
-This stack is not a one line command but more for users with a good dev-op level.
+This stack is not a one line command but more for users with a good dev-op level and knowledge on each technology used.
 
 See other great project for a Docker based development:
 
@@ -38,8 +38,6 @@ _Every service is optional as declared in the yml file._
 * [Redis](https://redis.io/)
 * [Mailhog](https://github.com/mailhog/MailHog)
 * [Solr](http://lucene.apache.org/solr)
-* [OpenLdap](https://www.openldap.org)
-* [Varnish](https://varnish-cache.org)
 
 ### Database management
 
@@ -87,10 +85,9 @@ docker-compose logs apache
 
 _Note_: If you have a permission denied from it's probably because of owner of `/var/run/docker.sock`, run docker and docker-compose commands as sudo.
 
-### Access the stack dashboard and your Drupal root
+### Access the minimal dashboard
 
 * [http://localhost:8181](http://localhost:8181)
-* [http://localhost](http://localhost)
 
 If you have copy an existing Drupal project, you can import the database from the adminer link in the dashboard.
 
@@ -118,8 +115,10 @@ composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal -
 
 To use PostGreSQL change _mysql_ to _pgsql_
 
+You can replace **standard** by an other profile as **minimal** or **demo_umami** for [Drupal 8.6+](https://www.drupal.org/project/demo_umami).
+
 ```bash
-docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si \
+docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si standard \
     --root=/var/www/localhost/drupal/web \
     --account-name=admin \
     --account-pass=password \
