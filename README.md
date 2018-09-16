@@ -47,41 +47,43 @@ _Every service is optional as declared in the yml file._
 
 ## Quick launch new Drupal 8 project
 
-    # Clone this project.
-    git clone https://github.com/Mogtofu33/docker-compose-drupal.git docker-drupal
-    cd docker-drupal
+```bash
+# Clone this project.
+git clone https://github.com/Mogtofu33/docker-compose-drupal.git docker-drupal
+cd docker-drupal
 
-    # Create your docker compose file from template.
-    cp docker-compose.tpl.yml docker-compose.yml
+# Create your docker compose file from template.
+cp docker-compose.tpl.yml docker-compose.yml
 
-    # (Optional) choose a db, remove or add services, add your composer cache folder.
-    # But you can let it as it for a default quick stack.
-    vi docker-compose.yml
+# (Optional) choose a db, remove or add services, add your composer cache folder.
+# But you can let it as it for a default quick stack.
+vi docker-compose.yml
 
-    # Create your config file from template.
-    cp default.env .env
+# Create your config file from template.
+cp default.env .env
 
-    # Edit your configuration if needed, recommended on Unix add your local uid/gid.
-    vi .env
+# Edit your configuration if needed, recommended on Unix add your local uid/gid.
+vi .env
 
-    # Check the yml file and fix if there is an error message.
-    docker-compose config
+# Check the yml file and fix if there is an error message.
+docker-compose config
 
-    # For an existing Drupal 8 project, create folders and copy it in data/www
-    # Note that based on Composer template web root must be under drupal/web
-    # folder. If not you need to adapt Apache vhost config from
-    # config/apache/vhost.conf
-    mkdir -p data/www/drupal
-    cp -r _YOUR_DRUPAL_ data/www/drupal/
+# For an existing Drupal 8 project, create folders and copy it in data/www
+# Note that based on Composer template web root must be under drupal/web
+# folder. If not you need to adapt Apache vhost config from
+# config/apache/vhost.conf
+mkdir -p data/www/drupal
+cp -r _YOUR_DRUPAL_ data/www/drupal/
 
-    # For MySQL, copy your database dump uncompressed in ./data/dump/*.sql, it
-    # will be automatically imported on the first run.
+# For MySQL, copy your database dump uncompressed in ./data/dump/*.sql, it
+# will be automatically imported on the first run.
 
-    # Launch the containers (first time include downloading Docker images).
-    docker-compose up --build -d
+# Launch the containers (first time include downloading Docker images).
+docker-compose up --build -d
 
-    # Quick check logs to ensure startup is finished, mostly Apache.
-    docker-compose logs apache
+# Quick check logs to ensure startup is finished, mostly Apache.
+docker-compose logs apache
+```
 
 _Note_: If you have a permission denied from it's probably because of owner of `/var/run/docker.sock`, run docker and docker-compose commands as sudo.
 
@@ -100,79 +102,100 @@ Setup a new Drupal 8 based on a composer template (yes it's slower, but this is 
 
 Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/), using [Composer](https://getcomposer.org) in the docker service:
 
-    docker exec -it -u apache dcd-php \
-    composer create-project drupal-composer/drupal-project:8.x-dev /var/www/localhost/drupal --stability dev --no-interaction
+```bash
+docker exec -it -u apache dcd-php \
+    composer create-project drupal-composer/drupal-project:8.x-dev \
+    /var/www/localhost/drupal --stability dev --no-interaction
+```
 
 _OR_ locally if you have [Composer](https://getcomposer.org/download/) installed, from this project root:
 
-    composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal --stability dev --no-interaction
+```bash
+composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal --stability dev --no-interaction
+```
 
 #### Install Drupal 8
 
 To use PostGreSQL change _mysql_ to _pgsql_
 
-    docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si \
-        --root=/var/www/localhost/drupal/web \
-        --account-name=admin \
-        --account-pass=password \
-        --db-url=mysql://drupal:drupal@mysql/drupal
+```bash
+docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si \
+    --root=/var/www/localhost/drupal/web \
+    --account-name=admin \
+    --account-pass=password \
+    --db-url=mysql://drupal:drupal@mysql/drupal
+```
 
 #### Access your Drupal 8
 
-    http://localhost
+* [http://localhost](http://localhost)
 
 Login with _admin_ / _password_:
 
-    http://localhost/user/login
+* [http://localhost/user/login](http://localhost/user/login)
 
 #### Daily usage, add some modules
 
-    docker exec -it -u apache dcd-php \
-        composer --working-dir=/var/www/localhost/drupal require \
-        drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
+```bash
+docker exec -it -u apache dcd-php \
+    composer --working-dir=/var/www/localhost/drupal require \
+    drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
+```
 
 #### Enable some modules
 
-    docker exec -it -u apache dcd-php \
-        /var/www/localhost/drupal/vendor/bin/drush -y en \
-        --root=/var/www/localhost/drupal/web \
-        admin_toolbar ctools ctools_block ctools_views panels token pathauto
+```bash
+docker exec -it -u apache dcd-php \
+    /var/www/localhost/drupal/vendor/bin/drush -y en \
+    --root=/var/www/localhost/drupal/web \
+    admin_toolbar ctools ctools_block ctools_views panels token pathauto
+```
 
 #### Run a command on the server
 
-    docker exec -it -u apache dcd-php \
-        ls -lah /var/www/localhost/drupal/web
+```bash
+docker exec -it -u apache dcd-php \
+    ls -lah /var/www/localhost/drupal/web
+```
 
 ## Reset the stack
 
 ### Destroy containers (data/ is persistent, so you are not loosing db or files)
 
-    docker-compose stop && docker-compose down
+```bash
+docker-compose stop && docker-compose down
+```
 
 ### Remove your persistent data (and lost everything!)
 
-    rm -rf data
+```bash
+rm -rf data
+```
 
 _OR_ Only the database
 
-    rm -rf data/databases
+```bash
+rm -rf data/databases
+```
 
 ## Ubuntu/Linux helpers
 
 For Ubuntu (16+) or Linux you can find in _scripts/_ multiple helpers to quickly
 run some daily commands from root folder, and drush/drupal links at the root.
 
-    # Run drush or drupal within the container
-    ./drush status
-    ./drupal site:status
-    # Run a bash command in the Php container
-    scripts/dcmd ls -lah /var/www/localhost
-    # Quickly dump/restore/drop your DB
-    scripts/mysql --help
-    scripts/pgsql --help
-    # Run composer as a service without local installation
-    scripts/composer --help
-    scripts/composer status
+```bash
+# Run drush or drupal within the container
+./drush status
+./drupal site:status
+# Run a bash command in the Php container
+scripts/dcmd ls -lah /var/www/localhost
+# Quickly dump/restore/drop your DB
+scripts/mysql --help
+scripts/pgsql --help
+# Run composer as a service without local installation
+scripts/composer --help
+scripts/composer status
+```
 
 ## Suggested tools
 
@@ -184,15 +207,19 @@ run some daily commands from root folder, and drush/drupal links at the root.
 
 You can find a script for Linux in scripts/get-tools.sh folder to download or update all tools:
 
-    cd THIS_PROJECT
-    chmod +x scripts/get-tools.sh
-    ./get-tools.sh
+```bash
+cd THIS_PROJECT
+chmod +x scripts/get-tools.sh
+./scripts/get-tools.sh install
+```
 
 ## Troubleshooting
 
 Windows support very partial, before running docker-compose you must run in Powershell:
 
-    $Env:COMPOSE_CONVERT_WINDOWS_PATHS=1
+```powershell
+$Env:COMPOSE_CONVERT_WINDOWS_PATHS=1
+```
 
 Some permissions and privileged problems, so my Dashboard can not access docker.sock.
 
@@ -200,4 +227,6 @@ Some permissions and privileged problems, so my Dashboard can not access docker.
 
 ## Build and testing (dev only)
 
-        make run-test
+```bash
+make run-test
+```
