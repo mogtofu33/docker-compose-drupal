@@ -55,7 +55,7 @@ Install and prepare a Drupal 8 project with Drupal template.
 https://github.com/drupal-composer/drupal-project
 
 Usage:
-  ${_ME} [install | get-only | install-only]
+  ${_ME} [install | download-only | install-only]
 
 Options:
   -h --help  Show this screen.
@@ -66,15 +66,16 @@ HEREDOC
 # Program Functions
 ###############################################################################
 
-_get_drupal() {
+_download_drupal() {
+  printf ">> [setup::info] Download Drupal 8 with composer, can take a long time...\\n"
   # Setup Drupal 8 composer project.
   $_COMPOSER create-project drupal-composer/drupal-project:8.x-dev "${DRUPAL_CONTAINER_ROOT}" --stability dev --no-interaction
   $_COMPOSER --working-dir="${DRUPAL_CONTAINER_ROOT}" require "drupal/devel" "drupal/admin_toolbar"
 }
 
 _install_drupal() {
-  #docker exec $tty $PROJECT_CONTAINER_NAME chown -R apache: /www
-  $_DOCKER exec $tty --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y site:install "${DRUSH_OPTIONS}" >> "${DRUPAL_CONTAINER_ROOT}/drupal-install.log"
+  printf ">> [setup::info] Install Drupal 8 with standard profile...\\n"
+  $_DOCKER exec $tty -u apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" -y si "${PROJECT_CONTAINER_ROOT}" "${DRUSH_OPTIONS}" >> "${DRUPAL_CONTAINER_ROOT}"/drupal-install.log
   $_DOCKER exec $tty --user apache "${PROJECT_CONTAINER_NAME}" "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y pm:enable admin_toolbar >> /dev/null
 }
 
@@ -97,11 +98,11 @@ _main() {
   # Run actions.
   if [[ "${1:-}" =~ ^install$ ]]
   then
-    _get_drupal
+    _download_drupal
     _install_drupal
-  elif [[ "${1:-}" =~ ^get-only$ ]]
+  elif [[ "${1:-}" =~ ^download-only$ ]]
   then
-    _get_drupal
+    _download_drupal
   elif [[ "${1:-}" =~ ^install-only$ ]]
   then
     _install_drupal
