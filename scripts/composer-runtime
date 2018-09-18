@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Simple wrapper for composer with docker4drupal.
+# Simple wrapper for composer as runtime from where you are.
 #
 # Depends on:
 #  docker
-#  docker4drupal
+#  a docker compose stack, docker4drupal or dockerComposeDrupal
 
 _SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a symlink
@@ -20,19 +20,13 @@ if [ ! -f $_DIR/helpers/common.sh ]; then
 fi
 source $_DIR/helpers/common.sh
 
-_docker_exec_noi_u mkdir -p /.composer/cache
-_docker_exec_noi_u chown -R ${PROJECT_UID}: /.composer
-
-_docker_exec_noi \
-  composer --working-dir="${DRUPAL_ROOT}" "$@"
-
 # Local runtime/binary
-# docker run \
-#     $tty \
-#     --interactive \
-#     --rm \
-#     --user $(id -u):$(id -g) \
-#     --volume /etc/passwd:/etc/passwd:ro \
-#     --volume /etc/group:/etc/group:ro \
-#     --volume $(pwd):/app \
-#     composer "$@"
+$_DOCKER run \
+    $tty \
+    --interactive \
+    --rm \
+    --user $(id -u):$(id -g) \
+    --volume /etc/passwd:/etc/passwd:ro \
+    --volume /etc/group:/etc/group:ro \
+    --volume $(pwd):/app \
+    composer "$@"

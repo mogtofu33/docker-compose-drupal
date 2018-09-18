@@ -7,7 +7,7 @@
 # Variables, most variables are from previous script.
 source $HOME/.profile
 
-drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=password"
+__drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=password"
 
 # Setup Drupal 8 composer project.
 /usr/bin/composer create-project drupal-composer/drupal-project:8.x-dev $PROJECT_ROOT/drupal --stability dev --no-interaction
@@ -15,9 +15,10 @@ drush_options="--db-url=mysql://drupal:drupal@mysql/drupal --account-pass=passwo
 
 # Set-up Drupal.
 echo -e "\n>>>>\n[setup::info] Install Drupal 8...\n<<<<\n"
-#docker exec -t $PROJECT_CONTAINER_NAME chown -R apache: /www
-docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y site:install $drush_options >> $PROJECT_PATH/drupal-install.log
+docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y site:install $__drush_options >> $PROJECT_PATH/drupal-install.log
 docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y pm:enable admin_toolbar >> /dev/null
+
+echo -e "Done, see install result in $PROJECT_PATH/drupal-install.log"
 
 # Add drush and drupal bin shortcut.
 sudo touch /usr/local/bin/drush

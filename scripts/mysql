@@ -1,20 +1,13 @@
 #!/usr/bin/env bash
-# ____   ____   ____                         _
-# |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
-# | | | | |     | | | | '__| | | | '_ \ / _  | |
-# | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
-# |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
-#                               |_|
 #
-# Helper to run mysql dump/restore, part of Docker Compose Drupal project.
-# Based on Bash simple Boilerplate.
-# https://github.com/Mogtofu33/docker-compose-drupal
+# Helper to run mysql dump/restore with docker4drupal.
 #
 # Usage:
 #   mysql dump | restore
 #
 # Depends on:
 #  docker
+#  docker4drupal
 #
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
@@ -28,9 +21,10 @@ done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
 if [ ! -f $_DIR/helpers/common.sh ]; then
-  echo -e "Missing helpers/common.sh file."
+  printf "[ERROR] Missing helpers/common.sh file.\\n"
   exit 1
 fi
+
 source $_DIR/helpers/common.sh
 
 ###############################################################################
@@ -44,22 +38,14 @@ source $_DIR/helpers/common.sh
 #
 # Print the program help information.
 _print_help() {
+  _help_logo
   cat <<HEREDOC
-  ____   ____   ____                         _
- |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
- | | | | |     | | | | '__| | | | '_ \ / _  | |
- | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
- |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
-                                |_|
 
 Helper to dump, drop and restore MYSQL/MariaDB.
 
 Usage:
-  ${_ME} [dump | dump-no-drush | restore | drop | list]
-  ${_ME} -h | --help
-
-Options:
-  -h --help  Show this screen.
+  ${_ME} [dump | dump-no-drush | restore | drop DB_NAME | list | drop-no-drush | create DB_NAME ]
+  ${_ME} dump
 
 'dump' and 'drop' is performed with Drush, dump ignore common cache, search,
 stats and sessions tables from Drupal.
@@ -68,8 +54,14 @@ stats and sessions tables from Drupal.
 'dump-no-drush' use mysql client and do not ignore data in Drupal temporary
 tables like watchdog, cache*...
 
+'drop-no-drush' use mysql native client to completly DROP the database.
+
+'create' use mysql client to create and grant a database DB_NAME, default to 'drupal'.
+
 dumps are located in the ./data/dump folder of Docker Compose Drupal.
 
+Options:
+  -h --help         Show this screen.
 HEREDOC
 }
 
@@ -79,62 +71,75 @@ _DUMP_FILE="dump.sql"
 # Program Functions
 ###############################################################################
 
-_dump_drush() {
-  _docker_exec \
-    "${PROJECT_CONTAINER_NAME}" \
-    "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" sql-dump \
-      --structure-tables-list=cache*,history,node_counter,search_*,sessions,watchdog \
-      --result-file=${PROJECT_CONTAINER_DUMP}/dump_${_NOW}.sql
-      # --skip-tables-list=migrate_* \
+_create() {
+  _DB_NAME=${1:-"drupal"}
+  _mysql_exec 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS "'"$_DB_NAME"'" CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"'
+
+  _GRANT="GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES ON $_DB_NAME.* TO '$MYSQL_USER'@'%';"
+  echo $_GRANT > tmp_grant.sql
+  $_DOCKER cp tmp_grant.sql "${PROJECT_CONTAINER_MYSQL}":/tmp/tmp_grant.sql
+  _mysql_exec 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD < /tmp/tmp_grant.sql'
+  rm -f tmp_grant.sql
+}
+
+_drop() {
+  _DB_NAME=${1:-"drupal"}
+  _mysql_exec 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "DROP DATABASE IF EXISTS "'"$_DB_NAME"''
 }
 
 _drop_drush() {
+  _prompt_yn
   _docker_exec \
     --user "${PROJECT_CONTAINER_USER}" \
     "${PROJECT_CONTAINER_NAME}" \
     "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y sql-drop
 }
 
+_dump_drush() {
+  _DUMP_FILE=dump_${_NOW}.sql
+  echo _docker_exec \
+    "${PROJECT_CONTAINER_NAME}" \
+    "${DRUSH_BIN}" -r "${DRUPAL_DOCROOT}" sql-dump \
+      --structure-tables-list=cache*,history,node_counter,search_*,sessions,watchdog \
+      --result-file=/tmp/${_DUMP_FILE}
+      # --skip-tables-list=migrate_* \
+  echo $_DOCKER cp "${PROJECT_CONTAINER_NAME}":/tmp/${_DUMP_FILE} ${DUMP_FOLDER}/${_DUMP_FILE}
+  echo _docker_exec "${PROJECT_CONTAINER_NAME}" rm -f /tmp/${_DUMP_FILE}
+}
+
 _dump() {
   _DUMP_FILE="dump_${_NOW}.sql"
-  # Non interactive command.
-  $_DOCKER exec \
-    --user "${MYSQL_CONTAINER_USER}" \
-    "${PROJECT_CONTAINER_MYSQL}" \
-      sh -c 'exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > '"$PROJECT_CONTAINER_MYSQL_DUMP"'/'"$_DUMP_FILE"''
+  _mysql_exec 'exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > /docker-entrypoint-initdb.d/'"$_DUMP_FILE"''
+  $_DOCKER cp "${PROJECT_CONTAINER_MYSQL}":/docker-entrypoint-initdb.d/${_DUMP_FILE} ${DUMP_FOLDER}/${_DUMP_FILE}
+  _docker_exec "${PROJECT_CONTAINER_MYSQL}" rm -f /docker-entrypoint-initdb.d/${_DUMP_FILE}
 
-  echo -e "Database dump saved to ${_DUMP_FILE}"
+  printf "Database dump saved to %s\\n" ${DUMP_FOLDER}/${_DUMP_FILE}
 }
 
 _restore() {
   _select_dump
-  echo -e "Restoring $_DUMP_FILE..."
   if [ ! -z "$_DUMP_FILE" ]; then
-    # Non interactive command.
-    $_DOCKER exec \
-    --user "${MYSQL_CONTAINER_USER}" \
-    "${PROJECT_CONTAINER_MYSQL}" \
-      sh -c 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < '"$PROJECT_CONTAINER_MYSQL_DUMP"'/'"$_DUMP_FILE"''
+    printf "Restoring %s...\\n" $_DUMP_FILE
+    _drop
+    _create
+    $_DOCKER cp ${DUMP_FOLDER}/${_DUMP_FILE} "${PROJECT_CONTAINER_MYSQL}":/docker-entrypoint-initdb.d/${_DUMP_FILE}
+    _mysql_exec 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /docker-entrypoint-initdb.d/'"$_DUMP_FILE"''
+    _docker_exec "${PROJECT_CONTAINER_MYSQL}" rm -f /docker-entrypoint-initdb.d/${_DUMP_FILE}
   fi
-  echo -e "Done!"
+  printf "Done!"
 }
 
 _list_dump() {
-  echo -e "Available dump files:"
-  _docker_exec "${PROJECT_CONTAINER_MYSQL}" ls -lah "${PROJECT_CONTAINER_MYSQL_DUMP}"
-}
-
-_ensure_dir() {
-  # No interactive, ensure permissions.
-  $_DOCKER exec $tty "${PROJECT_CONTAINER_MYSQL}" chown -R ${MYSQL_CONTAINER_USER}: "${PROJECT_CONTAINER_MYSQL_DUMP}"
+  printf "Available dump files:\\n"
+  ls -lAh "${DUMP_FOLDER}"
 }
 
 _select_dump() {
 
-  _DUMPS=$($_DOCKER exec --user "${MYSQL_CONTAINER_USER}" "${PROJECT_CONTAINER_MYSQL}"  ls "${PROJECT_CONTAINER_MYSQL_DUMP}")
+  _DUMPS=$(ls "${DUMP_FOLDER}")
   _DUMPS=(`echo $_DUMPS | sed 's/ /\n/g'`)
 
-  echo -e "Select a dump file:"
+  printf "Select a dump file:\\n"
   select opt in "${_DUMPS[@]}" "Cancel"; do
     case $opt in
       *.sql)
@@ -142,15 +147,28 @@ _select_dump() {
         break
         ;;
       "Cancel")
-        echo "You chose to cancel"
+        die "You chose to cancel"
         _DUMP_FILE=""
         break
         ;;
       *)
-        echo "This is not a number"
+        echo "This is not a number or wrong selection/file format"
         ;;
     esac
   done
+}
+
+_mysql_exec() {
+  $_DOCKER exec \
+    "${PROJECT_CONTAINER_MYSQL}" \
+      sh -c $@
+}
+
+_ensure_dump_dir() {
+  if [[ ! -d ${DUMP_FOLDER} ]]
+  then
+    mkdir -p ${DUMP_FOLDER}
+  fi
 }
 
 ###############################################################################
@@ -166,23 +184,23 @@ _select_dump() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
-  _check_dependencies_docker
   _set_container_mysql
+  _ensure_dump_dir
 
-  # Run actions.
   if [[ "${1:-}" =~ ^list$ ]]; then
     _list_dump
   elif [[ "${1:-}" =~ ^dump-no-drush$ ]]; then
-    _ensure_dir
     _dump
   elif [[ "${1:-}" =~ ^dump$ ]]; then
-    _ensure_dir
     _dump_drush
   elif [[ "${1:-}" =~ ^restore$ ]]; then
-    # _drop_drush
     _restore
+  elif [[ "${1:-}" =~ ^drop-no-drush$ ]]; then
+    _drop ${2:-}
   elif [[ "${1:-}" =~ ^drop$ ]]; then
     _drop_drush
+  elif [[ "${1:-}" =~ ^create$ ]]; then
+    _create ${2:-}
   else
     _print_help
   fi

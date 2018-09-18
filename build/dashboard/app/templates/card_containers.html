@@ -1,0 +1,26 @@
+{% extends "card.html" %}
+
+{% block title -%}
+Containers
+<button title="Refresh list of containers." class="btn btn-sm btn-info float-right refresh-block" data-block="containers">
+  <span class="octicon octicon-sync" aria-hidden="true"></span>
+</button>
+{%- endblock %}
+
+{% block content -%}
+
+  {%
+    set headers = [
+      '',
+      'Port(s)<br><small>(Internal | Public)</small>',
+      'Name / IP',
+      'Status',
+      '',
+    ]
+  %}
+
+  {{ macros.table(headers, rows, 'containers') }}
+
+{%- endblock %}
+
+{% block footer_content %}<small><em>Note: For convenience this dashboard and related tools are hidden from this list.</em></small>{% endblock %}

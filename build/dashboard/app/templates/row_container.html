@@ -1,0 +1,51 @@
+{% import 'macros.html' as macros %}
+
+{% set row = [] %}
+
+{% set id = container.short_id %}
+
+{% set ports =  [] %}
+{% for port, host_port in container.ports.items() %}
+  {% if host_port != "private" %}
+    {% set port = port ~ ' > ' ~ host_port %}
+  {% endif %}
+  {% do ports.append(port) %}
+{% endfor %}
+
+{% set buttons = [
+  macros.btn('Logs', {'action': 'logs', 'container': id}, 'dropdown-item'),
+  macros.btn('Top', {'action': 'top', 'container': id}, 'dropdown-item'),
+] %}
+
+{% set view = [
+  macros.dropdown('View', buttons),
+] %}
+
+{% set buttons = [
+  macros.btn('Restart', {'action': 'restart', 'container': id, 'name': container.name, 'path': 'containers', 'class': 'container'}, 'dropdown-item refresh-line'),
+  macros.btn('Stop', {'action': 'stop', 'container': id, 'name': container.name, 'path': 'containers', 'class': 'container'}, 'dropdown-item refresh-line'),
+  macros.btn('Start', {'action': 'start', 'container': id, 'name': container.name, 'path': 'containers', 'class': 'container'}, 'dropdown-item refresh-line'),
+] %}
+
+{% if container.status == "exited" %}
+  {% do buttons.append(macros.btn('<span class="octicon octicon-x" aria-hidden="true"></span>Remove', {'action': 'remove', 'container': id, 'name': container.name, 'path': 'containers', 'class': 'container'}, 'dropdown-item refresh-line')) %}
+{% endif %}
+
+{% set action = [
+  macros.dropdown(container.status|capitalize, buttons, 'refresh-status', {'container': id}),
+] %}
+
+{% set ip = container.ip %}
+{% if container.ip != '' %}
+  {% set ip = '<code class="copy">' ~ container.ip ~ '</code>' %}
+{% endif %}
+
+{% set row = [
+  {'tag': 'th', 'value': container.service|capitalize},
+  '<small>' ~ '<br>'.join(ports) ~ '</small>',
+  '<code class="copy">' ~ container.name ~ '</code><br>' ~ ip,
+  ''.join(action),
+  ''.join(view),
+] %}
+
+{{ macros.row(row, id ~ ' container') }}

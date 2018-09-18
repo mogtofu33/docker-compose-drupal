@@ -1,14 +1,11 @@
-FROM composer:latest
+FROM python:3-alpine
 
-COPY app/ /var/www/html/
-RUN chown -R www-data: /var/www/html/
+COPY ./app /app
 
-WORKDIR /var/www/html
+WORKDIR /app
 
-RUN composer install
+RUN pip install -r requirements.txt
 
-EXPOSE 80
+ENTRYPOINT ["python"]
 
-VOLUME ["/var/www/html"]
-
-CMD ["php", "-S", "0.0.0.0:80", "-t", "/var/www/html/"]
+CMD ["main.py"]

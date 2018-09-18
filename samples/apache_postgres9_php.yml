@@ -41,8 +41,6 @@ services:
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
       # Web root access, optional but can help with multi sites.
       - 81:81
-      # Used by dashboard.
-      - "${APACHE_HOST_DASHBORAD_PORT:-8181}:8181"
     links:
       - php
     volumes:
@@ -52,9 +50,6 @@ services:
       - ./config/apache/vhost.conf:/etc/apache2/vhost.conf
       - ./config/apache/conf.d/:/etc/apache2/conf.d/
       - ./config/apache/ssl/:/etc/ssl/apache2/
-      # Used by dashboard and tools.
-      - ./build/dashboard/build:/var/www/dashboard
-      - ./tools:/var/www/dashboard/tools
       # Php FPM socket
       - sock:/sock
       ## If PgSQL, ease drush pgsql access.
@@ -67,17 +62,15 @@ services:
     image: mogtofu33/php:${PHP_VERSION:-7.2}
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
-      - ./config/php/${PHP_VERSION:-7.2}/php.ini:/etc/php${PHP_MAJOR_VERSION:-7}/php.ini
-      - ./config/php/${PHP_VERSION:-7.2}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf
-      - ./config/php/${PHP_VERSION:-7.2}/conf.d/:/etc/php${PHP_MAJOR_VERSION:-7}/conf.d/
-      - ./config/php/${PHP_VERSION:-7.2}/php-fpm.d/:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.d/
+      - ./config/php/${PHP_VERSION:-7.1}/php.ini:/etc/php${PHP_MAJOR_VERSION:-7}/php.ini
+      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf
+      - ./config/php/${PHP_VERSION:-7.1}/conf.d/:/etc/php${PHP_MAJOR_VERSION:-7}/conf.d/
+      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.d/:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.d/
       # Drush 9 alias and drushrc files (or any other config)
       - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml
       - ./config/drush/drush.yml:/etc/drush/drush.yml
-      # Used by dashboard and tools.
-      - ./build/dashboard/build:/var/www/dashboard
-      - ./tools:/var/www/dashboard/tools
-      - /var/run/docker.sock:/var/run/docker.sock
+      # Used by dashboard for accessing tools.
+      - ./tools:/tools:ro
       # Share db dump folder.
       - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
       # Php FPM socket
@@ -85,7 +78,7 @@ services:
       ## If PgSQL, ease drush pgsql access.
       - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
       ## If you have composer set locally, share cache to speed up.
-      - ${HOME}/.composer/cache:/composer/cache
+      # - REPLACE_WITH_COMPOSER_HOME_PATH/.composer/cache:/composer/cache
     links:
       # Choose database, uncomment service concerned below.
       - pgsql
@@ -93,9 +86,6 @@ services:
       - mailhog
     env_file: .env
     container_name: dcd-php
-    # Privileged is needed to access docker.sock
-    ## Not supported on Windows system yet. Cannot provide Dashboard.
-    privileged: true
     # Remove to avoid starting on system reboot.
     restart: always
   pgsql:
@@ -117,5 +107,33 @@ services:
       - "1025"
     ports:
       - "8025:8025"
+    ## Remove to avoid starting on system reboot.
+    restart: always
+  tools:
+    image: nginx:alpine
+    ports:
+      - "${HOST_TOOLS_PORT:-8008}:80"
+    volumes:
+      - ./tools:/tools:ro
+      - ./build/dashboard/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # Php FPM socket
+      - sock:/sock
+    env_file: .env
+    container_name: dcd-tools
+    restart: always
+  dashboard:
+    build: ./build/dashboard
+    ports:
+      - "${HOST_DASHBORAD_PORT:-8181}:5000"
+    volumes:
+      - ./build/dashboard/app:/app
+      - ./config/apache/vhost.conf:/app/vhost.conf:ro
+      - ./config/php/:/php:ro
+      - ./tools:/tools:ro
+      - .env:/app/stack.env:ro
+      # Access docker daemon.
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file: .env
+    container_name: dcd-dashboard
     ## Remove to avoid starting on system reboot.
     restart: always

@@ -1,0 +1,82 @@
+{% macro table(headers = [], rows = [], class = '') -%}
+<table class="table table-hover table-sm table-responsive-sm mb-0 {{ class }}">
+  {% if headers %}
+  <thead>
+    <tr>
+      {% for header in headers %}
+        <th>{{ header|safe }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  {% endif %}
+  <tbody>
+    {% for row in rows %}
+      {{ row|safe }}
+    {% endfor %}
+  </tbody>
+</table>
+{%- endmacro %}
+
+{% macro row(row = [], class = '') -%}
+  <tr class="{{ class }}">
+    {% for data in row %}
+      {% if data is mapping %}
+        <{{ data.tag }}>{{ data.value|safe }}</td>
+      {% else %}
+      <td>{{ data|safe }}</td>
+      {% endif %}
+    {% endfor %}
+  </tr>
+{%- endmacro %}
+
+{% macro extlink(text, href = '') -%}
+<a target="_blank" href="{{ href }}">
+  {{ text }}
+  <span class="octicon octicon-link-external" aria-hidden="true"></span>
+</a>
+{%- endmacro %}
+
+{% macro btn(text, datas = {}, class = 'btn-outline-dark', modal = True) -%}
+<button class="btn btn-sm {{ class }}"
+  {% if modal %}data-toggle="modal" data-target="#myModal"{% endif %}
+  {% if datas is mapping %}
+    {% for name, value in datas.items() %}data-{{ name }}="{{ value }}"{% endfor %}
+  {% endif %}
+  >
+  {{ text|safe }}
+</button>
+{%- endmacro %}
+
+{% macro extlinkbtn(text, href = '') -%}
+<a target="_blank" href="{{ href }}" class="btn btn-info btn-sm" role="button">
+  {{ text }} <span class="octicon octicon-link-external" aria-hidden="true"></span>
+</a>
+{%- endmacro %}
+
+{% macro extlinkbadge(href = '') -%}
+<small>
+  <a target="_blank" title="Open in a new window" href="{{ href }}" class="badge badge-light" role="button">
+    <span class="octicon octicon-link-external" aria-hidden="true"></span>
+  </a>
+</small>
+{%- endmacro %}
+
+{% macro dropdown(text, buttons, class, datas = {}) -%}
+<div class="dropdown">
+  <button class="btn btn-outline-dark dropdown-toggle {{ class }}" type="button" id="dropdownMenuButton"
+  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+  {% if datas is mapping %}
+  {% for name, value in datas.items() %}
+  data-{{ name }}="{{ value }}"
+  {% endfor %}
+  {% endif %}
+  >
+    {{ text }}
+  </button>
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+    {% for button in buttons %}
+      {{ button|safe }}
+    {% endfor %}
+  </div>
+</div>
+{%- endmacro %}

@@ -1,0 +1,49 @@
+{% extends "card.html" %}
+
+{% block title %}
+{% if data.containers.nginx %}
+  Nginx sites <small>(From config/nginx/default.conf)</small>
+  <div class="float-right">Nginx v{{ data.nginx.NGINX_VERSION }}</div>
+{% endif %}
+{% endblock %}
+
+{% block content -%}
+
+  {% if data.containers.nginx %}
+    {% set headers = ['Host', 'Container IP', 'Container Root'] %}
+    {% set rows = [] %}
+    {% set ports = data.containers.nginx.ports %}
+
+    {% for port in ports.items() -%}
+
+      {% set access_port = port[1] %}
+      {% set port =  port[0] %}
+      {% set url =  root_url %}
+
+      {% if access_port == '443' %}
+        {% set url = url|replace('http', 'https') %}
+      {% endif %}
+      {% if access_port == '443' or access_port == '80' %}
+        {% set access_port = '' %}
+      {% else %}
+        {% set access_port = ':' ~ access_port %}
+      {% endif %}
+
+      {% set link = macros.extlink(url ~ access_port, url ~ access_port) %}
+
+      {% set row = macros.row([link, port, '<code>' ~ data.nginx.root ~ '</code>']) %}
+      {% do rows.append(row) %}
+
+    {%- endfor %}
+
+    {{ macros.table(headers, rows) }}
+  {% endif %}
+{%- endblock %}
+
+{% block footer_content %}
+{% if data.containers.nginx %}
+  {% set nginx_url = root_url ~ ':' ~ data.env.NGINX_HOST_HTTP_PORT %}
+  {{ macros.btn('Nginx status', {'action': 'get', 'url': nginx_url ~ '/server-status', 'title': 'Server status'}, class = 'btn-info') }}
+  {{ macros.extlinkbadge(nginx_url ~ '/server-status') }}
+{% endif %}
+{% endblock %}

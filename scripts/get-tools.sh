@@ -40,19 +40,12 @@ source $_DIR/helpers/common.sh
 #
 # Print the program help information.
 _print_help() {
+  _help_logo
   cat <<HEREDOC
-  ____   ____   ____                         _
- |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
- | | | | |     | | | | '__| | | | '_ \ / _  | |
- | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
- |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
-                                |_|
-
 Helper to get third party tools, part of Docker Compose Drupal project.
 
 Usage:
   ${_ME} [install | update | delete]
-  ${_ME} -h | --help
 
 Options:
   -h --help  Show this screen.
@@ -122,6 +115,7 @@ _update() {
 }
 
 _delete() {
+  _prompt_yn
   for i in "${_PROGRAMS[@]:-}"
   do
     arr=($(echo "$i" | tr ':' "\n"))
@@ -146,7 +140,6 @@ _main() {
 
   _check_dependencies_git
 
-  # Run actions.
   if [[ "${1:-}" =~ ^install$ ]]
   then
     _install

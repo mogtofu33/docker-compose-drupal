@@ -28,9 +28,10 @@ done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
 if [ ! -f $_DIR/helpers/common.sh ]; then
-  echo -e "Missing helpers/common.sh file."
+  printf "[ERROR] Missing helpers/common.sh file.\\n"
   exit 1
 fi
+
 source $_DIR/helpers/common.sh
 
 ###############################################################################
@@ -44,23 +45,17 @@ source $_DIR/helpers/common.sh
 #
 # Print the program help information.
 _print_help() {
+  _help_logo
   cat <<HEREDOC
-  ____   ____   ____                         _
- |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
- | | | | |     | | | | '__| | | | '_ \ / _  | |
- | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
- |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
-                                |_|
-
 Helper to dump and restore PGSQL db with pg_dump and pg_restore.
 
 Usage:
-  ${_ME} [dump | restore | list]
-  ${_ME} -h | --help
+  ${_ME} [dump | restore | list | drop | create] [database (default drupal)]
 
 Options:
   -h --help  Show this screen.
 HEREDOC
+_help_options
 }
 
 _DUMP_FILE="dump.pg_dump"
@@ -69,62 +64,70 @@ _DUMP_FILE="dump.pg_dump"
 # Program Functions
 ###############################################################################
 
-_dump() {
-  _DUMP_FILE="dump_${_NOW}.pg_dump"
-  _docker_exec \
-    --user "${PGSQL_USER}" \
-    "${PROJECT_CONTAINER_PGSQL}" \
-      pg_dump -d "${POSTGRES_DB}" -U "${PGSQL_USER}" -hlocalhost -Fc -c -b -v -f ${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE} \
-      --exclude-table-data '*.cache*' --exclude-table-data '*.cachetags*' \
-      --exclude-table-data '*.watchdog*' --exclude-table-data '*.node_access*' \
-      --exclude-table-data '*.search_api_db_*' --exclude-table-data '*.sessions*' \
-      --exclude-table-data '*.sessions*' --exclude-table-data '*.webprofiler*'
+_create() {
+  _DB_NAME=${1:-$POSTGRES_DB}
+  _pgsql_exec \
+    createdb -e --owner="${PGSQL_USER}" "${_DB_NAME}"
+  _pgsql_exec \
+    psql -e -d ${_DB_NAME} -c "GRANT ALL ON database ${_DB_NAME} TO ${PGSQL_USER}"
+}
 
-  echo -e "Database dump saved to ${_DUMP_FILE}"
+_drop() {
+  _prompt_yn
+  _DB_NAME=${1:-"drupal"}
+  _pgsql_exec \
+    dropdb --if-exists "${_DB_NAME}"
+}
+
+_fix_user() {
+  _USER_NAME=${1:-"drupal"}
+  _pgsql_exec \
+    createuser "${_USER_NAME}"
+}
+
+_dump() {
+  _DB_NAME=${1:-$POSTGRES_DB}
+  _DUMP_FILE="dump_${_DB_NAME}_${_NOW}.pg_dump"
+  _pgsql_exec \
+    pg_dump -d "${_DB_NAME}" -U "${PGSQL_USER}" -hlocalhost -Fc -c -b -v -f ${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE} \
+    --exclude-table-data '*.cache*' --exclude-table-data '*.cachetags*' \
+    --exclude-table-data '*.watchdog*' --exclude-table-data '*.node_access*' \
+    --exclude-table-data '*.search_api_db_*' --exclude-table-data '*.sessions*' \
+    --exclude-table-data '*.sessions*' --exclude-table-data '*.webprofiler*'
+
+  printf "Database dump saved to %s\\n" ${_DUMP_FILE}
 }
 
 _restore() {
   _select_dump
-  echo -e "Restoring $_DUMP_FILE..."
   if [ ! -z "$_DUMP_FILE" ]; then
-    _docker_exec \
-      --user "${PGSQL_USER}" \
-      "${PROJECT_CONTAINER_PGSQL}" \
-        dropdb --if-exists "${POSTGRES_DB}"
-    _docker_exec \
-      --user "${PGSQL_USER}" \
-      "${PROJECT_CONTAINER_PGSQL}" \
-        createdb -e --owner="${PGSQL_USER}" "${POSTGRES_DB}"
-    _docker_exec \
-      --user "${PGSQL_USER}" \
-      "${PROJECT_CONTAINER_PGSQL}" \
-        psql -e -d ${POSTGRES_DB} -c "GRANT ALL ON database ${POSTGRES_DB} TO ${PGSQL_USER}"
-    _docker_exec \
-      --user "${PGSQL_USER}" \
-      "${PROJECT_CONTAINER_PGSQL}" \
-        pg_restore -h localhost -p 5432 --no-owner --role="${PGSQL_USER}" -U "${PGSQL_USER}" -d "${POSTGRES_DB}" -v ${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}
+    printf "Restoring %s...\\n" $_DUMP_FILE
+    _drop
+    _create
+    _pgsql_exec \
+      pg_restore -h localhost -p 5432 --no-owner --role="${PGSQL_USER}" -U "${PGSQL_USER}" -d "${POSTGRES_DB}" -v ${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}
   fi
 }
 
 _list_dump() {
-  echo -e "Available dump files:"
-  _docker_exec "${PROJECT_CONTAINER_PGSQL}" ls -lah "${PROJECT_CONTAINER_DUMP}"
+  printf "Available dump files:\\n"
+  ls -lAh "${DUMP_FOLDER}"
 }
 
-_ensure_dir() {
-  # No interactive, ensure permissions.
-  $_DOCKER exec $tty "${PROJECT_CONTAINER_PGSQL}" chown -R ${PGSQL_USER_ID} "${PROJECT_CONTAINER_DUMP}"
-}
+# _ensure_dir() {
+#   # No interactive, ensure permissions.
+#   $_DOCKER exec $tty "${PROJECT_CONTAINER_PGSQL}" chown -R ${PGSQL_USER_ID} "${PROJECT_CONTAINER_DUMP}"
+# }
 
 _select_dump() {
 
-  _DUMPS=$($_DOCKER exec --user "${PGSQL_USER}" "${PROJECT_CONTAINER_PGSQL}"  ls "${PROJECT_CONTAINER_DUMP}")
+  _DUMPS=$(ls "${DUMP_FOLDER}")
   _DUMPS=(`echo $_DUMPS | sed 's/ /\n/g'`)
 
-  echo -e "Select a dump file:"
+  printf "Select a dump file:\\n"
   select opt in "${_DUMPS[@]}" "Cancel"; do
     case $opt in
-      *.pg_dump)
+      *.pg_dump|*.pgdump)
         _DUMP_FILE=$opt
         break
         ;;
@@ -134,10 +137,17 @@ _select_dump() {
         break
         ;;
       *)
-        echo "This is not a number"
+        echo "This is not a number or wrong selection/file format"
         ;;
     esac
   done
+
+}
+
+_pgsql_exec() {
+  $_DOCKER exec \
+    "${PROJECT_CONTAINER_PGSQL}" \
+      sh -c $@
 }
 
 ###############################################################################
@@ -156,14 +166,19 @@ _main() {
   _check_dependencies_docker
   _set_container_pgsql
 
-  # Run actions.
   if [[ "${1:-}" =~ ^list$ ]]; then
     _list_dump
   elif [[ "${1:-}" =~ ^dump$ ]]; then
-    _ensure_dir
+    # _ensure_dir
     _dump
   elif [[ "${1:-}" =~ ^restore$ ]]; then
     _restore
+  elif [[ "${1:-}" =~ ^drop$ ]]; then
+    _drop ${2:-}
+  elif [[ "${1:-}" =~ ^create$ ]]; then
+    _create ${2:-}
+  elif [[ "${1:-}" =~ ^fix$ ]]; then
+    _fix_user ${2:-}
   else
     _print_help
   fi
@@ -171,4 +186,3 @@ _main() {
 
 # Call `_main` after everything has been defined.
 _main "$@"
-
