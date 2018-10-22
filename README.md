@@ -111,7 +111,7 @@ _OR_ locally if you have [Composer](https://getcomposer.org/download/) installed
 composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal --stability dev --no-interaction
 ```
 
-#### Install Drupal 8
+#### Option 1: Install Drupal 8
 
 To use PostGreSQL change _mysql_ to _pgsql_
 
@@ -119,6 +119,92 @@ You can replace **standard** by an other profile as **minimal** or **demo_umami*
 
 ```bash
 docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si standard \
+    --root=/var/www/localhost/drupal/web \
+    --account-name=admin \
+    --account-pass=password \
+    --db-url=mysql://drupal:drupal@mysql/drupal
+```
+
+#### Option 2: Install a Drupal 8 advanced template
+
+See my other project based on drupal_project with more advanced integration but not a distribution (mean you don't need to rely on the distribution maintainers).
+
+* [Drupal Composer advanced template](https://gitlab.com/mog33/drupal-composer-advanced-template)
+
+Assuming we use composer from docker:
+
+```bash
+# Step 1: Grab code
+git clone https://gitlab.com/mog33/drupal-composer-advanced-template.git -b 8.x-dev data/www/drupal
+# Step 2: Install
+docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si config_installer \
+    config_installer_sync_configure_form.sync_directory="../config/sync" \
+    --root=/var/www/localhost/drupal/web \
+    --account-name=admin \
+    --account-pass=password \
+    --db-url=mysql://drupal:drupal@mysql/drupal
+```
+
+#### Option 3: Install a Drupal 8 Distribution
+
+Drupal provide some usefull [distributions](https://www.drupal.org/project/project_distribution?f%5B2%5D=drupal_core%3A7234) to help you start with a more complete Drupal 8 out of the box.
+
+Here is a non exhaustive list based on top 4, assuming we use composer from docker:
+
+* [Lightning](https://www.drupal.org/project/lightning)
+
+```bash
+# Step 1: Grab code
+docker exec -it -u apache dcd-php \
+    composer create-project acquia/lightning-project \
+    /var/www/localhost/drupal --no-interaction
+# Step 2: Install
+docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si lightning \
+    --root=/var/www/localhost/drupal/web \
+    --account-name=admin \
+    --account-pass=password \
+    --db-url=mysql://drupal:drupal@mysql/drupal
+```
+
+* [Thunder](https://www.drupal.org/project/thunder)
+
+```bash
+# Step 1: Grab code
+docker exec -it -u apache dcd-php \
+    composer create-project burdamagazinorg/thunder-project \
+    /var/www/localhost/drupal --no-interaction
+# Step 2: Install
+docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si thunder \
+    --root=/var/www/localhost/drupal/web \
+    --account-name=admin \
+    --account-pass=password \
+    --db-url=mysql://drupal:drupal@mysql/drupal
+```
+
+* [Open social](https://www.drupal.org/project/social)
+
+```bash
+# Step 1: Grab code
+docker exec -it -u apache dcd-php \
+    composer create-project goalgorilla/social_template:dev-master \
+    /var/www/localhost/drupal --no-interaction
+# Step 2: Install
+docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si social \
+    --root=/var/www/localhost/drupal/web \
+    --account-name=admin \
+    --account-pass=password \
+    --db-url=mysql://drupal:drupal@mysql/drupal
+```
+
+* [Varbase](https://www.drupal.org/project/varbase)
+
+```bash
+# Step 1: Grab code
+docker exec -it -u apache dcd-php \
+    composer create-project Vardot/varbase-project:^8.5.0 \
+    /var/www/localhost/drupal --no-interaction
+# Step 2: Install
+docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si varbase \
     --root=/var/www/localhost/drupal/web \
     --account-name=admin \
     --account-pass=password \

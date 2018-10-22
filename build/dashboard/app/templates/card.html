@@ -1,0 +1,18 @@
+{% import 'macros.html' as macros %}
+
+{% set root_url = request.url_root|replace(':' ~ data.env.HOST_DASHBORAD_PORT ~ '/', '') %}
+{% set tools_url = root_url ~ ':' ~ data.env.HOST_TOOLS_PORT %}
+
+<section class="card mb-3">
+  <div class="card-header">{% block title %}{% endblock %}</div>
+
+  {% block content %}
+  {% endblock %}
+
+  {% block footer %}
+  <div class="card-footer">
+      {% block footer_content %}{% endblock %}
+  </div>
+  {% endblock %}
+
+</section>

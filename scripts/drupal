@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#
+# Simple wrapper for drupal console with for docker4drupal.
+#
+# Depends on:
+#  docker
+#  docker4drupal
 
 _SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a symlink
@@ -9,12 +15,10 @@ done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
 if [ ! -f $_DIR/helpers/common.sh ]; then
-  echo -e "Missing helpers/common.sh file."
+  echo -e "(ERROR] Missing helpers/common.sh file."
   exit 1
 fi
 source $_DIR/helpers/common.sh
 
-_docker_exec \
-  --user "${PROJECT_CONTAINER_USER}" \
-  "${PROJECT_CONTAINER_NAME}" \
-  "${DRUPAL_BIN}" "${PROJECT_CONTAINER_ROOT}" "$@"
+_docker_exec_noi \
+  "${DRUPAL_BIN}" --root="${DRUPAL_DOCROOT}" "$@"

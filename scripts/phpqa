@@ -30,7 +30,7 @@ if [ ! -f $_DIR/helpers/common.sh ]; then
   echo -e "Missing helpers/common.sh file."
   exit 1
 fi
-source $_DIR/helpers/common.sh
+source $_DIR/helpers/common.sh skip-env
 
 ###############################################################################
 # Help
@@ -43,22 +43,15 @@ source $_DIR/helpers/common.sh
 #
 # Print the program help information.
 _print_help() {
+  _help_logo
   cat <<HEREDOC
-  ____   ____   ____                         _
- |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
- | | | | |     | | | | '__| | | | '_ \ / _  | |
- | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
- |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
-                                |_|
-
 Helper to execute Composer as a standalone docker container, see
 https://getcomposer.org/doc/03-cli.md for commands details.
-For require command it's recommended to use --ignore-platform-
-and --no-scripts options.
+For require command it's recommended to use --ignore-platform- and
+--no-scripts options.
 
 Usage:
   ${_ME} [tools |... ]
-  ${_ME} -h | --help
 
 Options:
   -h --help  Show this screen.
@@ -77,8 +70,6 @@ HEREDOC
 # Description:
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
-
-  _check_dependencies_docker
 
   # Avoid complex option parsing when only one program option is expected.
   if [[ "${1:-}" =~ ^-h|--help$  ]]

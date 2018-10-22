@@ -1,0 +1,32 @@
+{% extends "card.html" %}
+
+{% block title %} Development tools {% endblock %}
+
+{% block content -%}
+
+  {% set headers = [] %}
+  {% set rows = [] %}
+
+  {% for tool in data.tools.items() %}
+
+    {% set name = tool[0]|capitalize %}
+    {% set url = tools_url ~ '/' ~ tool[1] %}
+    {% set links = [] %}
+
+    {% if tool[0] == 'adminer' or name == 'Adminerextended' %}
+      {% do links.append(macros.extlinkbtn('Access', url)) %}
+    {% else %}
+      {% do links.append(macros.btn('Access', {'action': 'get', 'url': url, 'title': name}, 'btn-info')) %}
+      {% do links.append(macros.extlinkbadge(url)) %}
+    {% endif %}
+
+    {% set row = macros.row([{'tag': 'th', 'value': name}, ''.join(links)]) %}
+    {% do rows.append(row) %}
+
+  {%- endfor %}
+
+  {{ macros.table(headers, rows) }}
+
+{%- endblock %}
+
+{% block footer %}{% endblock %}

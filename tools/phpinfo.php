@@ -10,6 +10,12 @@
 define('PPI_VERSION', '2016-35');
 define('PPI_GITHUB_SOURCE_PATH', 'https://raw.githubusercontent.com/SynCap/PHP-Info/master/info.php');
 
+if (isset($_GET['format']) && $_GET['format'] == 'json') {
+	header('Content-type: application/json');
+	echo json_encode(['version' => PHP_VERSION] + ini_get_all(NULL, FALSE));
+	die();
+}
+
 /*
 
   Very old school mini router for some additional commands

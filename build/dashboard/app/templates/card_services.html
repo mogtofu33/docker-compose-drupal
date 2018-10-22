@@ -1,0 +1,38 @@
+{% extends "card.html" %}
+
+{% block title %}Services{% endblock %}
+
+{% block content -%}
+  {% set headers = ['', 'Host access', '	Container access'] %}
+  {% set rows = [] %}
+
+  {% for name, container in data.containers.items() %}
+
+    {% set hosts =  [] %}
+    {% set ports =  [] %}
+    {% for port, host_port in container.ports.items() %}
+      {% if host_port != "private" %}
+        {% set url = root_url ~ ':' ~ host_port %}
+        {% if host_port == '443' %}
+          {% set url = root_url|replace('http', 'https') %}
+        {% endif %}
+        {% set link = macros.extlink(url, url) %}
+        {% do ports.append(link) %}
+      {% endif %}
+      {% do hosts.append(container.service ~ ':' ~ port) %}
+    {% endfor %}
+
+    {% set row = macros.row([
+      {'tag': 'th', 'value': name|capitalize},
+      '<br>'.join(ports),
+      '<br>'.join(hosts),
+    ], container.short_id ~ ' service') %}
+    {% do rows.append(row) %}
+
+  {%- endfor %}
+
+  {{ macros.table(headers, rows, 'services') }}
+
+{%- endblock %}
+
+{% block footer_content %}<small>Note: For convenience this dashboard and related tools are hidden from this list.</small>{% endblock %}

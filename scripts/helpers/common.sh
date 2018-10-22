@@ -1,11 +1,4 @@
 #!/usr/bin/env bash
-# ____   ____   ____                         _
-# |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
-# | | | | |     | | | | '__| | | | '_ \ / _  | |
-# | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
-# |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
-#                               |_|
-#
 # Helper to have common bash settings for most of the scripts.
 # Based on Bash simple Boilerplate.
 # https://github.com/Mogtofu33/docker-compose-drupal
@@ -57,6 +50,9 @@ while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a sym
 done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
+# Use on a lot of scripts.
+STACK_ROOT=${_DIR%"scripts/helpers"}
+
 ###############################################################################
 # Die
 ###############################################################################
@@ -91,29 +87,58 @@ die() {
 # Variables
 ###############################################################################
 
-# Get Stack values.
+# Get Stack values if any.
 if [ -f $_DIR/../../.env ]; then
   source $_DIR/../../.env
 fi
 
-# Get global values.
+# Get scripts values.
 if [ -f $_DIR/../.env ]; then
   source $_DIR/../.env
 fi
 
+# Get local overrides.
+if [ -f $_DIR/../.env.local ]; then
+  source $_DIR/../.env.local
+fi
+
+# Basic variables.
 _NOW="$(date +'%Y%m%d.%H-%M-%S')"
 tty=
 tty -s && tty=--tty
 
-_DRUPAL_ROOT="/drupal"
-
-_DOCKER=$(which docker)
 _COMPOSER=$(which composer)
 _DOCKER=$(which docker)
+_COLUMN=$(tput cols)
 
 ###############################################################################
 # Common Program Functions
 ###############################################################################
+
+# Helpers to run docker exec command.
+_docker_exec() {
+  $_DOCKER exec \
+    $tty \
+    --interactive \
+    -e COLUMNS=$_COLUMN \
+    "$@"
+}
+
+_docker_exec_noi() {
+  $_DOCKER exec \
+    $tty \
+    --user ${PROJECT_UID} \
+    -e COLUMNS=$_COLUMN \
+    "${PROJECT_CONTAINER_NAME}" \
+    "$@"
+}
+
+_docker_exec_noi_u() {
+  $_DOCKER exec \
+    -e COLUMNS=$_COLUMN \
+    "${PROJECT_CONTAINER_NAME}" \
+    "$@"
+}
 
 # Helper to run docker run command.
 _docker_run() {
@@ -121,106 +146,68 @@ _docker_run() {
     $tty \
     --interactive \
     --rm \
-    --user "${LOCAL_UID}":"${LOCAL_GID}" \
+    --user $(id -u):$(id -g) \
     --volume /etc/passwd:/etc/passwd:ro \
     --volume /etc/group:/etc/group:ro \
     "$@"
 }
 
-# Helper to run docker exec command.
-_docker_exec() {
-  $_DOCKER exec \
-    $tty \
-    --interactive \
-    "$@"
-}
-
-_check_dependencies_docker() {
-
-  if ! [ -x "$(command -v docker)" ]; then
-    die "Docker is not installed. Please install to use this script.\n"
-  fi
-
-}
-
-_check_dependencies_git() {
-
-  if ! [ -x "$(command -v git)" ]; then
-    die "Git is not installed. Please install to use this script.\n"
-  fi
-
-}
-
-_check_dependencies_composer() {
-
-  if ! [ -x "$(command -v composer)" ]; then
-    die "Composer is not installed. Please install to use this script.\n"
-  fi
-
-}
-
-_check_dependencies_compass() {
-
-  if ! [ -x "$(command -v compass)" ]; then
-    die "Compass is not installed. Please install to use this script.\n"
-  fi
-
-}
-
+# Helper to ensure mysql container is runing.
 _set_container_mysql() {
-
-  RUNNING=$(docker ps -f "name=mysql" -f "status=running" -q | head -1 2> /dev/null)
+  RUNNING=$(docker ps -f "name=mariadb" -f "name=mysql" -f "status=running" -q | head -1 2> /dev/null)
   if [ -z "$RUNNING" ]; then
-    die "No running MySQL container found, do you run docker-compose up -d ?"
+    die "No running MySQL container found, did you run docker-compose up -d ?"
   else
     PROJECT_CONTAINER_MYSQL=$(docker inspect --format="{{ .Name }}" $RUNNING)
     PROJECT_CONTAINER_MYSQL="${PROJECT_CONTAINER_MYSQL///}"
   fi
-
 }
 
+# Helper to ensure postgres container is runing.
 _set_container_pgsql() {
-
   RUNNING=$(docker ps -f "name=pgsql" -f "status=running" -q | head -1 2> /dev/null)
   if [ -z "$RUNNING" ]; then
-    die "No running PGSQL container found, do you run docker-compose up -d ?"
+    die "No running PGSQL container found, did you run docker-compose up -d ?"
   else
     PROJECT_CONTAINER_PGSQL=$(docker inspect --format="{{ .Name }}" $RUNNING)
     PROJECT_CONTAINER_PGSQL="${PROJECT_CONTAINER_PGSQL///}"
   fi
-
 }
 
-_set_project_container_name() {
-
+# Helper to ensure php container is runing.
+_set_project_container_php() {
     RUNNING=$(docker ps -f "name=php" -f "status=running" -q | head -1 2> /dev/null)
   if [ -z "$RUNNING" ]; then
-    die "No running PHP container found, do you run docker-compose up -d ?"
+    die "No running PHP container found, did you run docker-compose up -d ?"
   else
     PROJECT_CONTAINER_NAME=$(docker inspect --format="{{ .Name }}" $RUNNING)
     PROJECT_CONTAINER_NAME="${PROJECT_CONTAINER_NAME///}"
   fi
-
 }
 
-_set_drush_bin() {
-
-  # Check if this drush is valid.
-  TEST_DRUSH=$(docker exec $PROJECT_CONTAINER_NAME cat $DRUSH_BIN 2> /dev/null)
-  if [ $? -eq 1 ]; then
-    die "Project do not contain drush, please install or check path. Path tested: ${PROJECT_CONTAINER_NAME}:${DRUSH_BIN}"
-  fi
-
+# A logo, because it's cool.
+_help_logo() {
+  cat <<HEREDOC
+   ___  _____  __  __  ____    ___   ___  ____  ____  ____  ____  ___  
+  / __)(  _  )(  \/  )( ___)  / __) / __)(  _ \(_  _)(  _ \(_  _)/ __) 
+  \__ \ )(_)(  )    (  )__)   \__ \( (__  )   / _)(_  )___/  )(  \__ \ 
+  (___/(_____)(_/\/\_)(____)  (___/ \___)(_)\_)(____)(__)   (__) (___/ 
+HEREDOC
 }
 
-_set_drupal_bin() {
-
-  # Check if this drupal console is valid.
-  TEST_DRUPAL=$(docker exec $PROJECT_CONTAINER_NAME cat $DRUPAL_BIN 2> /dev/null)
-  if [ $? -eq 1 ]; then
-    die "Project do not contain Drupal Console, please install or check path. Path tested: ${PROJECT_CONTAINER_NAME}:${DRUPAL_BIN}"
-  fi
-
+###############################################################################
+# _prompt_yn()
+#
+# Description:
+#   Display a simple yes/no prompt and stop if no.
+_prompt_yn() {
+  printf "Are you sure?\\n"
+  select yn in "Yes" "No"; do
+      case $yn in
+          Yes ) break;;
+          No ) die "Canceled";;
+      esac
+  done
 }
 
 ###############################################################################
@@ -233,11 +220,10 @@ _set_drupal_bin() {
 #   Entry point for all programs, check and set minimum variables.
 _init() {
 
-  _set_project_container_name
-  _set_drush_bin
-  _set_drupal_bin
+  # The php container is used basically for all scripts.
+  _set_project_container_php
 
 }
 
 # Call `_init` after everything has been defined.
-_init
+_init $@

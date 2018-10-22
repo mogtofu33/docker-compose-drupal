@@ -1,0 +1,44 @@
+{
+    "env": {
+        "vhost": "/config/vhost.conf",
+        "nginx": "/config/default.conf",
+        "tools": "/tools",
+        "phpinfo": "http://tools/phpinfo.php",
+        "stack": "/config/stack.env"
+    },
+    "hide": [
+        "dcd-tools",
+        "dcd-dashboard"
+    ],
+    "db_services": [
+        "mysql",
+        "pgsql"
+    ],
+    "blocks": {
+        "left": [
+            "vhost",
+            "nginx",
+            "containers",
+            "services"
+        ],
+        "right": [
+            "tools",
+            "mysql",
+            "pgsql",
+            "php"
+        ]
+    },
+    "phpinfo": [
+        "version",
+        "memory_limit",
+        "max_execution_time",
+        "upload_max_filesize",
+        "max_input_vars",
+        "display_errors",
+        "date.timezone",
+        "sendmail_path",
+        "opcache.enable",
+        "xdebug.default_enable",
+        "xdebug.max_nesting_level"
+    ]
+}

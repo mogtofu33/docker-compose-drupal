@@ -1,0 +1,24 @@
+{% extends "card.html" %}
+
+{% block title %}PHP information{% endblock %}
+
+{% block content -%}
+  {% set headers = [] %}
+  {% set rows = [] %}
+
+  {% if data.php is mapping %}
+  {% for info in data.php.items() -%}
+    {% if info[0] in data.settings.phpinfo %}
+      {% set data = {'tag': 'th', 'value': info[0]} %}
+      {% set row = macros.row([data, info[1]]) %}
+      {% do rows.append(row) %}
+    {% endif %}
+  {%- endfor %}
+  {% endif %}
+
+  {{ macros.table(headers, rows) }}
+{% endblock %}
+
+{% block footer_content %}
+<small>View more details in the server's <a target="_blank" href="{{ tools_url }}/phpinfo.php">phpinfo() <span class="octicon octicon-link-external" aria-hidden="true"></span></a> report</small>
+{% endblock %}

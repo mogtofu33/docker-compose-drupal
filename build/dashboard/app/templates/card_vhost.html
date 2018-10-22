@@ -1,0 +1,52 @@
+{% extends "card.html" %}
+
+{% block title %}
+{% if data.containers.apache %}
+  Apache sites <small>(From config/apache/vhost.conf)</small>
+{% endif %}
+{% endblock %}
+
+{% block content -%}
+  {% if data.containers.apache %}
+    {% set headers = ['Host', 'Container IP', 'Container Root'] %}
+    {% set rows = [] %}
+    {% set ports_mapping = data.containers.apache.ports %}
+
+    {% for vhost in data.vhost -%}
+
+        {% set info =  vhost.items()|first %}
+        {% set port =  info|first|replace('*:', '') %}
+        {% set host_port = ports_mapping.get(port, port) %}
+        {% set root =  info[1]['DocumentRoot'] %}
+        {% set url =  root_url %}
+
+        {% if host_port == '443' %}
+          {% set url = url|replace('http', 'https') %}
+        {% endif %}
+        {% if host_port == '443' or host_port == '80' %}
+          {% set access_port = '' %}
+        {% else %}
+          {% set access_port = ':' ~ host_port %}
+        {% endif %}
+
+        {% set link = macros.extlink(url ~ access_port, url ~ access_port) %}
+
+        {% set row = macros.row([link, port, '<code>' ~ root ~ '</code>']) %}
+        {% do rows.append(row) %}
+
+    {%- endfor %}
+
+    {{ macros.table(headers, rows) }}
+  {% endif %}
+{%- endblock %}
+
+{% block footer_content %}
+  {% if data.containers.apache %}
+    {% set apache_url = root_url ~ ':' ~ data.env.APACHE_HOST_ROOT_PORT %}
+    {{ macros.btn('Apache status', {'action': 'get', 'url': apache_url ~ '/server-status', 'title': 'Server status'}, class = 'btn-info') }}
+    {{ macros.extlinkbadge(apache_url ~ '/server-status') }}
+
+    {{ macros.btn('Apache info', {'action': 'get', 'url': apache_url ~ '/server-info', 'title': 'Server info'}, class = 'btn-info') }}
+    {{ macros.extlinkbadge(apache_url ~ '/server-info') }}
+  {% endif %}
+{% endblock %}
