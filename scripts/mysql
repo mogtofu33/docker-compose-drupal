@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Helper to run mysql dump/restore with docker4drupal.
+# Helper to run mysql dump/restore with docker4drupal or dockerComposeDrupal.
 #
 # Usage:
 #   mysql dump | restore
 #
 # Depends on:
 #  docker
-#  docker4drupal
+#  docker4drupal or dockerComposeDrupal
 #
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com

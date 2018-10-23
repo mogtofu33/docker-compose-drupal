@@ -14,8 +14,6 @@ services:
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
       # Web root access, optional but can help with multi sites.
       - "${APACHE_HOST_ROOT_PORT:-88}:81"
-    links:
-      - php
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
       # Apache configuration with SSL support.
@@ -28,8 +26,7 @@ services:
       ## If PgSQL, ease drush pgsql access.
       - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
     env_file: .env
-    container_name: dcd-apache
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-apache
   nginx:
     image: nginx:alpine
     ports:
@@ -41,8 +38,7 @@ services:
       # Php FPM socket
       - sock:/sock
     env_file: .env
-    container_name: dcd-nginx
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-nginx
   php:
     image: mogtofu33/php:${PHP_VERSION:-7.1}
     volumes:
@@ -63,7 +59,7 @@ services:
       ## If PgSQL, ease drush pgsql access.
       - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
       ## If you have composer set locally, share cache to speed up.
-      # - REPLACE_WITH_COMPOSER_HOME_PATH/.composer/cache:/composer/cache
+      # - ${HOME:-}/.composer/cache:/composer/cache
     links:
       # Choose database, uncomment service concerned below.
       - mysql
@@ -75,9 +71,7 @@ services:
       - mailhog
       # - varnish
     env_file: .env
-    container_name: dcd-php
-    # Remove to avoid starting on system reboot.
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-php
   mysql:
     image: mariadb:latest
     expose:
@@ -90,7 +84,7 @@ services:
       - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
       - ./config/mysql:/etc/mysql
     env_file: .env
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-mysql
   pgsql:
     image: postgres:alpine
     expose:
@@ -102,44 +96,44 @@ services:
       # Add pg_pass to ease drush access.
       - ./config/pgsql/.pg_pass:/home/postgres/.pg_pass
     env_file: .env
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-pgsql
   mailhog:
     image: mailhog/mailhog:latest
     expose:
       - "1025"
     ports:
       - "8025:8025"
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-mailhog
   memcache:
     image: memcached:alpine
     expose:
       - "11211"
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-memcache
   redis:
     image: redis:alpine
     expose:
       - "6379"
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-redis
   solr:
     build: ./build/solr-${SOLR_VERSION:-7}
     ports:
       - "8983:8983"
     environment:
       - EXTRA_ACCESS="/solr/drupal"
-    restart: always
-  varnish:
-    image: wodby/varnish:4.1-3.0.7
-    depends_on:
-      - apache
-      # - nginx
-    environment:
-      VARNISH_SECRET: secret
-      VARNISH_BACKEND_HOST: apache
-      # VARNISH_BACKEND_HOST: nginx
-      VARNISH_BACKEND_PORT: 80
-      VARNISH_CONFIG_PRESET: drupal
-      VARNISH_PURGE_EXTERNAL_REQUEST_HEADER: X-Real-IP
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-solr
+  # varnish:
+  #   image: wodby/varnish:4.1-3.0.7
+  #   depends_on:
+  #     - apache
+  #     # - nginx
+  #   environment:
+  #     VARNISH_SECRET: secret
+  #     VARNISH_BACKEND_HOST: apache
+  #     # VARNISH_BACKEND_HOST: nginx
+  #     VARNISH_BACKEND_PORT: 80
+  #     VARNISH_CONFIG_PRESET: drupal
+  #     VARNISH_PURGE_EXTERNAL_REQUEST_HEADER: X-Real-IP
+  #   container_name: ${PROJECT_NAME:-dcd}-varnish
   tools:
     image: nginx:alpine
     ports:
@@ -150,8 +144,7 @@ services:
       # Php FPM socket
       - sock:/sock
     env_file: .env
-    container_name: dcd-tools
-    restart: always
+    container_name: ${PROJECT_NAME:-dcd}-tools
   dashboard:
     build: ./build/dashboard
     ports:
@@ -166,15 +159,15 @@ services:
       # Access docker daemon.
       - /var/run/docker.sock:/var/run/docker.sock
     env_file: .env
-    container_name: dcd-dashboard
-    restart: always
-  portainer:
-    image: portainer/portainer
-    ports:
-      - "9000:9000"
-    command: --no-auth -H unix:///var/run/docker.sock
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+    container_name: ${PROJECT_NAME:-dcd}-dashboard
+  # portainer:
+  #   image: portainer/portainer
+  #   ports:
+  #     - "9000:9000"
+  #   command: --no-auth -H unix:///var/run/docker.sock
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   container_name: ${PROJECT_NAME:-dcd}-portainer
 
 volumes:
   sock:

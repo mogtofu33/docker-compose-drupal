@@ -4,7 +4,7 @@
 #
 # Depends on:
 #  docker
-#  a docker compose stack, docker4drupal or dockerComposeDrupal
+#  docker4drupal or dockerComposeDrupal
 
 _SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a symlink

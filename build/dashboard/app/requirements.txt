@@ -1,5 +1,5 @@
 flask>=1.0.2
-flask-debug>=0.4.3
+#flask-debug>=0.4.3
 docker>=3.5.0
 apacheconfig>=0.2.7
 python-dotenv>=0.9.1

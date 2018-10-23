@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Download and install Drupal 8 projects for docker4drupal.
+# Download and install Drupal 8 projects for docker4drupal or dockerComposeDrupal.
 #
 # Usage:
 #   install.sh list | install
 #
 # Depends on:
 #  docker
-#  docker4drupal
+#  docker4drupal or dockerComposeDrupal
 #
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
@@ -164,23 +164,53 @@ _download_composer_contenta() {
   rm -f "download-contenta.sh"
 }
 
-# _download_git()
+# _download_curl()
 #
 # Description:
-#   Download with git based on an url.
-_download_git() {
+#   Download with curl based on an url with a tar.gz archive.
+_download_curl() {
 
-  _docker_exec_noi \
-    git clone $__PROJECT ${DRUPAL_ROOT}
+  # Download the archive, extract and move to the container.
+  curl -fSL "${__PROJECT}" -o drupal.tar.gz
+
+  $_DOCKER cp drupal.tar.gz "${PROJECT_CONTAINER_NAME}":${WEB_ROOT}/
+
+  _docker_exec_noi_u \
+    tar -xzf ${WEB_ROOT}/drupal.tar.gz -C ${WEB_ROOT}
+
+  _docker_exec_noi_u \
+    mv ${WEB_ROOT}/drupal-composer-advanced-template-8.x-dev ${WEB_ROOT}/drupal
+
+  _docker_exec_noi_u \
+    chown ${PROJECT_UID}:${PROJECT_UID} ${DRUPAL_ROOT}
+
+  # Fix composer cache because we are root. Fix www folder.
+  _docker_exec_noi_u \
+    mkdir -p /.composer/cache
+
+  _docker_exec_noi_u \
+    chown -R ${PROJECT_UID}:${PROJECT_UID} /.composer
+
+  _docker_exec_noi_u \
+    chown -R ${PROJECT_UID}:${PROJECT_UID} ${WEB_ROOT}
+
+  # Cleanup.
+  _docker_exec_noi_u \
+    rm -f ${WEB_ROOT}/drupal.tar.gz
+  rm -f drupal.tar.gz
 
   # Setup Drupal 8 composer project.
   _docker_exec_noi \
-    composer install --working-dir="${DRUPAL_ROOT}" --no-suggest --no-interaction
+    composer install --working-dir="${DRUPAL_ROOT}" --no-suggest --no-interaction -vvv
 
   _docker_exec_noi \
-    composer install-boostrap-sass --working-dir="${DRUPAL_ROOT}"
+    composer install-boostrap-sass --working-dir="${DRUPAL_ROOT}" -vvv
 
-  printf "[warning] Compile manually from your Drupal code root:\\ncompass compile web/themes/custom/bootstrap_sass"
+  if [ -x "$(command -v compass)" ]; then
+    compass compile $HOST_WEB_ROOT/$DRUPAL_SUBROOT/web/themes/custom/bootstrap_sass
+  else
+    printf "[warning] Compile manually from your Drupal code root:\\ncompass compile web/themes/custom/bootstrap_sass"
+  fi
 }
 
 # _setup()
@@ -266,10 +296,10 @@ _setup_contenta() {
 _setup_advanced() {
 
   # https://gitlab.com/mog33/drupal-composer-advanced-template#drupal-installation
-  curl --silent --output settings.php "https://gitlab.com/mog33/drupal-composer-advanced-template/blob/8.x-dev/env.settings.php"
+  curl --silent --output settings.php "https://gitlab.com/mog33/drupal-composer-advanced-template/raw/8.x-dev/env.settings.php?inline=false"
   $_DOCKER cp settings.php "${PROJECT_CONTAINER_NAME}":${DRUPAL_ROOT}/web/sites/default/
 
-  curl --silent --output drupal.env "https://gitlab.com/mog33/drupal-composer-advanced-template/blob/8.x-dev/.env.example"
+  curl --silent --output drupal.env "https://gitlab.com/mog33/drupal-composer-advanced-template/raw/8.x-dev/.env.example?inline=false"
   echo "MYSQL_DATABASE=$DB_NAME" >> "drupal.env"
   echo "MYSQL_HOSTNAME=$DB_HOST" >> "drupal.env"
   echo "MYSQL_USER=$DB_USER" >> "drupal.env"
@@ -286,7 +316,19 @@ _setup_advanced() {
     --account-pass="password" \
     --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 
-  printf "[info] Copy and rename example.settings.*.php at the root of this project to web/sites/default/settings.*.php and edit to adapt environment switch.\\n"
+  # Copy settings and fix permission.
+  _docker_exec_noi_u \
+    cp ${DRUPAL_ROOT}/example.settings.dev.php ${DRUPAL_ROOT}/web/sites/default/settings.dev.php
+  _docker_exec_noi_u \
+    cp ${DRUPAL_ROOT}/example.settings.local.php ${DRUPAL_ROOT}/web/sites/default/settings.local.php
+  _docker_exec_noi_u \
+    cp ${DRUPAL_ROOT}/example.settings.prod.php ${DRUPAL_ROOT}/web/sites/default/settings.prod.php
+  _docker_exec_noi_u \
+    chown ${PROJECT_UID}:${PROJECT_UID} ${DRUPAL_ROOT}/web/sites/default/settings.dev.php
+  _docker_exec_noi_u \
+    chown ${PROJECT_UID}:${PROJECT_UID} ${DRUPAL_ROOT}/web/sites/default/settings.local.php
+  _docker_exec_noi_u \
+    chown ${PROJECT_UID}:${PROJECT_UID} ${DRUPAL_ROOT}/web/sites/default/settings.prod.php
 }
 
 # _select_project()
@@ -334,6 +376,13 @@ _select_db() {
     _DB="mariadb"
   fi
 
+  # Check if any mysql container is running.
+  RUNNING=$(docker ps -f "name=mysql" -f "status=running" -q | head -1 2> /dev/null)
+  if [ ! -z "$RUNNING" ]; then
+    _DB_LIST[0]="mysql"
+    _DB="mysql"
+  fi
+
   # Check if any postgresql container is running.
   RUNNING=$(docker ps -f "name=postgres" -f "status=running" -q | head -1 2> /dev/null)
   if [ ! -z "$RUNNING" ]; then
@@ -343,7 +392,7 @@ _select_db() {
 
   if [[ $_DB == 0 ]]
   then
-    die "No database container found, please ensure your docker4drupal stack is running."
+    die "No database container found, please ensure your stack is running."
   fi
 
   if [[ ${#_DB_LIST[@]} > 1 ]]
@@ -398,17 +447,21 @@ _fix_docroot() {
 #   Helper to fix Drupal permission hardly.
 _fix_files_perm() {
   _docker_exec_noi_u \
-    sudo chmod -R 777 ${DRUPAL_ROOT}/web/sites/default/files
+    mkdir -p ${DRUPAL_ROOT}/web/sites/default/files/tmp
   _docker_exec_noi_u \
-    sudo chown -R ${PROJECT_UID}: ${DRUPAL_ROOT}/web/sites/default/files
+    mkdir -p ${DRUPAL_ROOT}/web/sites/default/files/private
+  _docker_exec_noi_u \
+    chmod -R 777 ${DRUPAL_ROOT}/web/sites/default/files
+  _docker_exec_noi_u \
+    chown -R ${PROJECT_UID}:${PROJECT_UID} ${DRUPAL_ROOT}/web/sites/default/files
   # contenta specific.
   if [[ ${__DID} == "contenta" ]]
   then
     _docker_exec_noi_u \
-      sudo chmod -R 660 ${DRUPAL_ROOT}/keys/public.key
+      chmod -R 660 ${DRUPAL_ROOT}/keys/public.key
   fi
   _docker_exec_noi_u \
-    sudo chmod -R 777 /tmp
+    chmod -R 777 /tmp
 }
 
 # _nuke()

@@ -12,19 +12,6 @@ $(function() {
     });
   });
 
-  // Legacy undependant block loading.
-  // $('.load-block').each(function(i, e) {
-  //   var jqxhr = $.getJSON('/block/' + e.id, function( data ) {
-  //     $("#" + e.id).html(data.html);
-  //   }).done(function( data ) {
-  //     // Clipboard.
-  //     $('#' + data.name).find('.copy:not(.processed)').each(function(i, e) {
-  //       $(this).after('<button title="Copy to clipboard" class="copy btn btn-sm btn-link" data-clipboard-text="' + $(this).text().trim() + '"><span class="octicon octicon-clippy"></span></button>').addClass('processed');
-  //     });
-
-  //   });
-  // })
-
   $('body').on('click', '.refresh-block', function() {
     var block = $(this).data('block');
     $("#" + block + ' table').html('<h5>Loading...</h5>');

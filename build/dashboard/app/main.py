@@ -5,8 +5,8 @@ import json
 from apacheconfig import *
 from flask import Flask, jsonify, render_template, g, request, redirect, url_for
 from dotenv import load_dotenv
-from pprint import pprint
-from flask_debug import Debug
+# from pprint import pprint
+# from flask_debug import Debug
 
 app = Flask(__name__)
 app.jinja_env.add_extension('jinja2.ext.do')
@@ -31,13 +31,13 @@ def get_nginx():
     with open(config['env']['nginx'], "r") as fp:
         for line in lines_that_contain("/var/www/localhost", fp):
             result["root"] = line.replace('root ', '').strip()[:-1]
-    container = client.containers.get('dcd-nginx')
-    # result = container.exec_run(['echo', "$NGINX_VERSION"])
-    # return result[1].decode().split("\n")
-    envs = container.attrs['Config']['Env']
-    for env in envs:
-        val = env.split('=')
-        result[val[0]] = val[1]
+    for container in client.containers.list():
+        if container.id == 'dcd-nginx':
+            container = client.containers.get('dcd-nginx')
+            envs = container.attrs['Config']['Env']
+            for env in envs:
+                val = env.split('=')
+                result[val[0]] = val[1]
     return result
 
 def get_tools():
@@ -68,13 +68,10 @@ def get_containers(all = True):
         print("Error accessing the docker API. Is the daemon running?")
         raise
 
-    # pprint(config['hide'])
-
     for container in containers_list:
         service = container.labels.get('com.docker.compose.service')
         if not service:
             service = container.name
-        # pprint(container.name)
 
         if container.name not in config.get('hide'):
             result.update({service: format_container(container, False)})
@@ -130,11 +127,6 @@ def get_pgsql():
 
 def get_env():
     result = {}
-    # container = client.containers.get('dcd-dashboard')
-    # envs = container.attrs['Config']['Env']
-    # for env in envs:
-    #     val = env.split('=')
-    #     result[val[0]] = val[1]
     stack_env = load_dotenv(dotenv_path=config['env']['stack'])
     result['HOST_TOOLS_PORT'] = os.getenv('HOST_TOOLS_PORT');
     result['HOST_DASHBORAD_PORT'] = os.getenv('HOST_DASHBORAD_PORT');
@@ -153,14 +145,13 @@ def get_env():
 
 def get_data():
     result = {}
-    result['containers'] = get_containers()
     result['settings'] = config
     result['vhost'] = get_vhost()
     result['nginx'] = get_nginx()
     result['tools'] = get_tools()
     result['env'] = get_env()
     result['php'] = get_php()
-    result['containers'] = {}
+    result['containers'] = get_containers()
     return result
 
 def render_block(block_name, data):
@@ -193,12 +184,12 @@ def lines_that_contain(string, fp):
 
 @app.route('/')
 def index():
-    data['env'] = get_env()
     return render_template("index.html", data = data)
 
 @app.route('/blocks', methods=['GET'])
 def show_blocks():
     result = {}
+    data = get_data()
     blocks = config.get('blocks').get('left') + config.get('blocks').get('right')
     for block_name in blocks:
         result[block_name] = {'name': block_name, 'html': render_block(block_name, data)}
@@ -206,6 +197,7 @@ def show_blocks():
 
 @app.route('/block/<block_name>', methods=['GET'])
 def show_block(block_name):
+    data = get_data()
     html = render_block(block_name, data)
     return jsonify({'name': block_name, 'html': html})
 
@@ -288,9 +280,10 @@ def block_action(container_id, action):
 #     except KeyError:
 #         return redirect(url_for('show_data'))
 
-# Init our data.
-data = get_data()
+# Init our data with minimum.
+data['env'] = get_env()
+data['settings'] = config;
 
 if __name__ == '__main__':
-    # app.run(debug=False, host='0.0.0.0', threaded=True)
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=False, host='0.0.0.0', threaded=True)
+    # app.run(debug=True, host='0.0.0.0')
