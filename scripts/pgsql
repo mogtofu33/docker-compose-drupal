@@ -89,11 +89,11 @@ _dump() {
   _DB_NAME=${1:-$POSTGRES_DB}
   _DUMP_FILE="dump_${_DB_NAME}_${_NOW}.pg_dump"
   _pgsql_exec \
-    pg_dump -d "${_DB_NAME}" -U "${PGSQL_USER}" -hlocalhost -Fc -c -b -v -f ${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE} \
-    --exclude-table-data '*.cache*' --exclude-table-data '*.cachetags*' \
-    --exclude-table-data '*.watchdog*' --exclude-table-data '*.node_access*' \
-    --exclude-table-data '*.search_api_db_*' --exclude-table-data '*.sessions*' \
-    --exclude-table-data '*.sessions*' --exclude-table-data '*.webprofiler*'
+    'pg_dump -d "'"${_DB_NAME}"'" -U "'"${PGSQL_USER}"'" -hlocalhost -Fc -c -b -v -f "'"${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}"'"
+    --exclude-table-data "*.cache*" --exclude-table-data "*.cachetags*" 
+    --exclude-table-data "*.watchdog*" --exclude-table-data "*.node_access*" 
+    --exclude-table-data "*.search_api_db_*" --exclude-table-data "*.sessions*" 
+    --exclude-table-data "*.sessions*" --exclude-table-data "*.webprofiler*"'
 
   printf "Database dump saved to %s\\n" ${_DUMP_FILE}
 }
