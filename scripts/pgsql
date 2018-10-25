@@ -163,7 +163,6 @@ _pgsql_exec() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
-  _check_dependencies_docker
   _set_container_pgsql
 
   if [[ "${1:-}" =~ ^list$ ]]; then
