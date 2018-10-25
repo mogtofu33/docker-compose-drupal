@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
-# ____   ____   ____                         _
-# |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
-# | | | | |     | | | | '__| | | | '_ \ / _  | |
-# | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
-# |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
-#                               |_|
 #
 # Helper to run postgres dump/restore, part of Docker Compose Drupal project.
-# Based on Bash simple Boilerplate.
 # https://github.com/Mogtofu33/docker-compose-drupal
 #
 # Usage:
@@ -88,7 +81,8 @@ _fix_user() {
 _dump() {
   _DB_NAME=${1:-$POSTGRES_DB}
   _DUMP_FILE="dump_${_DB_NAME}_${_NOW}.pg_dump"
-  _pgsql_exec \
+
+  _pgsql_exec_d_u \
     'pg_dump -d "'"${_DB_NAME}"'" -U "'"${PGSQL_USER}"'" -hlocalhost -Fc -c -b -v -f "'"${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}"'"
     --exclude-table-data "*.cache*" --exclude-table-data "*.cachetags*" 
     --exclude-table-data "*.watchdog*" --exclude-table-data "*.node_access*" 
@@ -113,11 +107,6 @@ _list_dump() {
   printf "Available dump files:\\n"
   ls -lAh "${DUMP_FOLDER}"
 }
-
-# _ensure_dir() {
-#   # No interactive, ensure permissions.
-#   $_DOCKER exec $tty "${PROJECT_CONTAINER_PGSQL}" chown -R ${PGSQL_USER_ID} "${PROJECT_CONTAINER_DUMP}"
-# }
 
 _select_dump() {
 
@@ -150,6 +139,12 @@ _pgsql_exec() {
       sh -c $@
 }
 
+_pgsql_exec_d_u() {
+  $_DOCKER exec -d -u postgres \
+    "${PROJECT_CONTAINER_PGSQL}" \
+      sh -c $@
+}
+
 ###############################################################################
 # Main
 ###############################################################################
@@ -163,6 +158,7 @@ _pgsql_exec() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
+  #_check_dependencies_docker
   _set_container_pgsql
 
   if [[ "${1:-}" =~ ^list$ ]]; then
