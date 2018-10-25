@@ -17,27 +17,29 @@ Based mostly on Docker official images and lightweight Alpine Linux to ease main
 
 The purpose is to give flexibility in managment, try to rely as much as possible on offcial tools to avoid any new custom patterns.
 If you have to learn the meta tool instead of the tool, then it's not a good one...
-
 This stack is not a one line command but more for users with a good dev-op level and knowledge on each technology used.
 
 See other great project for a Docker based development:
 
-* [Drupal VM](https://www.drupalvm.com)
 * [Lando](https://docs.devwithlando.io/tutorials/drupal8.html)
 * [Docksal](https://docksal.io/)
+* [ddev](https://github.com/drud/ddev)
+* [docker4drupal](https://github.com/wodby/docker4drupal)
 
 ### Include
 
 _Every service is optional as declared in the yml file._
 
 * Apache
-* Php 7/5 fpm with Xdebug
+* Nginx
+* Php 7.1/7.2 fpm with Xdebug
 * MySQL/MariaDB
 * PostgreSQL
 * [Memcache](https://hub.docker.com/_/memcached)
 * [Redis](https://redis.io/)
 * [Mailhog](https://github.com/mailhog/MailHog)
 * [Solr](http://lucene.apache.org/solr)
+* [Portainer](https://github.com/portainer/portainer)
 
 ### Database management
 
@@ -45,45 +47,75 @@ _Every service is optional as declared in the yml file._
 
 ## Quick launch new Drupal 8 project
 
+### Get this project
+
 ```bash
-# Clone this project.
-git clone https://github.com/Mogtofu33/docker-compose-drupal.git docker-drupal
-cd docker-drupal
-
-# Create your docker compose file from template.
-cp docker-compose.tpl.yml docker-compose.yml
-
-# (Optional) choose a db, remove or add services, add your composer cache folder.
-# But you can let it as it for a default quick stack.
-vi docker-compose.yml
-
-# Create your config file from template.
-cp default.env .env
-
-# Edit your configuration if needed, recommended on Unix add your local uid/gid.
-vi .env
-
-# Check the yml file and fix if there is an error message.
-docker-compose config
-
-# For an existing Drupal 8 project, create folders and copy it in data/www
-# Note that based on Composer template web root must be under drupal/web
-# folder. If not you need to adapt Apache vhost config from
-# config/apache/vhost.conf
-mkdir -p data/www/drupal
-cp -r _YOUR_DRUPAL_ data/www/drupal/
-
-# For MySQL, copy your database dump uncompressed in ./data/dump/*.sql, it
-# will be automatically imported on the first run.
-
-# Launch the containers (first time include downloading Docker images).
-docker-compose up --build -d
-
-# Quick check logs to ensure startup is finished, mostly Apache.
-docker-compose logs apache
+curl -fSL https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz -o docker-compose-drupal-master.tar.gz
+tar -xzf docker-compose-drupal-master.tar.gz
+mv docker-compose-drupal-master docker-compose-drupal
+cd docker-compose-drupal
 ```
 
-_Note_: If you have a permission denied from it's probably because of owner of `/var/run/docker.sock`, run docker and docker-compose commands as sudo.
+### Create your docker compose file from template.
+
+```bash
+cp docker-compose.tpl.yml docker-compose.yml
+```
+### Prepare the stack
+
+Choose a database, remove or add services, add your composer cache folder if needed.
+Do not touch for a default quick stack.
+
+```bash
+vi docker-compose.yml
+```
+
+### Create your config file from template.
+
+```bash
+cp default.env .env
+```
+
+### Edit your configuration if needed
+
+Recommended on Unix add your local uid/gid.
+
+```bash
+vi .env
+```
+
+### Check the yml file and fix if there is an error message.
+
+```bash
+docker-compose config
+```
+
+### Existing Drupal project
+
+For an existing Drupal 8 project, create folders and copy it in _data/www_
+Note that based on Composer template web root must be under _drupal/web_
+folder. If not you need to adapt Apache vhost config from
+_config/apache/vhost.conf_
+
+```bash
+mkdir -p data/www/drupal
+cp -r _YOUR_DRUPAL_ data/www/drupal/
+```
+
+For MySQL, copy your database dump uncompressed in _./data/dump/*.sql_, it
+will be automatically imported on the first run.
+
+### Launch the containers
+
+```bash
+docker-compose up --build -d
+```
+
+### Quick check logs to ensure startup is finished, mostly Apache.
+
+```bash
+docker-compose logs apache
+```
 
 ### Access the minimal dashboard
 
@@ -91,7 +123,7 @@ _Note_: If you have a permission denied from it's probably because of owner of `
 
 If you have copy an existing Drupal project, you can import the database from the adminer link in the dashboard.
 
-### Setup Drupal 8 with Composer
+### Setup Vanilla Drupal 8 with Composer
 
 #### Code download
 
