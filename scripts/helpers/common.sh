@@ -107,7 +107,6 @@ _NOW="$(date +'%Y%m%d.%H-%M-%S')"
 tty=
 tty -s && tty=--tty
 
-_COMPOSER=$(which composer)
 _DOCKER=$(which docker)
 _COLUMN=$(tput cols)
 
