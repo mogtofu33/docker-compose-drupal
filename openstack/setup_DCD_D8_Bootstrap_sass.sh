@@ -15,7 +15,7 @@ source $HOME/.profile
 name="bootstrap_sass"
 title="Bootstrap Sass"
 bootstrap_version="3.3.7"
-config_rb="https://gist.githubusercontent.com/Mogtofu33/c8bd086d12a6b6540763610893da5364/raw/fcfa4d4a15dbb45b5b6f8fc70f4d0a4bef8081f5/config_dev.rb"
+config_rb="https://gitlab.com/mog33/gitlab-ci-drupal/snippets/1751092/raw?inline=false"
 
 # Cmd and path variables.
 theme="$PROJECT_ROOT/drupal/web/themes"

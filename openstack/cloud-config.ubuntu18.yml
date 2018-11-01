@@ -35,7 +35,7 @@ runcmd:
   - chmod +x /usr/local/bin/docker-compose
   # External script to setup properly Docker-compose, and Drupal Docker Compose
   # dev stack (this project) with user ubuntu.
-  - wget -q -O /home/ubuntu/setup_DCD_ubuntu.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_ubuntu.sh"
+  - wget -q -O /home/ubuntu/setup_DCD_ubuntu.sh "https://gitlab.com/mog33/docker-compose-drupal/raw/master/openstack/setup_DCD_ubuntu.sh?inline=false"
   - chmod +x /home/ubuntu/setup_DCD_ubuntu.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_ubuntu.sh
   #
@@ -56,7 +56,7 @@ runcmd:
   # any ssh-agent strategy.
   #
   # Grab setup scripts for base Drupal 8 and run it as user ubuntu.
-  - wget -q -O /home/ubuntu/setup_DCD_D8_ubuntu.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_D8_ubuntu.sh"
+  - wget -q -O /home/ubuntu/setup_DCD_D8_ubuntu.sh "https://gitlab.com/mog33/docker-compose-drupal/raw/master/openstack/setup_DCD_D8_ubuntu.sh?inline=false"
   - chmod +x /home/ubuntu/setup_DCD_D8_ubuntu.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_D8_ubuntu.sh
   - su -c "/home/ubuntu/setup_DCD_D8_ubuntu.sh" ubuntu
@@ -65,7 +65,7 @@ runcmd:
   # previous script.
   #
   # Grab setup scripts for Bootstrap subtheme and run it as user ubuntu.
-  - wget -q -O /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh "https://raw.githubusercontent.com/Mogtofu33/docker-compose-drupal/master/openstack/setup_DCD_D8_Bootstrap_sass.sh"
+  - wget -q -O /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh "https://gitlab.com/mog33/docker-compose-drupal/raw/master/openstack/setup_DCD_D8_Bootstrap_sass.sh?inline=false"
   - chmod +x /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh
   - su -c "/home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh" ubuntu
