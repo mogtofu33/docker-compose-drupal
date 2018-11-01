@@ -5,14 +5,10 @@
 
 <section class="card mb-3">
   <div class="card-header">{% block title %}{% endblock %}</div>
-
-  {% block content %}
-  {% endblock %}
-
+  {% block content %}{% endblock %}
   {% block footer %}
   <div class="card-footer">
       {% block footer_content %}{% endblock %}
   </div>
   {% endblock %}
-
 </section>

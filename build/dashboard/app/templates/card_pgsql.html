@@ -1,44 +1,50 @@
 {% extends "card.html" %}
 
-{% block title %}{% if data.containers.pgsql %}<strong>PGSQL</strong> connection information{% endif %}{% endblock %}
-
-{% block content %}
-{% if data.containers.pgsql %}
-  {% set container = data.containers.pgsql %}
-  <table class="table table-hover table-sm table-responsive-sm mb-0">
-    <tr>
-      <th>Hostname</th>
-      <td><code>{{ container.service }}</code></td>
-    </tr>
-    <tr>
-      <th>Docker Ip</th>
-      <td><code>{{ container.ip }}</code></td>
-    </tr>
-    <tr>
-      <th>Port</th>
-      <td><code class="copy">{{ container.ports|first }}</code></td>
-    </tr>
-    <tr>
-      <th>Database</th>
-      <td><code class="copy">{{ data.env['POSTGRES_DB'] }}</code></td>
-    </tr>
-    <tr>
-      <th>Username</th>
-      <td><code class="copy">{{ data.env['POSTGRES_USER'] }}</code></td>
-    </tr>
-    <tr>
-      <th>Password</th>
-      <td><code class="copy">{{ data.env['POSTGRES_PASSWORD'] }}</code></td>
-    </tr>
-  </table>
-{% else %}
-<p>No PGSQL container running.</p>
-{% endif %}
+{% block title %}
+  {% if data.containers.pgsql %}
+    <strong>PGSQL</strong> connection information
+  {% else %}
+    <small>PGSQL container is not running.</small>
+  {% endif %}
 {% endblock %}
 
-{% block footer_content %}
-  {% if data.containers.mysql %}
+{% block content %}
+  {% if data.containers.pgsql %}
+    {% set container = data.containers.pgsql %}
+    <table class="table table-hover table-sm table-responsive-sm mb-0">
+      <tr>
+        <th>Hostname</th>
+        <td><code>{{ container.service }}</code></td>
+      </tr>
+      <tr>
+        <th>Docker Ip</th>
+        <td><code>{{ container.ip }}</code></td>
+      </tr>
+      <tr>
+        <th>Port</th>
+        <td><code class="copy">{{ container.ports|first }}</code></td>
+      </tr>
+      <tr>
+        <th>Database</th>
+        <td><code class="copy">{{ data.env['POSTGRES_DB'] }}</code></td>
+      </tr>
+      <tr>
+        <th>Username</th>
+        <td><code class="copy">{{ data.env['POSTGRES_USER'] }}</code></td>
+      </tr>
+      <tr>
+        <th>Password</th>
+        <td><code class="copy">{{ data.env['POSTGRES_PASSWORD'] }}</code></td>
+      </tr>
+    </table>
+  {% endif %}
+{% endblock %}
+
+{% block footer %}
+  {% if data.containers.pgsql %}
+  <div class="card-footer">
     {% set url = tools_url ~ '/adminer.php?pgsql=pgsql&server=pgsql&username=' ~ data.env['POSTGRES_USER'] ~ '&db=' ~ data.env['POSTGRES_DB']  %}
     {{ macros.extlinkbtn('Manage', url) }}
+  </div>
   {% endif %}
 {% endblock %}

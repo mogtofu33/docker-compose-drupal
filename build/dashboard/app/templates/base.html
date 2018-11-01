@@ -4,7 +4,7 @@
   {% block head %}
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>{% block title %}{% endblock %}</title>
+  <title>{%- block title %}{% endblock -%}</title>
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <link href="{{ url_for('static',filename='app.css') }}" rel="stylesheet">
   <link crossorigin="anonymous"
@@ -16,17 +16,9 @@
   {% endblock %}
 </head>
 <body>
-
   {% set project_url = 'https://github.com/Mogtofu33/docker-compose-drupal' %}
-
   <!-- Page Content -->
   <div class="container-fluid my-3">
-
-    <!-- Alert -->
-    <div class="alert alert-success alert-dismissible fade in" role="alert" id="message" style="display:none;">
-      <button class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-      <div class="message"></div>
-    </div>
 
     <!-- Content Header -->
     <div class="row">
@@ -52,23 +44,6 @@
     <!-- Content -->
     {% block content %}{% endblock %}
 
-    <hr>
-    <!-- Footer -->
-    <footer>
-        <div class="row">
-            <div class="col">
-              <ul class="list-inline">
-                <li class="list-inline-item">
-
-                </li>
-                <li class="list-inline-item">
-
-                </li>
-              </ul>
-            </div>
-        </div>
-    </footer>
-    <hr>
   </div>
   <!-- /.container -->
 

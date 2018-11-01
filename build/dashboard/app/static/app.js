@@ -6,6 +6,7 @@ $(function() {
       $("#" + this.name).html(this.html);
     });
   }).done(function( data ) {
+    $('.loading').hide();
     // Clipboard.
     $('body').find('.copy').each(function(i, e) {
       $(this).after('<button title="Copy to clipboard" class="copy btn btn-sm btn-link" data-clipboard-text="' + $(this).text().trim() + '"><span class="octicon octicon-clippy"></span></button>');
@@ -14,7 +15,7 @@ $(function() {
 
   $('body').on('click', '.refresh-block', function() {
     var block = $(this).data('block');
-    $("#" + block + ' table').html('<h5>Loading...</h5>');
+    $("#" + block + ' table').html('<div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>');
     $.getJSON('/block/' + block, function( data ) {
       $("#" + block).html(data.html);
     });

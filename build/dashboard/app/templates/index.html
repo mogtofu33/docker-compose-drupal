@@ -3,14 +3,17 @@
 {% block title %}Docker Compose Drupal - Dev stack{% endblock %}
 
 {% block content %}
-
+<div class="row loading">
+  <div class="col">
+    <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+  </div>
+</div>
 <div class="row">
   <div class="col">
     {% for id in data.settings.blocks.left %}
       <span id="{{ id }}" class="load-block"></span>
     {% endfor %}
   </div>
-
   <div class="col">
     {% for id in data.settings.blocks.right %}
       <span id="{{ id }}" class="load-block"></span>

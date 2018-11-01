@@ -1,52 +1,60 @@
 {% extends "card.html" %}
 
-{% block title %}{% if data.containers.mysql %}<strong>MySQL</strong> connection information{% endif %}{% endblock %}
-
-{% block content %}
-{% if data.containers.mysql %}
-  {% set container = data.containers.mysql %}
-  <table class="table table-hover table-sm table-responsive-sm mb-0">
-    <tr>
-      <th>Hostname</th>
-      <td><code>{{ container.service }}</code></td>
-    </tr>
-    <tr>
-      <th>Docker Ip</th>
-      <td><code>{{ container.ip }}</code></td>
-    </tr>
-    <tr>
-      <th>Port</th>
-      <td><code class="copy">{{ container.ports|first }}</code></td>
-    </tr>
-    <tr>
-      <th>Database</th>
-      <td><code class="copy">{{ data.env['MYSQL_DATABASE'] }}</code></td>
-    </tr>
-    <tr>
-      <th>Root password</th>
-      <td><code class="copy">{{ data.env['MYSQL_ROOT_PASSWORD'] }}</code></td>
-    </tr>
-    <tr>
-      <th>Username</th>
-      <td><code class="copy">{{ data.env['MYSQL_USER'] }}</code></td>
-    </tr>
-    <tr>
-      <th>Password</th>
-      <td><code class="copy">{{ data.env['MYSQL_PASSWORD'] }}</code></td>
-    </tr>
-    {# <tr>
-      <th>Allow empty password</th>
-      <td>{{ data.env['MYSQL_ALLOW_EMPTY_PASSWORD'] }}</td>
-    </tr> #}
-  </table>
-{% else %}
-<p>No MySQL container running.</p>
-{% endif %}
+{% block title %}
+  {% if data.containers.mysql %}
+    <strong>MySQL</strong> connection information
+  {% else %}
+    <small>MySQL container is not running.</small>
+  {% endif %}
 {% endblock %}
 
-{% block footer_content %}
+{% block content %}
   {% if data.containers.mysql %}
-    {% set url = tools_url ~ '/adminer.php?mysql=mysql&server=mysql&username=' ~ data.env['MYSQL_USER'] ~ '&db=' ~ data.env['MYSQL_DATABASE']  %}
-    {{ macros.extlinkbtn('Manage', url) }}
+    {% set container = data.containers.mysql %}
+    <table class="table table-hover table-sm table-responsive-sm mb-0">
+      <tr>
+        <th>Hostname</th>
+        <td><code>{{ container.service }}</code></td>
+      </tr>
+      <tr>
+        <th>Docker Ip</th>
+        <td><code>{{ container.ip }}</code></td>
+      </tr>
+      <tr>
+        <th>Port</th>
+        <td><code class="copy">{{ container.ports|first }}</code></td>
+      </tr>
+      <tr>
+        <th>Database</th>
+        <td><code class="copy">{{ data.env['MYSQL_DATABASE'] }}</code></td>
+      </tr>
+      <tr>
+        <th>Root password</th>
+        <td><code class="copy">{{ data.env['MYSQL_ROOT_PASSWORD'] }}</code></td>
+      </tr>
+      <tr>
+        <th>Username</th>
+        <td><code class="copy">{{ data.env['MYSQL_USER'] }}</code></td>
+      </tr>
+      <tr>
+        <th>Password</th>
+        <td><code class="copy">{{ data.env['MYSQL_PASSWORD'] }}</code></td>
+      </tr>
+      {# <tr>
+        <th>Allow empty password</th>
+        <td>{{ data.env['MYSQL_ALLOW_EMPTY_PASSWORD'] }}</td>
+      </tr> #}
+    </table>
+  {% else %}
+  <small>MySQL container is not running.</small>
+  {% endif %}
+{% endblock %}
+
+{% block footer %}
+  {% if data.containers.mysql %}
+  <div class="card-footer">
+      {% set url = tools_url ~ '/adminer.php?mysql=mysql&server=mysql&username=' ~ data.env['MYSQL_USER'] ~ '&db=' ~ data.env['MYSQL_DATABASE']  %}
+      {{ macros.extlinkbtn('Manage', url) }}
+  </div>
   {% endif %}
 {% endblock %}

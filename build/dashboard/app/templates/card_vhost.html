@@ -1,9 +1,11 @@
 {% extends "card.html" %}
 
 {% block title %}
-{% if data.containers.apache %}
-  Apache sites <small>(From config/apache/vhost.conf)</small>
-{% endif %}
+  {% if data.containers.apache %}
+    Apache sites <small>(From config/apache/vhost.conf)</small>
+  {% else %}
+    <small>Apache container not running.</small>
+  {% endif %}
 {% endblock %}
 
 {% block content -%}
@@ -37,7 +39,9 @@
     {%- endfor %}
 
     {{ macros.table(headers, rows) }}
-  {% endif %}
+    {% else %}
+    <small>Apache container not running.</small>
+    {% endif %}
 {%- endblock %}
 
 {% block footer_content %}

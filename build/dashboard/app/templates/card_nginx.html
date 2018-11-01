@@ -1,10 +1,12 @@
 {% extends "card.html" %}
 
 {% block title %}
-{% if data.containers.nginx %}
-  Nginx sites <small>(From config/nginx/default.conf)</small>
-  <div class="float-right">Nginx v{{ data.nginx.NGINX_VERSION }}</div>
-{% endif %}
+  {% if data.containers.nginx %}
+      Nginx sites <small>(From config/nginx/default.conf)</small>
+      <div class="float-right">Nginx v{{ data.nginx.NGINX_VERSION }}</div>
+    {% else %}
+      <small>Nginx container not running.</small>
+  {% endif %}
 {% endblock %}
 
 {% block content -%}
@@ -37,13 +39,16 @@
     {%- endfor %}
 
     {{ macros.table(headers, rows) }}
+
   {% endif %}
 {%- endblock %}
 
-{% block footer_content %}
-{% if data.containers.nginx %}
-  {% set nginx_url = root_url ~ ':' ~ data.env.NGINX_HOST_HTTP_PORT %}
-  {{ macros.btn('Nginx status', {'action': 'get', 'url': nginx_url ~ '/server-status', 'title': 'Server status'}, class = 'btn-info') }}
-  {{ macros.extlinkbadge(nginx_url ~ '/server-status') }}
-{% endif %}
+{% block footer %}
+  {% if data.containers.nginx %}
+  <div class="card-footer">
+      {% set nginx_url = root_url ~ ':' ~ data.env.NGINX_HOST_HTTP_PORT %}
+      {{ macros.btn('Nginx status', {'action': 'get', 'url': nginx_url ~ '/server-status', 'title': 'Server status'}, class = 'btn-info') }}
+      {{ macros.extlinkbadge(nginx_url ~ '/server-status') }}
+  </div>
+  {% endif %}
 {% endblock %}

@@ -150,7 +150,7 @@ def get_data():
     result['nginx'] = get_nginx()
     result['tools'] = get_tools()
     result['env'] = get_env()
-    result['php'] = get_php()
+    result['php'] = {}
     result['containers'] = get_containers()
     return result
 
@@ -190,6 +190,7 @@ def index():
 def show_blocks():
     result = {}
     data = get_data()
+    data['php'] = get_php()
     blocks = config.get('blocks').get('left') + config.get('blocks').get('right')
     for block_name in blocks:
         result[block_name] = {'name': block_name, 'html': render_block(block_name, data)}
@@ -198,6 +199,7 @@ def show_blocks():
 @app.route('/block/<block_name>', methods=['GET'])
 def show_block(block_name):
     data = get_data()
+    data['php'] = get_php()
     html = render_block(block_name, data)
     return jsonify({'name': block_name, 'html': html})
 
@@ -263,27 +265,9 @@ def block_action(container_id, action):
         'message': message + ' ' + container.name,
     })
 
-# Debugging, could be removed
-# @app.route('/api/data', methods=['GET'])
-# def show_data():
-#     return jsonify(data)
-
-# @app.route('/api/data/<key>', methods=['GET'])
-# def show_data_bykey(key):
-#     try:
-#         get = globals()['get_' + key]
-#         values = get()
-#         if not is_jsonable(values):
-#             return {values}
-#         else:
-#             return jsonify(values)
-#     except KeyError:
-#         return redirect(url_for('show_data'))
-
 # Init our data with minimum.
 data['env'] = get_env()
 data['settings'] = config;
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', threaded=True)
-    # app.run(debug=True, host='0.0.0.0')
