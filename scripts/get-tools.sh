@@ -44,6 +44,9 @@ _print_help() {
   cat <<HEREDOC
 Helper to get third party tools, part of Docker Compose Drupal project.
 
+Depends on:
+  git
+
 Usage:
   ${_ME} [install | update | delete]
 
@@ -87,7 +90,7 @@ _install() {
     program=${arr[1]}
     if [ ! -d "${_DIR}/../../tools/${program}" ]
     then
-    	git clone "https://github.com/${repo:-}" "${_DIR}/../../tools/${program:-}"
+      git clone "https://github.com/${repo:-}" "${_DIR}/../../tools/${program:-}"
     else
       printf "Program already installed, you should run update ?: %s\n" "${program}"
     fi
@@ -138,7 +141,9 @@ _delete() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
-  _check_dependencies_git
+  if ! [ -x "$(command -v git)" ]; then
+    die 'git is required for this script.'
+  fi
 
   if [[ "${1:-}" =~ ^install$ ]]
   then
