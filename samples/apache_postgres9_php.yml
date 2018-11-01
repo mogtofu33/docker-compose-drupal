@@ -36,60 +36,59 @@ volumes:
 services:
   apache:
     image: mogtofu33/apache:latest
+    depends_on:
+      - php
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
       # Web root access, optional but can help with multi sites.
-      - 81:81
-    links:
-      - php
+      - "${APACHE_HOST_ROOT_PORT:-88}:81"
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
       # Apache configuration with SSL support.
-      - ./config/apache/httpd.conf:/etc/apache2/httpd.conf
-      - ./config/apache/vhost.conf:/etc/apache2/vhost.conf
-      - ./config/apache/conf.d/:/etc/apache2/conf.d/
-      - ./config/apache/ssl/:/etc/ssl/apache2/
+      - ./config/apache/httpd.conf:/etc/apache2/httpd.conf:ro
+      - ./config/apache/vhost.conf:/etc/apache2/vhost.conf:ro
+      - ./config/apache/conf.d/:/etc/apache2/conf.d/:ro
+      - ./config/apache/ssl/:/etc/ssl/apache2/:ro
       # Php FPM socket
-      - sock:/sock
+      - php-sock:/sock:ro
       ## If PgSQL, ease drush pgsql access.
-      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
+      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass:ro
     env_file: .env
-    container_name: dcd-apache
-    ## Remove to avoid starting on system reboot.
-    restart: always
+    restart: unless-stopped
+    container_name: ${PROJECT_NAME:-dcd}-apache
   php:
-    image: mogtofu33/php:${PHP_VERSION:-7.2}
+    image: mogtofu33/php:${PHP_VERSION:-7.1}
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
-      - ./config/php/${PHP_VERSION:-7.1}/php.ini:/etc/php${PHP_MAJOR_VERSION:-7}/php.ini
-      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf
-      - ./config/php/${PHP_VERSION:-7.1}/conf.d/:/etc/php${PHP_MAJOR_VERSION:-7}/conf.d/
-      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.d/:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.d/
+      - ./config/php/${PHP_VERSION:-7.1}/php.ini:/etc/php${PHP_MAJOR_VERSION:-7}/php.ini:ro
+      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf:ro
+      - ./config/php/${PHP_VERSION:-7.1}/conf.d/:/etc/php${PHP_MAJOR_VERSION:-7}/conf.d/:ro
+      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.d/:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.d/:ro
       # Drush 9 alias and drushrc files (or any other config)
-      - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml
-      - ./config/drush/drush.yml:/etc/drush/drush.yml
+      - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml:ro
+      - ./config/drush/drush.yml:/etc/drush/drush.yml:ro
       # Used by dashboard for accessing tools.
       - ./tools:/tools:ro
       # Share db dump folder.
       - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
       # Php FPM socket
-      - sock:/sock
+      - php-sock:/sock
       ## If PgSQL, ease drush pgsql access.
-      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass
+      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass:ro
       ## If you have composer set locally, share cache to speed up.
-      # - REPLACE_WITH_COMPOSER_HOME_PATH/.composer/cache:/composer/cache
+      # - ${HOME:-}/.composer/cache:/composer/cache
     links:
       # Choose database, uncomment service concerned below.
       - pgsql
       # Choose optionnal services.
       - mailhog
+      # - varnish
     env_file: .env
-    container_name: dcd-php
-    # Remove to avoid starting on system reboot.
-    restart: always
+    restart: unless-stopped
+    container_name: ${PROJECT_NAME:-dcd}-php
   pgsql:
-    image: postgres:alpine
+    image: postgres:9-alpine
     expose:
       - "5432"
     ## Comment these two lines on Windows system, permissions issue.
@@ -99,41 +98,46 @@ services:
       # Add pg_pass to ease drush access.
       - ./config/pgsql/.pg_pass:/home/postgres/.pg_pass
     env_file: .env
-    ## Remove to avoid starting on system reboot.
-    restart: always
+    restart: unless-stopped
+    container_name: ${PROJECT_NAME:-dcd}-pgsql
   mailhog:
     image: mailhog/mailhog:latest
     expose:
       - "1025"
     ports:
       - "8025:8025"
-    ## Remove to avoid starting on system reboot.
-    restart: always
+    restart: unless-stopped
+    container_name: ${PROJECT_NAME:-dcd}-mailhog
   tools:
     image: nginx:alpine
+    depends_on:
+      - php
     ports:
       - "${HOST_TOOLS_PORT:-8008}:80"
     volumes:
       - ./tools:/tools:ro
       - ./build/dashboard/default.conf:/etc/nginx/conf.d/default.conf:ro
       # Php FPM socket
-      - sock:/sock
+      - php-sock:/sock:ro
     env_file: .env
-    container_name: dcd-tools
-    restart: always
+    restart: unless-stopped
+    container_name: ${PROJECT_NAME:-dcd}-tools
   dashboard:
     build: ./build/dashboard
     ports:
       - "${HOST_DASHBORAD_PORT:-8181}:5000"
     volumes:
       - ./build/dashboard/app:/app
-      - ./config/apache/vhost.conf:/app/vhost.conf:ro
-      - ./config/php/:/php:ro
+      # Share configs for reading on the dashboard.
+      - ./config/apache/vhost.conf:/config/vhost.conf:ro
+      - ./config/nginx/default.conf:/config/default.conf:ro
       - ./tools:/tools:ro
-      - .env:/app/stack.env:ro
+      - .env:/config/stack.env:ro
       # Access docker daemon.
       - /var/run/docker.sock:/var/run/docker.sock
     env_file: .env
-    container_name: dcd-dashboard
-    ## Remove to avoid starting on system reboot.
-    restart: always
+    restart: unless-stopped
+    container_name: ${PROJECT_NAME:-dcd}-dashboard
+
+volumes:
+  php-sock:
