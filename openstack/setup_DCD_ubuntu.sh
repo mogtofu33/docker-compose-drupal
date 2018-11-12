@@ -12,7 +12,7 @@ _GROUP="ubuntu"
 
 # Project variables.
 _REPO="https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz"
-_BASE=${2-"default"}
+_BASE=${1-"default"}
 _PROJECT_PATH="$HOME/docker-compose-drupal"
 _PHP="dcd-php"
 _PROJECT_ROOT="$_PROJECT_PATH/data/www"

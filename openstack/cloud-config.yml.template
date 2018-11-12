@@ -48,7 +48,7 @@ runcmd:
   # This script accept branch as first argument and samples file name as second.
   - su -c "/home/ubuntu/setup_DCD_ubuntu.sh" ubuntu
   # Replace by this for an Apache / Php / MariaDB / Memcache stack.
-  # - su -c "/home/ubuntu/setup_DCD_ubuntu.sh master apache_mysql_php_memcache_solr" ubuntu
+  # - su -c "/home/ubuntu/setup_DCD_ubuntu.sh apache_mysql_php_memcache_solr" ubuntu
   ##############################################################################
   # This part is an example to install Drupal 8, it can be replaced by an other
   # specific script to clone an existing Drupal 8 project.
