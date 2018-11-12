@@ -30,7 +30,7 @@ sudo usermod -a -G docker $_USER
 # Get a Docker compose stack.
 if [ ! -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
-  sudo curl -fls $_REPO -o docker-compose-drupal-master.tar.gz
+  sudo curl -fsSl $_REPO -o docker-compose-drupal-master.tar.gz
   sudo tar -xzf docker-compose-drupal-master.tar.gz
   sudo mv docker-compose-drupal-master docker-compose-drupal
   sudo rm -f docker-compose-drupal-master.tar.gz
@@ -38,7 +38,7 @@ else
   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
 
-sudo chown -R $_USER:$_GROUP $HOME
+sudo chown -R $_USER:$_GROUP /home/ubuntu
 
 # Set-up and launch this Docker compose stack.
 echo -e "\n>>>>\n[setup::info] Prepare Docker stack and start...\n<<<<\n"
