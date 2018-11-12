@@ -31,9 +31,13 @@ sudo usermod -a -G docker $_USER
 if [ ! -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
   sudo curl -fsSl $_REPO -o docker-compose-drupal-master.tar.gz
-  sudo tar -xzf docker-compose-drupal-master.tar.gz
-  sudo mv docker-compose-drupal-master docker-compose-drupal
-  sudo rm -f docker-compose-drupal-master.tar.gz
+  if [ ! -f "docker-compose-drupal-master.tar.gz" ]; then
+    echo -e "\n>>>>\n[setup::ERROR] Failed to download the stack\n<<<<\n"
+  else
+    sudo tar -xzf docker-compose-drupal-master.tar.gz
+    sudo mv docker-compose-drupal-master docker-compose-drupal
+    sudo rm -f docker-compose-drupal-master.tar.gz
+  fi
 else
   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
@@ -53,8 +57,13 @@ if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
     cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
   fi
 fi
+
 cd $_PROJECT_PATH
-docker-compose build && docker-compose up -d
+if [ ! -f "docker-compose.yml" ]; then
+  echo -e "\n>>>>\n[setup::ERROR] Stack does not exist\n<<<<\n"
+else
+  docker-compose build && docker-compose up -d
+fi
 
 # Set-up composer.
 if [ ! -f "/usr/bin/composer" ]; then
