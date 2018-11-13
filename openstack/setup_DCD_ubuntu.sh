@@ -30,37 +30,40 @@ sudo usermod -a -G docker $_USER
 # Get a Docker compose stack.
 if [ ! -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
-  sudo curl -fsSl $_REPO -o docker-compose-drupal-master.tar.gz
+  sudo curl -fSl $_REPO -o docker-compose-drupal-master.tar.gz
   if [ ! -f "docker-compose-drupal-master.tar.gz" ]; then
     echo -e "\n>>>>\n[setup::ERROR] Failed to download the stack\n<<<<\n"
   else
     sudo tar -xzf docker-compose-drupal-master.tar.gz
     sudo mv docker-compose-drupal-master docker-compose-drupal
-    sudo rm -f docker-compose-drupal-master.tar.gz
+    #sudo rm -f docker-compose-drupal-master.tar.gz
   fi
 else
   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
 
-sudo chown -R $_USER:$_GROUP /home/ubuntu
+sudo chown -R $_USER:$_GROUP $HOME
 
 # Set-up and launch this Docker compose stack.
 echo -e "\n>>>>\n[setup::info] Prepare Docker stack and start...\n<<<<\n"
-if [ ! -f "$_PROJECT_PATH/.env" ]; then
+if [ ! -f "$_PROJECT_PATH/.env" ]  && [ -f "$_PROJECT_PATH/default.env" ] ; then
   cp $_PROJECT_PATH/default.env $_PROJECT_PATH/.env
 fi
+
 if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
   if [ -f "$_PROJECT_PATH/samples/$_BASE.yml" ]; then
     cp $_PROJECT_PATH/samples/$_BASE.yml $_PROJECT_PATH/docker-compose.yml
   else
     # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
-    cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
+    if [ -f "$_PROJECT_PATH/docker-compose.yml" ]; then
+      cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
+    fi
   fi
 fi
 
 cd $_PROJECT_PATH
 if [ ! -f "docker-compose.yml" ]; then
-  echo -e "\n>>>>\n[setup::ERROR] Stack does not exist\n<<<<\n"
+  echo -e "\n>>>>\n[setup::ERROR] Stack do not exist!\n<<<<\n"
 else
   docker-compose build && docker-compose up -d
 fi
