@@ -21,72 +21,73 @@ _WEB="$_ROOT/web"
 _DRUPAL_CONSOLE="$_ROOT/vendor/bin/drupal"
 _DRUSH="$_ROOT/vendor/bin/drush"
 
-# Fix permissions.
-sudo chown -R $_USER:$_GROUP $HOME
+# # Fix permissions.
+# sudo chown -R $_USER:$_GROUP $HOME
 
-# Set Docker group to our user.
-sudo usermod -a -G docker $_USER
+# # Set Docker group to our user.
+# sudo usermod -a -G docker $_USER
 
-# Get a Docker compose stack.
-if [ ! -d "$_PROJECT_PATH" ]; then
-  echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
-  sudo curl -fSl $_REPO -o docker-compose-drupal-master.tar.gz
-  if [ ! -f "docker-compose-drupal-master.tar.gz" ]; then
-    echo -e "\n>>>>\n[setup::ERROR] Failed to download the stack\n<<<<\n"
-  else
-    sudo tar -xzf docker-compose-drupal-master.tar.gz
-    sudo mv docker-compose-drupal-master docker-compose-drupal
-    #sudo rm -f docker-compose-drupal-master.tar.gz
-  fi
-else
-  echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
-fi
+# # Get a Docker compose stack.
+# if [ ! -d "$_PROJECT_PATH" ]; then
+#   echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
+#   curl -fSl $_REPO -o dcd.tar.gz
+#   if [ ! -f "dcd.tar.gz" ]; then
+#     echo -e "\n>>>>\n[setup::ERROR] Failed to download the stack\n<<<<\n"
+#   else
+#     tar -xf ./dcd.tar.gz
+#     mv docker-compose-drupal-master docker-compose-drupal
+#     rm -f dcd.tar.gz
+#   fi
+# else
+#   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
+# fi
 
-sudo chown -R $_USER:$_GROUP $HOME
+# sudo chown -R $_USER:$_GROUP $HOME
 
-# Set-up and launch this Docker compose stack.
-echo -e "\n>>>>\n[setup::info] Prepare Docker stack and start...\n<<<<\n"
-if [ ! -f "$_PROJECT_PATH/.env" ]  && [ -f "$_PROJECT_PATH/default.env" ] ; then
-  cp $_PROJECT_PATH/default.env $_PROJECT_PATH/.env
-fi
+# # Set-up and launch this Docker compose stack.
+# echo -e "\n>>>>\n[setup::info] Prepare Docker stack and start...\n<<<<\n"
+# if [ ! -f "$_PROJECT_PATH/.env" ] && [ -f "$_PROJECT_PATH/default.env" ]; then
+#   cp $_PROJECT_PATH/default.env $_PROJECT_PATH/.env
+# else
+#   echo -e "\n>>>>\n[setup::ERROR] Missing default.env file!\n<<<<\n"
+# fi
 
-if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
-  if [ -f "$_PROJECT_PATH/samples/$_BASE.yml" ]; then
-    cp $_PROJECT_PATH/samples/$_BASE.yml $_PROJECT_PATH/docker-compose.yml
-  else
-    # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
-    if [ -f "$_PROJECT_PATH/docker-compose.yml" ]; then
-      cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
-    fi
-  fi
-fi
+# if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
+#   if [ -f "$_PROJECT_PATH/samples/$_BASE.yml" ]; then
+#     cp $_PROJECT_PATH/samples/$_BASE.yml $_PROJECT_PATH/docker-compose.yml
+#   else
+#     # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
+#     if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
+#       cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
+#     fi
+#   fi
+# fi
 
-cd $_PROJECT_PATH
-if [ ! -f "docker-compose.yml" ]; then
-  echo -e "\n>>>>\n[setup::ERROR] Stack do not exist!\n<<<<\n"
-else
-  docker-compose build && docker-compose up -d
-fi
+# if [ ! -f "${_PROJECT_PATH}/docker-compose.yml" ]; then
+#   echo -e "\n>>>>\n[setup::ERROR] Stack do not exist!\n<<<<\n"
+# else
+#   docker-compose --file "${_PROJECT_PATH}/docker-compose.yml" build && docker-compose --file "${_PROJECT_PATH}/docker-compose.yml" up -d
+# fi
 
-# Set-up composer.
-if [ ! -f "/usr/bin/composer" ]; then
-  echo -e "\n>>>>\n[setup::info] Set-up Composer and dependencies...\n<<<<\n"
-  cd $HOME
-  curl -sS https://getcomposer.org/installer | php -- --install-dir=$HOME --filename=composer
-  sudo mv $HOME/composer /usr/bin/composer
-  sudo chmod +x /usr/bin/composer
-  /usr/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
-else
-  echo -e "\n>>>>\n[setup::notice] Composer already here!\n<<<<\n"
-  # Install dependencies just in case.
-  /usr/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
-fi
+# # Set-up composer.
+# if [ ! -f "/usr/bin/composer" ]; then
+#   echo -e "\n>>>>\n[setup::info] Set-up Composer and dependencies...\n<<<<\n"
+#   cd $HOME
+#   curl -sS https://getcomposer.org/installer | php -- --install-dir=$HOME --filename=composer
+#   sudo mv $HOME/composer /usr/bin/composer
+#   sudo chmod +x /usr/bin/composer
+#   /usr/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
+# else
+#   echo -e "\n>>>>\n[setup::notice] Composer already here!\n<<<<\n"
+#   # Install dependencies just in case.
+#   /usr/bin/composer global require "hirak/prestissimo:^0.3" "drupal/coder"
+# fi
 
-# Set-up Code sniffer.
-echo -e "\n>>>>\n[setup::info] Set-up Code sniffer and final steps...\n<<<<\n"
-if [ -f "$HOME/.config/composer/vendor/bin/phpcs" ]; then
-  $HOME/.config/composer/vendor/bin/phpcs --config-set installed_paths $HOME/.config/composer/vendor/drupal/coder/coder_sniffer
-fi
+# # Set-up Code sniffer.
+# echo -e "\n>>>>\n[setup::info] Set-up Code sniffer and final steps...\n<<<<\n"
+# if [ -f "$HOME/.config/composer/vendor/bin/phpcs" ]; then
+#   $HOME/.config/composer/vendor/bin/phpcs --config-set installed_paths $HOME/.config/composer/vendor/drupal/coder/coder_sniffer
+# fi
 
 # Check if containers are up...
 RUNNING=$(docker inspect --format="{{ .State.Running }}" $_PHP 2> /dev/null)
@@ -135,16 +136,22 @@ docker exec -it --user apache $_PHP \$@
 EOT
 
 # Convenient links.
-ln -s $_PROJECT_ROOT $HOME/www
-sudo ln -s $_PROJECT_ROOT /www
-sudo chown $_USER:$_GROUP /www
-ln -s $_PROJECT_PATH $HOME/root
+if [ ! -d "$HOME/www" ]; then
+  ln -s $_PROJECT_ROOT $HOME/www
+fi
+if [ ! -d "/www" ]; then
+  sudo ln -s $_PROJECT_ROOT /www
+  sudo chown $_USER:$_GROUP /www
+fi
+if [ ! -d "$HOME/root" ]; then
+  ln -s $_PROJECT_PATH $HOME/root
+fi
 
 # Set up tools from stack.
-# if [ -d "$_PROJECT_PATH" ]; then
-#   echo -e "\n>>>>\n[setup::info] Setup Docker stack tools...\n<<<<\n"
-#   $_PROJECT_PATH/scripts/get-tools.sh install
-# fi
+if [ -d "$_PROJECT_PATH" ]; then
+  echo -e "\n>>>>\n[setup::info] Setup Docker stack tools...\n<<<<\n"
+  $_PROJECT_PATH/scripts/get-tools.sh install
+fi
 
 # Fix sock for privilleged, wait a bit for stack to be up....
 sleep 30s
