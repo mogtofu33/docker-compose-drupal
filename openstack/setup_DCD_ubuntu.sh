@@ -30,7 +30,7 @@ sudo usermod -a -G docker $_USER
 # Get a Docker compose stack.
 if [ ! -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
-  git clone -b $_REPO $_PROJECT_PATH
+  git clone $_REPO $_PROJECT_PATH
 else
   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
