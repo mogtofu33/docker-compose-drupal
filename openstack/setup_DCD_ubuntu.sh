@@ -11,7 +11,7 @@ _USER="ubuntu"
 _GROUP="ubuntu"
 
 # Project variables.
-_REPO="https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz"
+_REPO="https://github.com/Mogtofu33/docker-compose-drupal.git"
 _BASE=${1-"default"}
 _PROJECT_PATH="$HOME/docker-compose-drupal"
 _PHP="dcd-php"
@@ -30,14 +30,7 @@ sudo usermod -a -G docker $_USER
 # Get a Docker compose stack.
 if [ ! -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
-  curl -fSl $_REPO -o dcd.tar.gz
-  if [ ! -f "dcd.tar.gz" ]; then
-    echo -e "\n>>>>\n[setup::ERROR] Failed to download the stack\n<<<<\n"
-  else
-    tar -xf ./dcd.tar.gz
-    mv docker-compose-drupal-master docker-compose-drupal
-    rm -f dcd.tar.gz
-  fi
+  git clone -b $_REPO $_PROJECT_PATH
 else
   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
