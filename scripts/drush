@@ -20,5 +20,5 @@ if [ ! -f $_DIR/helpers/common.sh ]; then
 fi
 source $_DIR/helpers/common.sh
 
-_docker_exec_noi \
+_docker_exec \
   "${DRUSH_BIN}" -r "${DRUPAL_DOCROOT}" "$@"

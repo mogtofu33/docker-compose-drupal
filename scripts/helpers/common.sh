@@ -120,6 +120,7 @@ _docker_exec() {
     $tty \
     --interactive \
     -e COLUMNS=$_COLUMN \
+    "${PROJECT_CONTAINER_NAME}" \
     "$@"
 }
 
