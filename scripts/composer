@@ -23,16 +23,5 @@ source $_DIR/helpers/common.sh
 _docker_exec_noi_u mkdir -p /.composer/cache
 _docker_exec_noi_u chown -R ${PROJECT_UID}: /.composer
 
-_docker_exec_noi \
+_docker_exec \
   composer --working-dir="${DRUPAL_ROOT}" "$@"
-
-# Local runtime/binary
-# docker run \
-#     $tty \
-#     --interactive \
-#     --rm \
-#     --user $(id -u):$(id -g) \
-#     --volume /etc/passwd:/etc/passwd:ro \
-#     --volume /etc/group:/etc/group:ro \
-#     --volume $(pwd):/app \
-#     composer "$@"

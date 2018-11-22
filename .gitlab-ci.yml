@@ -1,0 +1,36 @@
+image: docker:stable
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - test
+  - release
+
+################################################################################
+# Templates to avoid repeat.
+# https://docs.gitlab.com/ee/ci/yaml/#anchors
+################################################################################
+
+################################################################################
+# Jobs based on previous templates.
+# Only variables need to be changed if needed.
+################################################################################
+
+build:
+  stage: build
+  script:
+    - apk --no-cache add make gettext && make build
+
+test:
+  stage: test
+  script:
+    - apk --no-cache add make gettext && make up
+
+release:
+  stage: release
+  script:
+    - echo "ok"
+  only:
+    - master
