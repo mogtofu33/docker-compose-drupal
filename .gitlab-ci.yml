@@ -71,23 +71,20 @@ variables:
 .test_install_dcd: &test_install_dcd
   stage: test
   script:
-    - touch report.txt
-    - docker-compose config > report.txt
+    - docker-compose config
     - docker-compose build &> /dev/null
     - docker-compose up -d
     - docker exec dcd-php php -v
-    - docker exec dcd-php php -v >> report.txt
     - if [ ! -f 'data/www/drupal/web/index.php' ];
       then
-        docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet --profile;
+        docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet;
       fi
     - mkdir -p data/www/drupal/config/sync
     - chmod -R 777 data/www/drupal/config/sync
     - scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
     - scripts/drush status
-    - scripts/drush status >> report.txt
-    - scripts/drupal site:status >> report.txt
-    - scripts/composer show -P >> report.txt
+    #- scripts/drupal site:status
+    - scripts/composer show -P
   variables:
     DB_TYPE: "mysql"
   artifacts:
