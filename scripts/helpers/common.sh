@@ -108,7 +108,6 @@ tty=
 tty -s && tty=--tty
 
 _DOCKER=$(which docker)
-_COLUMN=$(tput cols)
 
 ###############################################################################
 # Common Program Functions
@@ -119,7 +118,8 @@ _docker_exec() {
   $_DOCKER exec \
     $tty \
     --interactive \
-    -e COLUMNS=$_COLUMN \
+    --user ${PROJECT_UID} \
+    "${PROJECT_CONTAINER_NAME}" \
     "$@"
 }
 
@@ -127,14 +127,12 @@ _docker_exec_noi() {
   $_DOCKER exec \
     $tty \
     --user ${PROJECT_UID} \
-    -e COLUMNS=$_COLUMN \
     "${PROJECT_CONTAINER_NAME}" \
     "$@"
 }
 
 _docker_exec_noi_u() {
   $_DOCKER exec \
-    -e COLUMNS=$_COLUMN \
     "${PROJECT_CONTAINER_NAME}" \
     "$@"
 }
