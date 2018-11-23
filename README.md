@@ -1,9 +1,11 @@
 # Drupal 8 Docker Compose Development
 
+[![pipeline status](https://gitlab.com/mog33/docker-compose-drupal/badges/master/pipeline.svg)](https://gitlab.com/mog33/docker-compose-drupal/commits/master)
+
 ## Require
 
 * [Docker engine 18+](https://docs.docker.com/install)
-* [Docker compose 1.22+](https://docs.docker.com/compose/install)
+* [Docker compose 1.23+](https://docs.docker.com/compose/install)
 
 **Full** Linux support. Tested daily on Ubuntu 16/18.
 
@@ -56,11 +58,12 @@ mv docker-compose-drupal-master docker-compose-drupal
 cd docker-compose-drupal
 ```
 
-### Create your docker compose file from template.
+### Create your docker compose file from template
 
 ```bash
 cp docker-compose.tpl.yml docker-compose.yml
 ```
+
 ### Prepare the stack
 
 Choose a database, remove or add services, add your composer cache folder if needed.
@@ -70,7 +73,7 @@ Do not touch for a default quick stack.
 vi docker-compose.yml
 ```
 
-### Create your config file from template.
+### Create your config file from template
 
 ```bash
 cp default.env .env
@@ -84,7 +87,7 @@ Recommended on Unix add your local uid/gid.
 vi .env
 ```
 
-### Check the yml file and fix if there is an error message.
+### Check the yml file and fix if there is an error message
 
 ```bash
 docker-compose config
@@ -111,7 +114,7 @@ will be automatically imported on the first run.
 docker-compose up --build -d
 ```
 
-### Quick check logs to ensure startup is finished, mostly Apache.
+### Quick check logs to ensure startup is finished, mostly Apache
 
 ```bash
 docker-compose logs apache
@@ -137,7 +140,7 @@ docker exec -it -u apache dcd-php \
     /var/www/localhost/drupal --stability dev --no-interaction
 ```
 
-_OR_ locally if you have [Composer](https://getcomposer.org/download/) installed, from this project root:
+_OR_ locally if you have [Composer](https://getcomposer.org/download) installed, from this project root:
 
 ```bash
 composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal --stability dev --no-interaction
@@ -145,7 +148,7 @@ composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal -
 
 #### Option 1: Install Drupal 8
 
-To use PostGreSQL change _mysql_ to _pgsql_
+To use **PostGreSQL** change **mysql** to **pgsql**
 
 You can replace **standard** by an other profile as **minimal** or **demo_umami** for [Drupal 8.6+](https://www.drupal.org/project/demo_umami).
 
@@ -155,6 +158,7 @@ docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y 
     --account-name=admin \
     --account-pass=password \
     --db-url=mysql://drupal:drupal@mysql/drupal
+    #--db-url=pgsql://drupal:drupal@pgsql/drupal
 ```
 
 #### Option 2: Install a Drupal 8 advanced template
@@ -167,7 +171,9 @@ Assuming we use composer from docker:
 
 ```bash
 # Step 1: Grab code
-git clone https://gitlab.com/mog33/drupal-composer-advanced-template.git -b 8.x-dev data/www/drupal
+curl -fSL https://gitlab.com/mog33/drupal-composer-advanced-template/-/archive/8.x-dev/drupal-composer-advanced-template-8.x-dev.tar.gz -o drupal.tar.gz
+tar -xzf drupal.tar.gz
+mv drupal-composer-advanced-template-8.x-dev data/www/drupal
 # Step 2: Install
 docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si config_installer \
     config_installer_sync_configure_form.sync_directory="../config/sync" \

@@ -49,10 +49,10 @@ services:
     image: mogtofu33/php:${PHP_VERSION:-7.1}
     volumes:
       - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
-      - ./config/php/${PHP_VERSION:-7.1}/php.ini:/etc/php${PHP_MAJOR_VERSION:-7}/php.ini:ro
-      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.conf:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.conf:ro
-      - ./config/php/${PHP_VERSION:-7.1}/conf.d/:/etc/php${PHP_MAJOR_VERSION:-7}/conf.d/:ro
-      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.d/:/etc/php${PHP_MAJOR_VERSION:-7}/php-fpm.d/:ro
+      - ./config/php/${PHP_VERSION:-7.1}/php.ini:/etc/php7/php.ini:ro
+      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.conf:/etc/php7/php-fpm.conf:ro
+      - ./config/php/${PHP_VERSION:-7.1}/conf.d/:/etc/php7/conf.d/:ro
+      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.d/:/etc/php7/php-fpm.d/:ro
       # Drush 9 alias and drushrc files (or any other config)
       - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml:ro
       - ./config/drush/drush.yml:/etc/drush/drush.yml:ro
@@ -127,7 +127,7 @@ services:
     restart: unless-stopped
     container_name: ${PROJECT_NAME:-dcd}-redis
   solr:
-    build: ./build/solr-${SOLR_VERSION:-7}
+    image: mogtofu33/solr:${SOLR_VERSION:-7}
     ports:
       - "8983:8983"
     environment:
@@ -164,7 +164,7 @@ services:
     restart: unless-stopped
     container_name: ${PROJECT_NAME:-dcd}-tools
   dashboard:
-    build: ./build/dashboard
+    image: mogtofu33/dashboard:latest
     ports:
       - "${HOST_DASHBORAD_PORT:-8181}:5000"
     volumes:
@@ -181,7 +181,7 @@ services:
     container_name: ${PROJECT_NAME:-dcd}-dashboard
   ## Full advanced dashboard.
   # portainer:
-  #   image: portainer/portainer
+  #   image: portainer/portainer:latest
   #   ports:
   #     - "9000:9000"
   #   command: --no-auth -H unix:///var/run/docker.sock

@@ -4,33 +4,163 @@ services:
   - docker:dind
 
 stages:
+  - build images
+  - test images
+  - release images
   - build
   - test
   - release
+
+variables:
+  CONTAINER_WEB_ROOT: "/var/www/localhost/drupal"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  LOCAL_IMAGE: registry.gitlab.com/mog33/docker-compose-drupal
+  RELEASE_REGISTRY: docker.io
+  RELEASE_IMAGE: index.docker.io/$RELEASE_USER
 
 ################################################################################
 # Templates to avoid repeat.
 # https://docs.gitlab.com/ee/ci/yaml/#anchors
 ################################################################################
 
-################################################################################
-# Jobs based on previous templates.
-# Only variables need to be changed if needed.
-################################################################################
+.docker_login_gitlab:
+  - &docker_login_gitlab docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
 
-build:
-  stage: build
-  script:
-    - apk --no-cache add make gettext && make build
+.docker_build_push:
+  script: &docker_build_push
+    - docker build --pull --tag $LOCAL_IMAGE/$IMAGE $DIR
+    - docker push $LOCAL_IMAGE/$IMAGE
 
-test:
-  stage: test
-  script:
-    - apk --no-cache add make gettext && make up
+.docker_pull:
+  - &docker_pull docker pull $LOCAL_IMAGE/$IMAGE
 
-release:
-  stage: release
+.build_image: &build_image
+  stage: build images
+  before_script:
+    - *docker_login_gitlab
+  script: *docker_build_push
+
+.test_image: &test_image
+  stage: test images
+  before_script:
+    - *docker_login_gitlab
+    - *docker_pull
+    - docker run -d -t --name test $LOCAL_IMAGE/$IMAGE
+
+.release: &release
+  stage: release images
+  before_script:
+    - docker login -u $RELEASE_USER -p $RELEASE_PASSWORD $RELEASE_REGISTRY
   script:
-    - echo "ok"
+    - *docker_pull
+    - docker tag $LOCAL_IMAGE/$IMAGE $RELEASE_IMAGE/$IMAGE
+    - docker push $RELEASE_IMAGE/$IMAGE
   only:
     - master
+
+.install_docker_compose:
+    - &install_docker_compose
+      apk --no-cache add make gettext bash python3 > /dev/null &&
+      python3 -m ensurepip > /dev/null &&
+      pip3 install --upgrade pip setuptools > /dev/null &&
+      if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip; fi &&
+      if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi &&
+      pip install 'docker-compose' > /dev/null
+
+.test_install_dcd: &test_install_dcd
+  stage: test
+  script:
+    - touch report.txt
+    - docker-compose config > report.txt
+    - docker-compose build &> /dev/null
+    - docker-compose up -d
+    - docker exec dcd-php php -v
+    - docker exec dcd-php php -v >> report.txt
+    - if [ ! -f 'data/www/drupal/web/index.php' ];
+      then
+        docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet --profile;
+      fi
+    - mkdir -p data/www/drupal/config/sync
+    - chmod -R 777 data/www/drupal/config/sync
+    - scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
+    - scripts/drush status
+    - scripts/drush status >> report.txt
+    - scripts/drupal site:status >> report.txt
+    - scripts/composer show -P >> report.txt
+  variables:
+    DB_TYPE: "mysql"
+  artifacts:
+    paths:
+      - report.txt
+    expire_in: 1 hour
+  cache:
+    key: drupal
+    paths:
+      - data/www/drupal
+      - data/database
+
+################################################################################
+# Jobs based on previous templates.
+################################################################################
+
+dashboard:
+  <<: *build_image
+  variables:
+    IMAGE: dashboard:latest
+    DIR: build/dashboard
+
+.test:dashboard:
+  <<: *test_image
+  script:
+    - docker exec test wget -q --server-response "http://localhost:5000/blocks"
+  variables:
+    IMAGE: dashboard:latest
+
+release:dashboard:
+  <<: *release
+  variables:
+    IMAGE: dashboard:latest
+
+dcd:
+  stage: build
+  before_script:
+    - *install_docker_compose
+  script:
+    - make setup
+  cache:
+    key: build
+    paths:
+      - .env
+      - docker-compose.yml
+
+drupal Php7.1:
+  before_script:
+    - *install_docker_compose
+    - make setup
+  <<: *test_install_dcd
+
+drupal Php7.2:
+  before_script:
+    - *install_docker_compose
+    - make setup
+    - sed -i 's#7.1#7.2#g' .env
+  <<: *test_install_dcd
+
+sample AMP7.1:
+  before_script:
+    - *install_docker_compose
+    - make setup
+    - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
+  <<: *test_install_dcd
+
+.sample AP9P7.1:
+  before_script:
+    - *install_docker_compose
+    - make setup
+    - cp samples/apache_postgres9_php.yml docker-compose.yml
+    # When changing database version, ensure we start fresh.
+    - rm -rf ./data/database/pgsql
+  <<: *test_install_dcd
+  variables:
+    DB_TYPE: "pgsql"
