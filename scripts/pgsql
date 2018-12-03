@@ -60,22 +60,22 @@ _DUMP_FILE="dump.pg_dump"
 _create() {
   _DB_NAME=${1:-$POSTGRES_DB}
   _pgsql_exec \
-    createdb -e --owner="${PGSQL_USER}" "${_DB_NAME}"
+    'createdb -e -U $POSTGRES_USER --owner="$POSTGRES_USER" "'"${_DB_NAME}"'"'
   _pgsql_exec \
-    psql -e -d ${_DB_NAME} -c "GRANT ALL ON database ${_DB_NAME} TO ${PGSQL_USER}"
+    'psql -U $POSTGRES_USER -e -d '${_DB_NAME}' -c "GRANT ALL ON database '${_DB_NAME}' TO '${POSTGRES_USER}'"'
 }
 
 _drop() {
   _prompt_yn
   _DB_NAME=${1:-"drupal"}
   _pgsql_exec \
-    dropdb --if-exists "${_DB_NAME}"
+    'dropdb -U $POSTGRES_USER --if-exists "'"${_DB_NAME}"'"'
 }
 
 _fix_user() {
   _USER_NAME=${1:-"drupal"}
   _pgsql_exec \
-    createuser "${_USER_NAME}"
+    'createuser -d -r -s "'"${_USER_NAME}"'"'
 }
 
 _dump() {
@@ -83,13 +83,15 @@ _dump() {
   _DUMP_FILE="dump_${_DB_NAME}_${_NOW}.pg_dump"
 
   _pgsql_exec_d_u \
-    'pg_dump -d "'"${_DB_NAME}"'" -U "'"${PGSQL_USER}"'" -hlocalhost -Fc -c -b -v -f "'"${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}"'"
+    'pg_dump -d "'"${_DB_NAME}"'" -U "'"${POSTGRES_USER}"'" -hlocalhost -Fc -c -b -v -f "'"${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}"'"
     --exclude-table-data "*.cache*" --exclude-table-data "*.cachetags*" 
     --exclude-table-data "*.watchdog*" --exclude-table-data "*.node_access*" 
     --exclude-table-data "*.search_api_db_*" --exclude-table-data "*.sessions*" 
     --exclude-table-data "*.sessions*" --exclude-table-data "*.webprofiler*"'
 
-  printf "Database dump saved to %s\\n" ${_DUMP_FILE}
+  printf "\\nDatabase dump saved to %s\\n\\n" ${_DUMP_FILE}
+  _pgsql_exec 'chmod -R 777 /dump'
+  _list_dump
 }
 
 _restore() {
@@ -99,18 +101,18 @@ _restore() {
     _drop
     _create
     _pgsql_exec \
-      pg_restore -h localhost -p 5432 --no-owner --role="${PGSQL_USER}" -U "${PGSQL_USER}" -d "${POSTGRES_DB}" -v ${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}
+      'pg_restore -h localhost -p 5432 --no-owner --role="$POSTGRES_USER" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v "'"${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}"'"'
   fi
 }
 
 _list_dump() {
   printf "Available dump files:\\n"
-  ls -lAh "${DUMP_FOLDER}"
+  ls -lAh "${STACK_ROOT}/${DUMP_FOLDER}"
 }
 
 _select_dump() {
 
-  _DUMPS=$(ls "${DUMP_FOLDER}")
+  _DUMPS=$(ls "${STACK_ROOT}/${DUMP_FOLDER}")
   _DUMPS=(`echo $_DUMPS | sed 's/ /\n/g'`)
 
   printf "Select a dump file:\\n"
@@ -145,6 +147,11 @@ _pgsql_exec_d_u() {
       sh -c $@
 }
 
+_ensure_dump_dir() {
+  _pgsql_exec 'chown -R postgres:postgres /dump'
+  _pgsql_exec 'chmod -R 777 /dump'
+}
+
 ###############################################################################
 # Main
 ###############################################################################
@@ -160,6 +167,7 @@ _main() {
 
   #_check_dependencies_docker
   _set_container_pgsql
+  _ensure_dump_dir
 
   if [[ "${1:-}" =~ ^list$ ]]; then
     _list_dump
