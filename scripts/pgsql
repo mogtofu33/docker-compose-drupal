@@ -43,12 +43,11 @@ _print_help() {
 Helper to dump and restore PGSQL db with pg_dump and pg_restore.
 
 Usage:
-  ${_ME} [dump | restore | list | drop | create] [database (default drupal)]
+  ${_ME} [ (dump | backup) | (import | restore) | list | drop | create ] [database (default: drupal)]
 
 Options:
   -h --help  Show this screen.
 HEREDOC
-_help_options
 }
 
 _DUMP_FILE="dump.pg_dump"
@@ -171,10 +170,10 @@ _main() {
 
   if [[ "${1:-}" =~ ^list$ ]]; then
     _list_dump
-  elif [[ "${1:-}" =~ ^dump$ ]]; then
+  elif [[ "${1:-}" =~ ^dump$ ]] || [[ "${1:-}" =~ ^backup$ ]]; then
     # _ensure_dir
     _dump
-  elif [[ "${1:-}" =~ ^restore$ ]]; then
+  elif [[ "${1:-}" =~ ^restore$ ]] || [[ "${1:-}" =~ ^import$ ]]; then
     _restore
   elif [[ "${1:-}" =~ ^drop$ ]]; then
     _drop ${2:-}
