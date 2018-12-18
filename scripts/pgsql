@@ -43,7 +43,10 @@ _print_help() {
 Helper to dump and restore PGSQL db with pg_dump and pg_restore.
 
 Usage:
-  ${_ME} [ (dump | backup) | (import | restore) | list | drop | create ] [database (default: drupal)]
+  ${_ME} [ (import | restore) ] [ (optional) Dump filename]
+  ${_ME} [ (dump | backup) | drop | create ] [database (default: drupal)]
+  ${_ME} list
+    List all available dumps.
 
 Options:
   -h --help  Show this screen.
@@ -51,6 +54,7 @@ HEREDOC
 }
 
 _DUMP_FILE="dump.pg_dump"
+_STACK_DUMP_FOLDER="${STACK_ROOT}${DUMP_FOLDER#"./"}"
 
 ###############################################################################
 # Program Functions
@@ -65,7 +69,6 @@ _create() {
 }
 
 _drop() {
-  _prompt_yn
   _DB_NAME=${1:-"drupal"}
   _pgsql_exec \
     'dropdb -U $POSTGRES_USER --if-exists "'"${_DB_NAME}"'"'
@@ -94,7 +97,16 @@ _dump() {
 }
 
 _restore() {
-  _select_dump
+  _DUMP_FILE=${1:-""}
+  if ! [ -z "$_DUMP_FILE" ]; then
+    echo "${_STACK_DUMP_FOLDER}/${_DUMP_FILE}"
+    if ! [ -f "${_STACK_DUMP_FOLDER}/${_DUMP_FILE}" ]; then
+      _select_dump
+    fi
+  else
+    _select_dump
+  fi
+
   if [ ! -z "$_DUMP_FILE" ]; then
     printf "Restoring %s...\\n" $_DUMP_FILE
     _drop
@@ -172,9 +184,9 @@ _main() {
     _list_dump
   elif [[ "${1:-}" =~ ^dump$ ]] || [[ "${1:-}" =~ ^backup$ ]]; then
     # _ensure_dir
-    _dump
+    _dump "${2:-}"
   elif [[ "${1:-}" =~ ^restore$ ]] || [[ "${1:-}" =~ ^import$ ]]; then
-    _restore
+    _restore "${2:-}"
   elif [[ "${1:-}" =~ ^drop$ ]]; then
     _drop ${2:-}
   elif [[ "${1:-}" =~ ^create$ ]]; then
