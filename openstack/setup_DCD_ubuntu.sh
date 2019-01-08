@@ -11,7 +11,6 @@ _USER="ubuntu"
 _GROUP="ubuntu"
 
 # Project variables.
-_REPO="https://github.com/Mogtofu33/docker-compose-drupal.git"
 _BASE=${1-"default"}
 _PROJECT_PATH="$HOME/docker-compose-drupal"
 _PHP="dcd-php"
@@ -21,36 +20,31 @@ _WEB="$_ROOT/web"
 _DRUPAL_CONSOLE="$_ROOT/vendor/bin/drupal"
 _DRUSH="$_ROOT/vendor/bin/drush"
 
-# Fix permissions.
+# Ensure permissions.
 sudo chown -R $_USER:$_GROUP $HOME
 
-# Set Docker group to our user.
+# Set Docker group to our user (temporary fix?).
 sudo usermod -a -G docker $_USER
 
 # Get a Docker compose stack.
 if [ ! -d "$_PROJECT_PATH" ]; then
-  echo -e "\n>>>>\n[setup::info] Clone Docker stack...\n<<<<\n"
-  git clone $_REPO $_PROJECT_PATH
+  echo -e "\n>>>>\n[setup::info] Get Docker stack...\n<<<<\n"
+  curl -fSL https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz -o docker-compose-drupal-master.tar.gz
+  tar -xzf docker-compose-drupal-master.tar.gz
+  mv docker-compose-drupal-master $_PROJECT_PATH
 else
   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
 
-sudo chown -R $_USER:$_GROUP $HOME
-
 # Set-up and launch this Docker compose stack.
 echo -e "\n>>>>\n[setup::info] Prepare Docker stack...\n<<<<\n"
-if [ ! -f "$_PROJECT_PATH/.env" ] && [ -f "$_PROJECT_PATH/default.env" ]; then
-  cp $_PROJECT_PATH/default.env $_PROJECT_PATH/.env
-else
-  echo -e "\n>>>>\n[setup::ERROR] Missing default.env file!\n<<<<\n"
-fi
+make setup
 
 echo -e "\n>>>>\n[setup::info] Set stack ${_BASE}\n<<<<\n"
 if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
   if [ -f "$_PROJECT_PATH/samples/$_BASE.yml" ]; then
     cp $_PROJECT_PATH/samples/$_BASE.yml $_PROJECT_PATH/docker-compose.yml
   else
-    # Default file is Apache/Mysql/Memcache/Solr/Mailhog.
     if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
       cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
     fi
@@ -122,15 +116,6 @@ alias drcsbp="$HOME/.config/composer/vendor/bin/phpcs --standard=DrupalPractice 
 alias drcsfix="$HOME/.config/composer/vendor/bin/phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
 EOT
 
-# Add cmd in container bin for use with ssh.
-sudo touch /usr/local/bin/dcmd
-sudo chown $_USER:$_GROUP /usr/local/bin/dcmd
-sudo chmod +x /usr/local/bin/dcmd
-cat <<EOT > /usr/local/bin/dcmd
-#!/bin/bash
-docker exec -it --user apache $_PHP \$@
-EOT
-
 # Convenient links.
 if [ ! -d "$HOME/www" ]; then
   ln -s $_PROJECT_ROOT $HOME/www
@@ -148,10 +133,6 @@ if [ -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Setup Docker stack tools...\n<<<<\n"
   $_PROJECT_PATH/scripts/get-tools.sh install
 fi
-
-# Fix sock for privilleged, wait a bit for stack to be up....
-sleep 30s
-sudo chown $_USER:$_GROUP /var/run/docker.sock
 
 echo -e "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
 [setup::info] Docker compose stack install finished!\n

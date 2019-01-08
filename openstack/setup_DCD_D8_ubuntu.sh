@@ -18,7 +18,7 @@ echo -e "\n>>>>\n[setup::info] Install Drupal 8...\n<<<<\n"
 docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y site:install $__drush_options >> $PROJECT_PATH/drupal-install.log
 docker exec -t --user apache $PROJECT_CONTAINER_NAME $DRUSH_BIN $DRUSH_ROOT -y pm:enable admin_toolbar >> /dev/null
 
-echo -e "Done, see install result in $PROJECT_PATH/drupal-install.log"
+echo -e "\n>>>>\n[setup::info] Done, see install result in $PROJECT_PATH/drupal-install.log\n<<<<\n"
 
 # Add drush and drupal bin shortcut.
 sudo touch /usr/local/bin/drush
