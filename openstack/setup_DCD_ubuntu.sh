@@ -29,38 +29,31 @@ sudo usermod -a -G docker $_USER
 # Get a Docker compose stack.
 if [ ! -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Get Docker stack...\n<<<<\n"
-  curl -fSL https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz -o docker-compose-drupal-master.tar.gz
+  curl -fsSL https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz -o docker-compose-drupal-master.tar.gz
   tar -xzf docker-compose-drupal-master.tar.gz
   mv docker-compose-drupal-master $_PROJECT_PATH
+  rm -f docker-compose-drupal-master.tar.gz
 else
   echo -e "\n>>>>\n[setup::notice] Docker stack already here!\n<<<<\n"
 fi
 
 # Set-up and launch this Docker compose stack.
 echo -e "\n>>>>\n[setup::info] Prepare Docker stack...\n<<<<\n"
-make setup
+(cd $_PROJECT_PATH && make setup)
 
 echo -e "\n>>>>\n[setup::info] Set stack ${_BASE}\n<<<<\n"
-if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
-  if [ -f "$_PROJECT_PATH/samples/$_BASE.yml" ]; then
-    cp $_PROJECT_PATH/samples/$_BASE.yml $_PROJECT_PATH/docker-compose.yml
-  else
-    if [ ! -f "$_PROJECT_PATH/docker-compose.yml" ]; then
-      cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
-    fi
-  fi
-else
-  echo -e "\n>>>>\n[setup::info] Stack already set\n<<<<\n"
+if [ -f "$_PROJECT_PATH/samples/$_BASE.yml" ]; then
+  cp $_PROJECT_PATH/samples/$_BASE.yml $_PROJECT_PATH/docker-compose.yml
 fi
 
-if [ ! -f "${_PROJECT_PATH}/docker-compose.yml" ]; then
-  echo -e "\n>>>>\n[setup::ERROR] Stack do not exist!\n<<<<\n"
-else
-  docker-compose --file "${_PROJECT_PATH}/docker-compose.yml" build && docker-compose --file "${_PROJECT_PATH}/docker-compose.yml" up -d
+if ! [ -f "${_PROJECT_PATH}/docker-compose.yml" ]; then
+  cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
 fi
+
+docker-compose --file "${_PROJECT_PATH}/docker-compose.yml" build && docker-compose --file "${_PROJECT_PATH}/docker-compose.yml" up -d
 
 # Set-up composer.
-if [ ! -f "/usr/bin/composer" ]; then
+if ! [ -f "/usr/bin/composer" ]; then
   echo -e "\n>>>>\n[setup::info] Set-up Composer and dependencies...\n<<<<\n"
   cd $HOME
   curl -sS https://getcomposer.org/installer | php -- --install-dir=$HOME --filename=composer
@@ -84,7 +77,7 @@ RUNNING=$(docker inspect --format="{{ .State.Running }}" $_PHP 2> /dev/null)
 if [ $? -eq 1 ]; then
   echo -e "\n>>>>\n[setup::ERROR] Container $_PHP does not exist...\n<<<<\n"
   # Wait a bit for stack to be up....
-  sleep 30s
+  sleep 10s
 fi
 
 # Add project variables to environment.
@@ -133,6 +126,9 @@ if [ -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Setup Docker stack tools...\n<<<<\n"
   $_PROJECT_PATH/scripts/get-tools.sh install
 fi
+
+# Ensure permissions.
+sudo chown -R $_USER:$_GROUP $HOME
 
 echo -e "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
 [setup::info] Docker compose stack install finished!\n
