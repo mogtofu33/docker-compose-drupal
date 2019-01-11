@@ -57,7 +57,7 @@ runcmd:
   #
   # Run Drupal 8 demo install, see scripts/install-drupal.sh for more profiles.
   - chmod +x /home/ubuntu/docker-compose-drupal/scripts/install-drupal.sh
-  - chown -R "ubuntu:ubuntu" /home/ubuntu/docker-compose-drupal
+  - chown -R "ubuntu:ubuntu" /home/ubuntu/docker-compose-drupal/data/www
   - su -c "/home/ubuntu/docker-compose-drupal/scripts/install-drupal.sh install drupal-demo" ubuntu
 
 ################################################################################
