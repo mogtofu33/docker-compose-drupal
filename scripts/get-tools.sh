@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-# ____   ____   ____                         _
-# |  _ \ / ___| |  _ \ _ __ _   _ _ __   __ _| |
-# | | | | |     | | | | '__| | | | '_ \ / _  | |
-# | |_| | |___  | |_| | |  | |_| | |_) | (_| | |
-# |____/ \____| |____/|_|   \__,_| .__/ \__,_|_|
-#                               |_|
 #
 # Helper to get third party tools, part of Docker Compose Drupal project.
 # Based on Bash simple Boilerplate.

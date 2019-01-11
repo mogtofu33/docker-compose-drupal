@@ -55,24 +55,14 @@ runcmd:
   # If you clone from a private repo you should add a deploy/token key or use
   # any ssh-agent strategy.
   #
-  # Grab setup scripts for base Drupal 8 and run it as user ubuntu.
-  - wget -q -O /home/ubuntu/setup_DCD_D8_ubuntu.sh "https://gitlab.com/mog33/docker-compose-drupal/raw/master/openstack/setup_DCD_D8_ubuntu.sh?inline=false"
-  - chmod +x /home/ubuntu/setup_DCD_D8_ubuntu.sh
-  - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_D8_ubuntu.sh
-  - su -c "/home/ubuntu/setup_DCD_D8_ubuntu.sh" ubuntu
-  ##############################################################################
-  # This part is an example to install Bootstrap Sass subtheme on Drupal 8 from
-  # previous script.
-  #
-  # Grab setup scripts for Bootstrap subtheme and run it as user ubuntu.
-  - wget -q -O /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh "https://gitlab.com/mog33/docker-compose-drupal/raw/master/openstack/setup_DCD_D8_Bootstrap_sass.sh?inline=false"
-  - chmod +x /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh
-  - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh
-  - su -c "/home/ubuntu/setup_DCD_D8_Bootstrap_sass.sh" ubuntu
+  # Run Drupal 8 demo install, see scripts/install-drupal.sh for more profiles.
+  - chmod +x /home/ubuntu/docker-compose-drupal/scripts/install-drupal.sh
+  - chown -R "ubuntu:ubuntu" /home/ubuntu/docker-compose-drupal
+  - su -c "/home/ubuntu/docker-compose-drupal/scripts/install-drupal.sh install drupal-demo" ubuntu
 
 ################################################################################
 # Basic, cloud config for Ubuntu image with Docker.
-# Setup Docker, minimal Php 7 for Composer and Compass with bootstrap.
+# Setup Docker, minimal Php 7 for Composer and Compass with Bootstrap support.
 ################################################################################
 packages:
   - software-properties-common
@@ -98,6 +88,7 @@ packages:
   - ruby-sass
   - ruby-bootstrap-sass
   - ncurses-term
+  - make
 package_update: true
 package_upgrade: true
 

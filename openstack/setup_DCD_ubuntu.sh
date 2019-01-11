@@ -29,7 +29,15 @@ sudo usermod -a -G docker $_USER
 # Get a Docker compose stack.
 if [ ! -d "$_PROJECT_PATH" ]; then
   echo -e "\n>>>>\n[setup::info] Get Docker stack...\n<<<<\n"
-  curl -fsSL https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz -o docker-compose-drupal-master.tar.gz
+  curl -fSL https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz -o docker-compose-drupal-master.tar.gz
+  if ! [ -f "docker-compose-drupal-master.tar.gz" ]; then
+  echo -e "\n>>>>\n[setup::info] Get Docker stack, 2nd try...\n<<<<\n"
+  curl -fSL https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz -o docker-compose-drupal-master.tar.gz
+  fi
+  if ! [ -f "docker-compose-drupal-master.tar.gz" ]; then
+    echo -e "\n>>>>\n[setup::error] Failed to download DcD :(\n<<<<\n"
+    exit 1
+  fi
   tar -xzf docker-compose-drupal-master.tar.gz
   mv docker-compose-drupal-master $_PROJECT_PATH
   rm -f docker-compose-drupal-master.tar.gz
@@ -41,16 +49,12 @@ fi
 echo -e "\n>>>>\n[setup::info] Prepare Docker stack...\n<<<<\n"
 (cd $_PROJECT_PATH && make setup)
 
-echo -e "\n>>>>\n[setup::info] Set stack ${_BASE}\n<<<<\n"
+echo -e "\n>>>>\n[setup::info] Set and launch stack ${_BASE}\n<<<<\n"
 if [ -f "$_PROJECT_PATH/samples/$_BASE.yml" ]; then
   cp $_PROJECT_PATH/samples/$_BASE.yml $_PROJECT_PATH/docker-compose.yml
 fi
 
-if ! [ -f "${_PROJECT_PATH}/docker-compose.yml" ]; then
-  cp $_PROJECT_PATH/docker-compose.tpl.yml $_PROJECT_PATH/docker-compose.yml
-fi
-
-docker-compose --file "${_PROJECT_PATH}/docker-compose.yml" build && docker-compose --file "${_PROJECT_PATH}/docker-compose.yml" up -d
+docker-compose --file "${_PROJECT_PATH}/docker-compose.yml" up -d --build
 
 # Set-up composer.
 if ! [ -f "/usr/bin/composer" ]; then
@@ -102,11 +106,11 @@ alias dk='docker'
 # Docker-compose
 alias dkc='docker-compose'
 # Check Drupal coding standards
-alias drcs="$HOME/.config/composer/vendor/bin/phpcs --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
+alias drcs="$HOME/.config/composer/vendor/bin/phpcs --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,info'"
 # Check Drupal best practices
-alias drcsbp="$HOME/.config/composer/vendor/bin/phpcs --standard=DrupalPractice --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt,md'"
+alias drcsbp="$HOME/.config/composer/vendor/bin/phpcs --standard=DrupalPractice --extensions='php,module,inc,install,test,profile,theme,info'"
 # Fix Drupal coding standards
-alias drcsfix="$HOME/.config/composer/vendor/bin/phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,js,css,info,txt'"
+alias drcsfix="$HOME/.config/composer/vendor/bin/phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,info'"
 EOT
 
 # Convenient links.

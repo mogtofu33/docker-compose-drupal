@@ -36,8 +36,7 @@ services:
       - ./config/php/${PHP_VERSION:-7.1}/php-fpm.conf:/etc/php7/php-fpm.conf:ro
       - ./config/php/${PHP_VERSION:-7.1}/conf.d/:/etc/php7/conf.d/:ro
       - ./config/php/${PHP_VERSION:-7.1}/php-fpm.d/:/etc/php7/php-fpm.d/:ro
-      # Drush 9 alias and drushrc files (or any other config)
-      - ./config/drush/d.alias.yml:/etc/drush/d.alias.yml:ro
+      # Drush 9 config file.
       - ./config/drush/drush.yml:/etc/drush/drush.yml:ro
       # Used by dashboard for accessing tools.
       - ./tools:/tools:ro

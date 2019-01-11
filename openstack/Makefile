@@ -1,6 +1,4 @@
 # Makefile for Docker Compose Drupal skeleton, run 'make build'.
-# Note Ubuntu 18 Docker repo is currently not working, works fine with xenial
-# need to be moved to bionic when ready.
 
 include .env
 
