@@ -67,6 +67,12 @@ variables:
       if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi &&
       pip install 'docker-compose' > /dev/null
 
+.reset_drupal:
+    - &reset_drupal
+      rm -f data/www/drupal/web/sites/default/settings.php &&
+      cp data/www/drupal/web/sites/default/default.settings.php data/www/drupal/web/sites/default/settings.php &&
+      chmod 700 data/www/drupal/web/sites/default/settings.php
+
 .test_install_dcd: &test_install_dcd
   stage: test
   script:
@@ -83,10 +89,9 @@ variables:
       fi
     - mkdir -p data/www/drupal/config/sync
     - chmod -R 777 data/www/drupal/config/sync
-    - docker-compose logs mysql
     - scripts/drush -y si minimal --db-url=mysql://drupal:drupal@mysql/drupal
     - scripts/drush status
-    - docker-compose logs pgsql
+    - *reset_drupal
     - scripts/drush -y si minimal --db-url=pgsql://drupal:drupal@pgsql/drupal
     - scripts/drush status
     #- scripts/drupal site:status
@@ -155,8 +160,6 @@ drupal Php7.1:
     - *install_docker_compose
     - make setup
     - cp samples/apache_postgres9_php.yml docker-compose.yml
-    # When changing database version, ensure we start fresh.
-    - rm -rf ./data/database/pgsql
   <<: *test_install_dcd
   variables:
     DB_TYPE: "pgsql"
