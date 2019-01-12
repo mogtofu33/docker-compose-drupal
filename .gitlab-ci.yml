@@ -8,7 +8,7 @@ stages:
   - test images
   - release images
   - build
-  - test
+  - tests
 
 variables:
   CONTAINER_WEB_ROOT: "/var/www/localhost/drupal"
@@ -74,7 +74,7 @@ variables:
       chmod 777 data/www/drupal/web/sites/default/settings.php
 
 .test_install_dcd: &test_install_dcd
-  stage: test
+  stage: tests
   script:
     - docker-compose config
     - docker-compose build &> /dev/null
@@ -94,8 +94,28 @@ variables:
     - *reset_drupal
     - scripts/drush -y si minimal --db-url=pgsql://drupal:drupal@pgsql/drupal
     - scripts/drush status
-    #- scripts/drupal site:status
-    #- scripts/composer show -P
+  cache:
+    key: drupal
+    paths:
+      - data/www/drupal
+
+.test_scripts: &test_scripts
+  stage: tests
+  script:
+    - chmod -R 600 config/mysql
+    - docker-compose up -d --build &> /dev/null
+    - apk --no-cache add git
+    - scripts/get-tools.sh install
+    - scripts/get-tools.sh update
+    - rm -rf data/www/drupal
+    - scripts/install-drupal.sh install drupal-min
+    - scripts/drush status
+    - *reset_drupal
+    - scripts/install-drupal.sh install drupal-min pgsql
+    - scripts/drush status
+    - scripts/composer show -P
+    - scripts/mysql test
+    - scripts/pgsql test
   cache:
     key: drupal
     paths:
@@ -105,7 +125,7 @@ variables:
 # Jobs based on previous templates.
 ################################################################################
 
-.dashboard:
+dashboard:
   <<: *build_image
   variables:
     IMAGE: dashboard:latest
@@ -118,7 +138,7 @@ variables:
   variables:
     IMAGE: dashboard:latest
 
-.release:dashboard:
+release:dashboard:
   <<: *release
   variables:
     IMAGE: dashboard:latest
@@ -155,11 +175,8 @@ drupal Php7.1:
     - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
   <<: *test_install_dcd
 
-.sample AP9P7.1:
+scripts:
   before_script:
     - *install_docker_compose
     - make setup
-    - cp samples/apache_postgres9_php.yml docker-compose.yml
-  <<: *test_install_dcd
-  variables:
-    DB_TYPE: "pgsql"
+  <<: *test_scripts
