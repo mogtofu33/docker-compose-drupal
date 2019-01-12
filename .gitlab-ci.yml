@@ -90,6 +90,8 @@ variables:
 
 .test_scripts_dcd: &test_scripts_dcd
   stage: tests scripts
+  before_script:
+    - apk --no-cache add git
   script:
     - docker-compose up -d --build
     - scripts/get-tools.sh install
