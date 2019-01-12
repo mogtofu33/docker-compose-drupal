@@ -83,14 +83,10 @@ variables:
     - chmod -R 777 data/www/drupal/config/sync
     - scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
     - scripts/drush status
-    #- scripts/drupal site:status
+    - scripts/drupal site:status
     - scripts/composer show -P
   variables:
     DB_TYPE: "mysql"
-  artifacts:
-    paths:
-      - report.txt
-    expire_in: 1 hour
   cache:
     key: drupal
     paths:
@@ -151,7 +147,7 @@ sample AMP7.1:
     - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
   <<: *test_install_dcd
 
-.sample AP9P7.1:
+sample AP9P7.1:
   before_script:
     - *install_docker_compose
     - make setup
