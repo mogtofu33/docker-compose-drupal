@@ -97,14 +97,14 @@ _drop_drush() {
 
 _dump_drush() {
   _DUMP_FILE=dump_${_NOW}.sql
-  echo _docker_exec \
+  _docker_exec \
     "${PROJECT_CONTAINER_NAME}" \
     "${DRUSH_BIN}" -r "${DRUPAL_DOCROOT}" sql-dump \
       --structure-tables-list=cache*,history,node_counter,search_*,sessions,watchdog \
       --result-file=/tmp/${_DUMP_FILE}
       # --skip-tables-list=migrate_* \
-  echo $_DOCKER cp "${PROJECT_CONTAINER_NAME}":/tmp/${_DUMP_FILE} ${DUMP_FOLDER}/${_DUMP_FILE}
-  echo _docker_exec "${PROJECT_CONTAINER_NAME}" rm -f /tmp/${_DUMP_FILE}
+  $_DOCKER cp "${PROJECT_CONTAINER_NAME}":/tmp/${_DUMP_FILE} ${DUMP_FOLDER}/${_DUMP_FILE}
+  _docker_exec "${PROJECT_CONTAINER_NAME}" rm -f /tmp/${_DUMP_FILE}
 }
 
 _dump() {
@@ -171,6 +171,11 @@ _ensure_dump_dir() {
   fi
 }
 
+_tests() {
+  _dump
+  _dump_drush
+}
+
 ###############################################################################
 # Main
 ###############################################################################
@@ -201,6 +206,8 @@ _main() {
     _drop_drush
   elif [[ "${1:-}" =~ ^create$ ]]; then
     _create ${2:-}
+  elif [[ "${1:-}" =~ ^test$ ]]; then
+    _tests
   else
     _print_help
   fi

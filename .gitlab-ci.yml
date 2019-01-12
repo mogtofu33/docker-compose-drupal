@@ -8,8 +8,8 @@ stages:
   - test images
   - release images
   - build
-  - test
-  - release
+  - tests install
+  - tests scripts
 
 variables:
   CONTAINER_WEB_ROOT: "/var/www/localhost/drupal"
@@ -69,22 +69,37 @@ variables:
       pip install 'docker-compose' > /dev/null
 
 .test_install_dcd: &test_install_dcd
-  stage: test
+  stage: tests install
   script:
     - docker-compose config
-    - docker-compose build &> /dev/null
-    - docker-compose up -d
+    - docker-compose up -d --build
     - docker exec dcd-php php -v
     - if [ ! -f 'data/www/drupal/web/index.php' ];
       then
         docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet;
       fi
-    - mkdir -p data/www/drupal/config/sync
-    - chmod -R 777 data/www/drupal/config/sync
     - scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
     - scripts/drush status
+  variables:
+    DB_TYPE: "mysql"
+  cache:
+    key: drupal
+    paths:
+      - data/www/drupal
+      - data/database
+
+.test_scripts_dcd: &test_scripts_dcd
+  stage: tests scripts
+  script:
+    - docker-compose up -d --build
+    - scripts/get-tools.sh install
+    - scripts/get-tools.sh update
+    - scripts/install-drupal.sh install drupal-min mysql
+    - scripts/install-drupal.sh install drupal-min postgres
     - scripts/drupal site:status
     - scripts/composer show -P
+    - scripts/mysql dump
+    - scripts/pgsql dump
   variables:
     DB_TYPE: "mysql"
   cache:
@@ -140,20 +155,8 @@ drupal Php7.2:
     - sed -i 's#7.1#7.2#g' .env
   <<: *test_install_dcd
 
-sample AMP7.1:
+scripts:
   before_script:
     - *install_docker_compose
     - make setup
-    - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
-  <<: *test_install_dcd
-
-sample AP9P7.1:
-  before_script:
-    - *install_docker_compose
-    - make setup
-    - cp samples/apache_postgres9_php.yml docker-compose.yml
-    # When changing database version, ensure we start fresh.
-    - rm -rf ./data/database/pgsql
-  <<: *test_install_dcd
-  variables:
-    DB_TYPE: "pgsql"
+  <<: *test_scripts_dcd
