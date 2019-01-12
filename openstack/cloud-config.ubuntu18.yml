@@ -55,7 +55,7 @@ runcmd:
   # If you clone from a private repo you should add a deploy/token key or use
   # any ssh-agent strategy.
   #
-  # Run Drupal 8 demo install, see scripts/install-drupal.sh for more profiles.
+  # Run Drupal 8 demo Umami install, see scripts/install-drupal.sh for more profiles.
   - chmod +x /home/ubuntu/docker-compose-drupal/scripts/install-drupal.sh
   - chown -R "ubuntu:ubuntu" /home/ubuntu/docker-compose-drupal/data/www
   - su -c "/home/ubuntu/docker-compose-drupal/scripts/install-drupal.sh install drupal-demo" ubuntu
