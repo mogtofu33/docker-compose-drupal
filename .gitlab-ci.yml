@@ -72,10 +72,11 @@ variables:
   script:
     - docker-compose config
     - docker-compose build &> /dev/null
-    - chmod -R 600 config
+    - chmod -R 600 config/mysql
     - docker-compose up -d
     - docker exec dcd-php php -v
     - docker-compose ps
+    - docker-compose logs
     - if [ ! -f 'data/www/drupal/web/index.php' ];
       then
         docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet;
@@ -83,12 +84,13 @@ variables:
     - mkdir -p data/www/drupal/config/sync
     - chmod -R 777 data/www/drupal/config/sync
     - docker-compose logs mysql
-    - scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
+    - scripts/drush -y si minimal --db-url=mysql://drupal:drupal@mysql/drupal
+    - scripts/drush status
+    - docker-compose logs pgsql
+    - scripts/drush -y si minimal --db-url=pgsql://drupal:drupal@pgsql/drupal
     - scripts/drush status
     #- scripts/drupal site:status
     #- scripts/composer show -P
-  variables:
-    DB_TYPE: "mysql"
   cache:
     key: drupal
     paths:
