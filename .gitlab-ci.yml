@@ -61,12 +61,14 @@ variables:
 
 .install_docker_compose:
     - &install_docker_compose
-      apk --no-cache add make gettext bash python3 > /dev/null &&
-      python3 -m ensurepip > /dev/null &&
-      pip3 install --upgrade pip setuptools > /dev/null &&
-      if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip; fi &&
-      if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi &&
-      pip install 'docker-compose' > /dev/null
+      if ! [ -x "$(command -v docker-compose)" ]; then
+        apk --no-cache add make gettext bash python3 > /dev/null &&
+        python3 -m ensurepip > /dev/null &&
+        pip3 install --upgrade pip setuptools > /dev/null &&
+        if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip; fi &&
+        if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi &&
+        pip install 'docker-compose' > /dev/null;
+      fi
 
 .test_install_dcd: &test_install_dcd
   stage: tests install
@@ -95,20 +97,15 @@ variables:
     - apk --no-cache add git
     - scripts/get-tools.sh install
     - scripts/get-tools.sh update
+    - rm -rf data/www/drupal
     - scripts/install-drupal.sh install drupal-min mysql
+    - rm -rf data/www/drupal
     - scripts/install-drupal.sh install drupal-min postgres
     - scripts/drupal
     - scripts/drupal site:status
     - scripts/composer show -P
     - scripts/mysql test
     - scripts/pgsql test
-  variables:
-    DB_TYPE: "mysql"
-  cache:
-    key: drupal
-    paths:
-      - data/www/drupal
-      - data/database
 
 ################################################################################
 # Jobs based on previous templates.
@@ -141,8 +138,7 @@ dcd:
   cache:
     key: build
     paths:
-      - .env
-      - docker-compose.yml
+      - /usr/bin/docker-compose
 
 drupal Php7.1:
   before_script:
@@ -162,3 +158,5 @@ scripts:
     - *install_docker_compose
     - make setup
   <<: *test_scripts_dcd
+  cache:
+    key: build
