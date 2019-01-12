@@ -110,8 +110,8 @@ variables:
     - rm -rf data/www/drupal
     - scripts/install-drupal.sh install drupal-min
     - scripts/drush status
-    - *reset_drupal
-    - scripts/install-drupal.sh install drupal-min pgsql
+    - rm -rf data/www/drupal
+    - scripts/install-drupal.sh install drupal-min postgres
     - scripts/drush status
     - scripts/composer show -P
     - scripts/mysql test
