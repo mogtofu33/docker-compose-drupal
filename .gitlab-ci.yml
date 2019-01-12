@@ -8,7 +8,8 @@ stages:
   - test images
   - release images
   - build
-  - tests install
+  - test
+  - release
 
 variables:
   CONTAINER_WEB_ROOT: "/var/www/localhost/drupal"
@@ -68,7 +69,7 @@ variables:
       pip install 'docker-compose' > /dev/null
 
 .test_install_dcd: &test_install_dcd
-  stage: tests install
+  stage: test
   script:
     - docker-compose config
     - docker-compose build &> /dev/null
@@ -86,6 +87,10 @@ variables:
     - scripts/composer show -P
   variables:
     DB_TYPE: "mysql"
+  artifacts:
+    paths:
+      - report.txt
+    expire_in: 1 hour
   cache:
     key: drupal
     paths:
@@ -120,6 +125,11 @@ dcd:
     - *install_docker_compose
   script:
     - make setup
+  cache:
+    key: build
+    paths:
+      - .env
+      - docker-compose.yml
 
 drupal Php7.1:
   before_script:
