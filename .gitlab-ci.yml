@@ -71,7 +71,7 @@ variables:
     - &reset_drupal
       rm -f data/www/drupal/web/sites/default/settings.php &&
       cp data/www/drupal/web/sites/default/default.settings.php data/www/drupal/web/sites/default/settings.php &&
-      chmod 700 data/www/drupal/web/sites/default/settings.php
+      chmod 777 data/www/drupal/web/sites/default/settings.php
 
 .test_install_dcd: &test_install_dcd
   stage: test
@@ -82,7 +82,7 @@ variables:
     - docker-compose up -d
     - docker exec dcd-php php -v
     - docker-compose ps
-    - docker-compose logs
+    - sleep 5s && docker-compose logs
     - if [ ! -f 'data/www/drupal/web/index.php' ];
       then
         docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet;
