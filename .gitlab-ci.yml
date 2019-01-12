@@ -61,15 +61,12 @@ variables:
 
 .install_docker_compose:
     - &install_docker_compose
-      if ! [ -x "$(command -v docker-compose)" ]; then
-        apk --no-cache add make gettext bash python3 > /dev/null &&
-        python3 -m ensurepip > /dev/null &&
-        pip3 install --upgrade pip setuptools > /dev/null &&
-        if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip; fi &&
-        if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi &&
-        pip install 'docker-compose' > /dev/null &&
-        pip show 'docker-compose';
-      fi
+      apk --no-cache add make gettext bash python3 > /dev/null &&
+      python3 -m ensurepip > /dev/null &&
+      pip3 install --upgrade pip setuptools > /dev/null &&
+      if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip; fi &&
+      if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi &&
+      pip install 'docker-compose' > /dev/null
 
 .test_install_dcd: &test_install_dcd
   stage: tests install
@@ -104,13 +101,19 @@ variables:
     #- scripts/install-drupal.sh install drupal-min mysql
     #- rm -rf data/www/drupal
     #- scripts/install-drupal.sh install drupal-min postgres
-    - scripts/drush
+    - mkdir -p data/www/drupal/config/sync
+    - chmod -R 777 data/www/drupal/config/sync
+    - scripts/drush -y si minimal --db-url=mysql://drupal:drupal@mysql/drupal
+    - scripts/drush status
+    - scripts/drush -y si minimal --db-url=pgsql://drupal:drupal@pgsql/drupal
+    - scripts/drush status
     - scripts/drupal
     #- scripts/drupal site:status
-    #- scripts/composer show -P
-    - scripts/composer
+    - scripts/composer show -P
     - scripts/mysql test
     - scripts/pgsql test
+  cache:
+    key: drupal
 
 ################################################################################
 # Jobs based on previous templates.
@@ -140,18 +143,12 @@ dcd:
     - *install_docker_compose
   script:
     - make setup
-  cache:
-    key: build
-    paths:
-      - /usr/local/bin/docker-compose
 
 drupal Php7.1:
   before_script:
     - *install_docker_compose
     - make setup
   <<: *test_install_dcd
-  cache:
-    key: build
 
 drupal Php7.2:
   before_script:
@@ -159,13 +156,9 @@ drupal Php7.2:
     - make setup
     - sed -i 's#7.1#7.2#g' .env
   <<: *test_install_dcd
-  cache:
-    key: build
 
 scripts:
   before_script:
     - *install_docker_compose
     - make setup
   <<: *test_scripts_dcd
-  cache:
-    key: build
