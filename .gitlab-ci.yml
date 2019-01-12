@@ -72,6 +72,7 @@ variables:
   script:
     - docker-compose config
     - docker-compose build &> /dev/null
+    - chmod -R 600 config
     - docker-compose up -d
     - docker exec dcd-php php -v
     - docker-compose ps
@@ -82,7 +83,7 @@ variables:
     - mkdir -p data/www/drupal/config/sync
     - chmod -R 777 data/www/drupal/config/sync
     - docker-compose logs mysql
-    #- scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
+    - scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
     - scripts/drush status
     #- scripts/drupal site:status
     #- scripts/composer show -P
