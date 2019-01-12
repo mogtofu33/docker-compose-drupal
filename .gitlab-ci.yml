@@ -67,7 +67,8 @@ variables:
         pip3 install --upgrade pip setuptools > /dev/null &&
         if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip; fi &&
         if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi &&
-        pip install 'docker-compose' > /dev/null;
+        pip install 'docker-compose' > /dev/null &&
+        pip show 'docker-compose';
       fi
 
 .test_install_dcd: &test_install_dcd
@@ -80,6 +81,8 @@ variables:
       then
         docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet;
       fi
+    - mkdir -p data/www/drupal/config/sync
+    - chmod -R 777 data/www/drupal/config/sync
     - scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
     - scripts/drush status
   variables:
