@@ -65,14 +65,11 @@ Options:
 HEREDOC
 }
 
-_DUMP_FILE="dump.sql"
-
 ###############################################################################
 # Program Functions
 ###############################################################################
 
 _create() {
-  _DB_NAME=${1:-"drupal"}
   _mysql_exec 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS "'"$_DB_NAME"'" CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"'
 
   _GRANT="GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES ON $_DB_NAME.* TO '$MYSQL_USER'@'%';"
@@ -83,50 +80,38 @@ _create() {
 }
 
 _drop() {
-  _DB_NAME=${1:-"drupal"}
   _mysql_exec 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "DROP DATABASE IF EXISTS "'"$_DB_NAME"''
 }
 
 _drop_drush() {
-  _prompt_yn
-  _docker_exec \
-    --user "${PROJECT_CONTAINER_USER}" \
-    "${PROJECT_CONTAINER_NAME}" \
-    "${DRUSH_BIN}" "${PROJECT_CONTAINER_ROOT}" -y sql-drop
+  _docker_exec_noi \
+    "${DRUSH_BIN}" -r "${DRUPAL_DOCROOT}" -y sql-drop
 }
 
 _dump_drush() {
-  _DUMP_FILE=dump_${_NOW}.sql
-  _docker_exec \
-    "${PROJECT_CONTAINER_NAME}" \
+  _docker_exec_noi \
     "${DRUSH_BIN}" -r "${DRUPAL_DOCROOT}" sql-dump \
       --structure-tables-list=cache*,history,node_counter,search_*,sessions,watchdog \
-      --result-file=/tmp/${_DUMP_FILE}
-      # --skip-tables-list=migrate_* \
-  $_DOCKER cp "${PROJECT_CONTAINER_NAME}":/tmp/${_DUMP_FILE} ${DUMP_FOLDER}/${_DUMP_FILE}
-  _docker_exec "${PROJECT_CONTAINER_NAME}" rm -f /tmp/${_DUMP_FILE}
+      --result-file="/dump/${_DUMP_FILE}"
 }
 
 _dump() {
-  _DUMP_FILE="dump_${_NOW}.sql"
   _mysql_exec 'exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > /docker-entrypoint-initdb.d/'"$_DUMP_FILE"''
-  $_DOCKER cp "${PROJECT_CONTAINER_MYSQL}":/docker-entrypoint-initdb.d/${_DUMP_FILE} ${DUMP_FOLDER}/${_DUMP_FILE}
-  _docker_exec "${PROJECT_CONTAINER_MYSQL}" rm -f /docker-entrypoint-initdb.d/${_DUMP_FILE}
-
   printf "Database dump saved to %s\\n" ${DUMP_FOLDER}/${_DUMP_FILE}
 }
 
 _restore() {
-  _select_dump
-  if [ ! -z "$_DUMP_FILE" ]; then
+  if [ -z "$_DUMP_FILE" ]; then
+    _select_dump
+  fi
+
+  if ! [ -z "$_DUMP_FILE" ]; then
     printf "Restoring %s...\\n" $_DUMP_FILE
     _drop
     _create
-    $_DOCKER cp ${DUMP_FOLDER}/${_DUMP_FILE} "${PROJECT_CONTAINER_MYSQL}":/docker-entrypoint-initdb.d/${_DUMP_FILE}
     _mysql_exec 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /docker-entrypoint-initdb.d/'"$_DUMP_FILE"''
-    _docker_exec "${PROJECT_CONTAINER_MYSQL}" rm -f /docker-entrypoint-initdb.d/${_DUMP_FILE}
   fi
-  printf "Done!"
+  printf "Done!\n"
 }
 
 _list_dump() {
@@ -140,7 +125,7 @@ _select_dump() {
   _DUMPS=(`echo $_DUMPS | sed 's/ /\n/g'`)
 
   printf "Select a dump file:\\n"
-  select opt in "${_DUMPS[@]}" "Cancel"; do
+  select opt in "Cancel" "${_DUMPS[@]}"; do
     case $opt in
       *.sql)
         _DUMP_FILE=$opt
@@ -171,9 +156,21 @@ _ensure_dump_dir() {
   fi
 }
 
+_set_dump_file() {
+  if [ -z ${_DUMP_FILE} ]; then
+    _DUMP_FILE=dump_${_NOW}.sql
+  fi
+}
+
 _tests() {
+  _DUMP_FILE=dump_test_no_drush.sql
   _dump
+  _restore
+  _DUMP_FILE=dump_test_drush.sql
   _dump_drush
+  _restore
+  _list_dump
+  _drop_drush
 }
 
 ###############################################################################
@@ -191,12 +188,16 @@ _main() {
 
   _set_container_mysql
   _ensure_dump_dir
+  _DB_NAME=$MYSQL_DATABASE
+  _DUMP_FILE=${2:-}
 
   if [[ "${1:-}" =~ ^list$ ]]; then
     _list_dump
   elif [[ "${1:-}" =~ ^dump-no-drush$ ]]; then
+    _set_dump_file
     _dump
   elif [[ "${1:-}" =~ ^dump$ ]]; then
+    _set_dump_file
     _dump_drush
   elif [[ "${1:-}" =~ ^restore$ ]]; then
     _restore

@@ -53,7 +53,6 @@ Options:
 HEREDOC
 }
 
-_DUMP_FILE="dump.pg_dump"
 _STACK_DUMP_FOLDER="${STACK_ROOT}${DUMP_FOLDER#"./"}"
 
 ###############################################################################
@@ -61,7 +60,6 @@ _STACK_DUMP_FOLDER="${STACK_ROOT}${DUMP_FOLDER#"./"}"
 ###############################################################################
 
 _create() {
-  _DB_NAME=${1:-$POSTGRES_DB}
   _pgsql_exec \
     'createdb -e -U $POSTGRES_USER --owner="$POSTGRES_USER" "'"${_DB_NAME}"'"'
   _pgsql_exec \
@@ -69,7 +67,6 @@ _create() {
 }
 
 _drop() {
-  _DB_NAME=${1:-"drupal"}
   _pgsql_exec \
     'dropdb -U $POSTGRES_USER --if-exists "'"${_DB_NAME}"'"'
 }
@@ -81,9 +78,6 @@ _fix_user() {
 }
 
 _dump() {
-  _DB_NAME=${1:-$POSTGRES_DB}
-  _DUMP_FILE="dump_${_DB_NAME}_${_NOW}.pg_dump"
-
   printf "\\nDump %s to %s\\n\\n" "${_DB_NAME}" "${_DUMP_FILE}"
 
   _pgsql_exec_u \
@@ -99,7 +93,6 @@ _dump() {
 }
 
 _restore() {
-  _DUMP_FILE=${1:-""}
   if ! [ -z "$_DUMP_FILE" ]; then
     echo "${_STACK_DUMP_FOLDER}/${_DUMP_FILE}"
     if ! [ -f "${_STACK_DUMP_FOLDER}/${_DUMP_FILE}" ]; then
@@ -166,6 +159,19 @@ _ensure_dump_dir() {
   _pgsql_exec 'chmod -R 777 /dump'
 }
 
+_set_dump_file() {
+  if [ -z ${_DUMP_FILE} ]; then
+    _DUMP_FILE=dump_${_NOW}.pg_dump
+  fi
+}
+
+_tests() {
+  _DUMP_FILE=dump_test.pg_dump
+  _dump
+  _restore
+  _list_dump
+}
+
 ###############################################################################
 # Main
 ###############################################################################
@@ -179,23 +185,27 @@ _ensure_dump_dir() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
-  #_check_dependencies_docker
   _set_container_pgsql
   _ensure_dump_dir
+  _DB_NAME=$POSTGRES_DB
+  _DUMP_FILE=${2:-}
 
   if [[ "${1:-}" =~ ^list$ ]]; then
     _list_dump
   elif [[ "${1:-}" =~ ^dump$ ]] || [[ "${1:-}" =~ ^backup$ ]]; then
-    # _ensure_dir
-    _dump "${2:-}"
+    _set_dump_file
+    _dump
   elif [[ "${1:-}" =~ ^restore$ ]] || [[ "${1:-}" =~ ^import$ ]]; then
-    _restore "${2:-}"
+    _set_dump_file
+    _restore 
   elif [[ "${1:-}" =~ ^drop$ ]]; then
-    _drop ${2:-}
+    _drop
   elif [[ "${1:-}" =~ ^create$ ]]; then
-    _create ${2:-}
+    _create
   elif [[ "${1:-}" =~ ^fix$ ]]; then
-    _fix_user ${2:-}
+    _fix_user
+  elif [[ "${1:-}" =~ ^test$ ]]; then
+    _tests
   else
     _print_help
   fi
