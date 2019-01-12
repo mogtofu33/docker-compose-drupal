@@ -93,7 +93,6 @@ variables:
     key: drupal
     paths:
       - data/www/drupal
-      - data/database
 
 ################################################################################
 # Jobs based on previous templates.
