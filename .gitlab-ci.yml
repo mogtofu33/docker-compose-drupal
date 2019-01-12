@@ -9,7 +9,6 @@ stages:
   - release images
   - build
   - test
-  - release
 
 variables:
   CONTAINER_WEB_ROOT: "/var/www/localhost/drupal"
@@ -75,22 +74,20 @@ variables:
     - docker-compose build &> /dev/null
     - docker-compose up -d
     - docker exec dcd-php php -v
+    - docker-compose ps
     - if [ ! -f 'data/www/drupal/web/index.php' ];
       then
         docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet;
       fi
     - mkdir -p data/www/drupal/config/sync
     - chmod -R 777 data/www/drupal/config/sync
-    - scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
+    - docker-compose logs mysql
+    #- scripts/drush -y si minimal --db-url=${DB_TYPE}://drupal:drupal@${DB_TYPE}/drupal
     - scripts/drush status
     #- scripts/drupal site:status
-    - scripts/composer show -P
+    #- scripts/composer show -P
   variables:
     DB_TYPE: "mysql"
-  artifacts:
-    paths:
-      - report.txt
-    expire_in: 1 hour
   cache:
     key: drupal
     paths:
@@ -101,7 +98,7 @@ variables:
 # Jobs based on previous templates.
 ################################################################################
 
-dashboard:
+.dashboard:
   <<: *build_image
   variables:
     IMAGE: dashboard:latest
@@ -114,7 +111,7 @@ dashboard:
   variables:
     IMAGE: dashboard:latest
 
-release:dashboard:
+.release:dashboard:
   <<: *release
   variables:
     IMAGE: dashboard:latest
@@ -137,14 +134,14 @@ drupal Php7.1:
     - make setup
   <<: *test_install_dcd
 
-drupal Php7.2:
+.drupal Php7.2:
   before_script:
     - *install_docker_compose
     - make setup
     - sed -i 's#7.1#7.2#g' .env
   <<: *test_install_dcd
 
-sample AMP7.1:
+.sample AMP7.1:
   before_script:
     - *install_docker_compose
     - make setup
