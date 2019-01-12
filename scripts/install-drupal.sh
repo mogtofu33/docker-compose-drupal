@@ -44,8 +44,12 @@ Install and prepare multiple Drupal 8 project based on top Drupal distributions 
 
 Usage:
   ${_ME} list
-  ${_ME} [list | install (= download + setup) | download | setup | delete] [DISTRIBUTION]
+  ${_ME} [list | install (= download + setup) | download | setup | delete] [DISTRIBUTION] [mysql (default) | postgres]
   ${_ME} install drupal
+  ${_ME} install drupal mysql
+    Install Drupal standard with MySQL.
+  ${_ME} install drupal postgres
+    Install Drupal standard with PgSQL.
 
 Options:
   -h --help  Show this screen.
@@ -53,12 +57,6 @@ HEREDOC
 printf "\\n"
 _distributions_list
 }
-
-###############################################################################
-# Variables
-###############################################################################
-
-_DB="mariadb"
 
 ###############################################################################
 # Program Functions
@@ -218,12 +216,23 @@ _download_curl() {
 # Description:
 #   Setup dispatcher depending Drupal profile name.
 _setup() {
-  printf "[info] Install %s with profile %s\\n" "${__DID}" "${__INSTALL_PROFILE}"
+  printf "[info] Install %s with profile %s on db %s\\n" "${__DID}" "${__INSTALL_PROFILE}" "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
+
+  _clean_setup
 
   __call="_setup_$1"
   $__call
 
   printf "\\n >> Access %s on\\nhttp://${PROJECT_BASE_URL}\\n >> Log-in with: admin / password\\n\\n" "${__DID}"
+}
+
+# _clean_setup()
+#
+# Description:
+#   Helper to ensure we don't have an existing setup.
+_clean_setup() {
+  _docker_exec_noi \
+    rm -f "${DRUPAL_ROOT}/web/sites/dfault/settings.php"
 }
 
 # _setup_standard()
@@ -232,10 +241,11 @@ _setup() {
 #   Setup with drush for a specific profile.
 _setup_standard() {
   # Install this profile.
-  _docker_exec_noi "${DRUSH_BIN}" -y si ${__INSTALL_PROFILE} \
+  _docker_exec_noi "${DRUSH_BIN}" -y site:install ${__INSTALL_PROFILE} \
     --root="${DRUPAL_DOCROOT}" \
     --account-pass="password" \
-    --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
+    --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}" \
+    --site-name="My Drupal 8 on DcD"
 }
 
 # _setup_varbase()
@@ -310,7 +320,7 @@ _setup_advanced() {
   rm -f "settings.php" "drupal.env"
 
   # Install this profile with config_installer
-  _docker_exec_noi "${DRUSH_BIN}" -y si "${__INSTALL_PROFILE}" \
+  _docker_exec_noi "${DRUSH_BIN}" -y site:install "${__INSTALL_PROFILE}" \
     config_installer_sync_configure_form.sync_directory="../config/sync" \
     --root="${DRUPAL_DOCROOT}" \
     --account-pass="password" \
@@ -368,34 +378,37 @@ _select_project() {
 _select_db() {
 
   _DB=0
+  _DB_LIST=0
 
   # Check if any mysql container is running.
   RUNNING=$(docker ps -f "name=mariadb" -f "status=running" -q | head -1 2> /dev/null)
   if [ ! -z "$RUNNING" ]; then
     _DB_LIST[0]="mariadb"
-    _DB="mariadb"
   fi
 
   # Check if any mysql container is running.
   RUNNING=$(docker ps -f "name=mysql" -f "status=running" -q | head -1 2> /dev/null)
   if [ ! -z "$RUNNING" ]; then
     _DB_LIST[0]="mysql"
-    _DB="mysql"
   fi
 
   # Check if any postgresql container is running.
-  RUNNING=$(docker ps -f "name=postgres" -f "status=running" -q | head -1 2> /dev/null)
+  RUNNING=$(docker ps -f "name=pgsql" -f "status=running" -q | head -1 2> /dev/null)
   if [ ! -z "$RUNNING" ]; then
     _DB_LIST[1]="postgres"
-    _DB="postgres"
   fi
 
-  if [[ $_DB == 0 ]]
+  if [[ ${_DB_LIST} == 0 ]]
   then
     die "No database container found, please ensure your stack is running."
   fi
 
-  if [[ ${#_DB_LIST[@]} > 1 ]]
+  if [[ ${_DB_LIST[0]} == $_DEFAULT_DB ]] || [[ ${_DB_LIST[1]} == $_DEFAULT_DB ]]
+  then
+    _DB=$_DEFAULT_DB
+  fi
+
+  if [[ ${#_DB_LIST[@]} > 1 ]] && [[ $_DB == 0 ]]
   then
     printf "Select a database container:\\n"
     select opt in "${_DB_LIST[@]}"; do
@@ -410,6 +423,11 @@ _select_db() {
     printf "[info] Found database %s\\n" ${_DB}
   fi
 
+  if [[ $_DB == "postgres" ]]
+  then
+    DB_DRIVER=pgsql
+    DB_HOST=pgsql
+  fi
 }
 
 # _distributions_list()
@@ -488,6 +506,7 @@ _nuke() {
 _main() {
 
   _SELECTED_PROJECT=${2:-0}
+  _DEFAULT_DB=${3:-"mysql"}
 
   if [[ "${1:-}" =~ ^install$ ]]
   then
