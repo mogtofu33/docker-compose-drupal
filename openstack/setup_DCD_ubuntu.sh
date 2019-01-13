@@ -84,33 +84,26 @@ if [ $? -eq 1 ]; then
   sleep 10s
 fi
 
-# Add project variables to environment.
+# Add composer path to environment.
 cat <<EOT >> $HOME/.profile
 PATH=\$PATH:$HOME/.config/composer/vendor/bin
-# Docker stack variables.
-PROJECT_PATH="$_PROJECT_PATH"
-PROJECT_ROOT="$_PROJECT_ROOT"
-PROJECT_CONTAINER_NAME="$_PHP"
-PROJECT_CONTAINER_ROOT="$_ROOT"
-PROJECT_CONTAINER_WEB_ROOT="$_WEB"
-DRUPAL_BIN="$_DRUPAL_CONSOLE"
-DRUSH_BIN="$_DRUSH"
-DRUSH_ROOT="--root=$_WEB"
-DRUSH_CMD="$_DRUSH --root=$_WEB"
 EOT
 
-# Add docker and phpcs aliases.
+# Add docker, phpcs, drush and drupal console aliases.
 cat <<EOT >> $HOME/.bash_aliases
 # Docker
 alias dk='docker'
 # Docker-compose
 alias dkc='docker-compose'
+# Drush and Drupal console
+alias drush="$_PROJECT_PATH/scripts/drush"
+alias drupal="$_PROJECT_PATH/scripts/drupal"
 # Check Drupal coding standards
-alias drcs="$HOME/.config/composer/vendor/bin/phpcs --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,info'"
+alias cs="$HOME/.config/composer/vendor/bin/phpcs --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,info'"
 # Check Drupal best practices
-alias drcsbp="$HOME/.config/composer/vendor/bin/phpcs --standard=DrupalPractice --extensions='php,module,inc,install,test,profile,theme,info'"
+alias csbp="$HOME/.config/composer/vendor/bin/phpcs --standard=DrupalPractice --extensions='php,module,inc,install,test,profile,theme,info'"
 # Fix Drupal coding standards
-alias drcsfix="$HOME/.config/composer/vendor/bin/phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,info'"
+alias csfix="$HOME/.config/composer/vendor/bin/phpcbf --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,info'"
 EOT
 
 # Convenient links.
@@ -121,8 +114,12 @@ if [ ! -d "/www" ]; then
   sudo ln -s $_PROJECT_ROOT /www
   sudo chown $_USER:$_GROUP /www
 fi
-if [ ! -d "$HOME/root" ]; then
-  ln -s $_PROJECT_PATH $HOME/root
+if [ ! -d "$HOME/dcd" ]; then
+  ln -s $_PROJECT_PATH $HOME/dcd
+fi
+if [ ! -d "/dcd" ]; then
+  sudo ln -s $_PROJECT_PATH $HOME/dcd
+  sudo chown $_USER:$_GROUP /dcd
 fi
 
 # Set up tools from stack.
