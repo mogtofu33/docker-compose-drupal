@@ -187,7 +187,7 @@ docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y 
 
 Drupal provide some usefull [distributions](https://www.drupal.org/project/project_distribution?f%5B2%5D=drupal_core%3A7234) to help you start with a more complete Drupal 8 out of the box.
 
-Here is a non exhaustive list based on top 4, assuming we use composer from docker:
+Here is an example, assuming we use composer from docker:
 
 * [Lightning](https://www.drupal.org/project/lightning)
 
@@ -198,51 +198,6 @@ docker exec -it -u apache dcd-php \
     /var/www/localhost/drupal --no-interaction
 # Step 2: Install
 docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si lightning \
-    --root=/var/www/localhost/drupal/web \
-    --account-name=admin \
-    --account-pass=password \
-    --db-url=mysql://drupal:drupal@mysql/drupal
-```
-
-* [Thunder](https://www.drupal.org/project/thunder)
-
-```bash
-# Step 1: Grab code
-docker exec -it -u apache dcd-php \
-    composer create-project burdamagazinorg/thunder-project \
-    /var/www/localhost/drupal --no-interaction
-# Step 2: Install
-docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si thunder \
-    --root=/var/www/localhost/drupal/web \
-    --account-name=admin \
-    --account-pass=password \
-    --db-url=mysql://drupal:drupal@mysql/drupal
-```
-
-* [Open social](https://www.drupal.org/project/social)
-
-```bash
-# Step 1: Grab code
-docker exec -it -u apache dcd-php \
-    composer create-project goalgorilla/social_template:dev-master \
-    /var/www/localhost/drupal --no-interaction
-# Step 2: Install
-docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si social \
-    --root=/var/www/localhost/drupal/web \
-    --account-name=admin \
-    --account-pass=password \
-    --db-url=mysql://drupal:drupal@mysql/drupal
-```
-
-* [Varbase](https://www.drupal.org/project/varbase)
-
-```bash
-# Step 1: Grab code
-docker exec -it -u apache dcd-php \
-    composer create-project Vardot/varbase-project:^8.5.0 \
-    /var/www/localhost/drupal --no-interaction
-# Step 2: Install
-docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si varbase \
     --root=/var/www/localhost/drupal/web \
     --account-name=admin \
     --account-pass=password \
@@ -265,6 +220,12 @@ docker exec -it -u apache dcd-php \
     drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 ```
 
+With _Linux_, you can use included helper script
+
+```bash
+scripts/composer require drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
+```
+
 #### Enable some modules
 
 ```bash
@@ -272,6 +233,12 @@ docker exec -it -u apache dcd-php \
     /var/www/localhost/drupal/vendor/bin/drush -y en \
     --root=/var/www/localhost/drupal/web \
     admin_toolbar ctools ctools_block ctools_views panels token pathauto
+```
+
+With _Linux_, you can use included helper script
+
+```bash
+scripts/drush -y en admin_toolbar ctools ctools_block ctools_views panels token pathauto
 ```
 
 #### Run a command on the server
@@ -310,8 +277,6 @@ run some daily commands from root folder, and drush/drupal links at the root.
 # Run drush or drupal within the container
 ./drush status
 ./drupal site:status
-# Run a bash command in the Php container
-scripts/dcmd ls -lah /var/www/localhost
 # Quickly dump/restore/drop your DB
 scripts/mysql --help
 scripts/pgsql --help
