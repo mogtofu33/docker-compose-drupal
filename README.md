@@ -2,16 +2,26 @@
 
 [![pipeline status](https://gitlab.com/mog33/docker-compose-drupal/badges/master/pipeline.svg)](https://gitlab.com/mog33/docker-compose-drupal/commits/master)
 
+- [Require](#require)
+- [Introduction](#introduction)
+- [(Quick) Install with a new Drupal 8 project](#quick-install-with-a-new-drupal-8-project)
+- [Reset the stack](#reset-the-stack)
+- [Ubuntu/Linux helpers](#ubuntulinux-helpers)
+- [Upgrade](#upgrade)
+- [Suggested tools](#suggested-tools)
+- [Troubleshooting](#troubleshooting)
+- [Build and testing (dev only)](#build-and-testing-dev-only)
+
 ## Require
 
-* [Docker engine 18+](https://docs.docker.com/install)
-* [Docker compose 1.23+](https://docs.docker.com/compose/install)
+- [Docker engine 18+](https://docs.docker.com/install)
+- [Docker compose 1.23+](https://docs.docker.com/compose/install)
 
-**Full** Linux support. Tested daily on Ubuntu 16/18.
+**Full*- Linux support. Tested daily on Ubuntu 16/18.
 
-Windows support is **very, very limited** due to Docker for Windows permissions problems and no privileged support :(
+Windows support is **very, very limited*- due to Docker for Windows permissions problems and no privileged support :(
 
-Mac support is **very limited** due to the fact that I don't have a Mac!
+Mac support is **very limited*- due to the fact that I don't have a Mac!
 
 ## Introduction
 
@@ -23,31 +33,31 @@ This stack is not a one line command but more for users with a good dev-op level
 
 See other great project for a Docker based development:
 
-* [Lando](https://docs.devwithlando.io/tutorials/drupal8.html)
-* [Docksal](https://docksal.io/)
-* [ddev](https://github.com/drud/ddev)
-* [docker4drupal](https://github.com/wodby/docker4drupal)
+- [Lando](https://docs.devwithlando.io/tutorials/drupal8.html)
+- [Docksal](https://docksal.io/)
+- [ddev](https://github.com/drud/ddev)
+- [docker4drupal](https://github.com/wodby/docker4drupal)
 
 ### Include
 
 _Every service is optional as declared in the yml file._
 
-* Apache
-* Nginx
-* Php 7.1/7.2 fpm with Xdebug
-* MySQL/MariaDB
-* PostgreSQL
-* [Memcache](https://hub.docker.com/_/memcached)
-* [Redis](https://redis.io/)
-* [Mailhog](https://github.com/mailhog/MailHog)
-* [Solr](http://lucene.apache.org/solr)
-* [Portainer](https://github.com/portainer/portainer)
+- Apache
+- Nginx
+- Php 7.1/7.2 fpm with Xdebug
+- MySQL/MariaDB
+- PostgreSQL
+- [Memcache](https://hub.docker.com/_/memcached)
+- [Redis](https://redis.io/)
+- [Mailhog](https://github.com/mailhog/MailHog)
+- [Solr](http://lucene.apache.org/solr)
+- [Portainer](https://github.com/portainer/portainer)
 
 ### Database management
 
-* [Adminer](https://www.adminer.org)
+- [Adminer](https://www.adminer.org)
 
-## Quick launch new Drupal 8 project
+## (Quick) Install with a new Drupal 8 project
 
 ### Get this project
 
@@ -122,7 +132,7 @@ docker-compose logs apache
 
 ### Access the minimal dashboard
 
-* [http://localhost:8181](http://localhost:8181)
+- [http://localhost:8181](http://localhost:8181)
 
 If you have copy an existing Drupal project, you can import the database from the adminer link in the dashboard.
 
@@ -148,9 +158,9 @@ composer create-project drupal-composer/drupal-project:8.x-dev data/www/drupal -
 
 #### Option 1: Install Drupal 8
 
-To use **PostGreSQL** change **mysql** to **pgsql**
+To use **PostGreSQL*- change **mysql*- to **pgsql**
 
-You can replace **standard** by an other profile as **minimal** or **demo_umami** for [Drupal 8.6+](https://www.drupal.org/project/demo_umami).
+You can replace **standard*- by an other profile as **minimal*- or **demo_umami*- for [Drupal 8.6+](https://www.drupal.org/project/demo_umami).
 
 ```bash
 docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y si standard \
@@ -165,7 +175,7 @@ docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y 
 
 See my other project based on drupal_project with more advanced integration but not a distribution (mean you don't need to rely on the distribution maintainers).
 
-* [Drupal Composer advanced template](https://gitlab.com/mog33/drupal-composer-advanced-template)
+- [Drupal Composer advanced template](https://gitlab.com/mog33/drupal-composer-advanced-template)
 
 Assuming we use composer from docker:
 
@@ -189,7 +199,7 @@ Drupal provide some usefull [distributions](https://www.drupal.org/project/proje
 
 Here is an example, assuming we use composer from docker:
 
-* [Lightning](https://www.drupal.org/project/lightning)
+- [Lightning](https://www.drupal.org/project/lightning)
 
 ```bash
 # Step 1: Grab code
@@ -206,11 +216,11 @@ docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y 
 
 #### Access your Drupal 8
 
-* [http://localhost](http://localhost)
+- [http://localhost](http://localhost)
 
 Login with _admin_ / _password_:
 
-* [http://localhost/user/login](http://localhost/user/login)
+- [http://localhost/user/login](http://localhost/user/login)
 
 #### Daily usage, add some modules
 
@@ -285,13 +295,18 @@ scripts/composer --help
 scripts/composer status
 ```
 
+## Upgrade
+
+Because this project is mainly focused on a one time usage the best way to
+upgrade is to copy your project to a new version of this project.
+
 ## Suggested tools
 
-* [Opcache GUI](https://github.com/amnuts/opcache-gui)
-* [Phpmemcacheadmin](https://github.com/wp-cloud/phpmemcacheadmin)
-* [Xdebug GUI](https://github.com/splitbrain/xdebug-trace-tree)
-* [Adminer extended](https://github.com/dg/adminer-custom)
-* [Php Redis Admin](https://github.com/ErikDubbelboer/phpRedisAdmin)
+- [Opcache GUI](https://github.com/amnuts/opcache-gui)
+- [Phpmemcacheadmin](https://github.com/wp-cloud/phpmemcacheadmin)
+- [Xdebug GUI](https://github.com/splitbrain/xdebug-trace-tree)
+- [Adminer extended](https://github.com/dg/adminer-custom)
+- [Php Redis Admin](https://github.com/ErikDubbelboer/phpRedisAdmin)
 
 You can find a script for Linux in scripts/get-tools.sh folder to download or update all tools:
 
@@ -311,7 +326,7 @@ $Env:COMPOSE_CONVERT_WINDOWS_PATHS=1
 
 Some permissions and privileged problems, so my Dashboard can not access docker.sock.
 
-* [This issue](https://github.com/docker/for-win/issues/1829)
+- [This issue](https://github.com/docker/for-win/issues/1829)
 
 ## Build and testing (dev only)
 
