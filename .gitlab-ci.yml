@@ -96,12 +96,12 @@ variables:
     - scripts/install-drupal.sh
     - if [ ! -f 'data/www/drupal/web/index.php' ];
       then
-        scripts/composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet;
+        docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet;
       fi
+    - scripts/composer show -P
     - mkdir -p data/www/drupal/config/sync && chmod -R 777 data/www/drupal/config/sync
     - scripts/drush -y si minimal --db-url=mysql://drupal:drupal@mysql/drupal
     - scripts/drush status
-    - scripts/composer show -P
     - scripts/mysql test
     - scripts/pgsql test
 
