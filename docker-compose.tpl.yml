@@ -17,7 +17,7 @@ services:
       # Web root access, optional but can help with multi sites.
       - "${APACHE_HOST_ROOT_PORT:-88}:81"
     volumes:
-      - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
+      - ${HOST_WEB_ROOT:-./drupal}:/var/www/localhost
       # Apache configuration with SSL support.
       - ./config/apache/httpd.conf:/etc/apache2/httpd.conf:ro
       - ./config/apache/vhost.conf:/etc/apache2/vhost.conf:ro
@@ -38,7 +38,7 @@ services:
       - "${NGINX_HOST_HTTP_PORT:-81}:80"
       # - "${NGINX_HOST_HTTPS_PORT:-444}:443"
     volumes:
-      - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
+      - ${HOST_WEB_ROOT:-./drupal}:/var/www/localhost
       - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       # Php FPM socket
       - php-sock:/sock:ro
@@ -46,25 +46,25 @@ services:
     restart: unless-stopped
     container_name: ${PROJECT_NAME:-dcd}-nginx
   php:
-    image: mogtofu33/php:${PHP_VERSION:-7.1}
+    image: mogtofu33/php:${PHP_VERSION:-7.2}
     volumes:
-      - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
-      - ./config/php/${PHP_VERSION:-7.1}/php.ini:/etc/php7/php.ini:ro
-      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.conf:/etc/php7/php-fpm.conf:ro
-      - ./config/php/${PHP_VERSION:-7.1}/conf.d/:/etc/php7/conf.d/:ro
-      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.d/:/etc/php7/php-fpm.d/:ro
+      ## If you have composer set locally, share cache to speed up.
+      # - ${HOME:-}/.composer/cache:/composer/cache
+      - ${HOST_WEB_ROOT:-./drupal}:/var/www/localhost
+      - ./config/php/${PHP_VERSION:-7.2}/php.ini:/etc/php7/php.ini:ro
+      - ./config/php/${PHP_VERSION:-7.2}/php-fpm.conf:/etc/php7/php-fpm.conf:ro
+      - ./config/php/${PHP_VERSION:-7.2}/conf.d/:/etc/php7/conf.d/:ro
+      - ./config/php/${PHP_VERSION:-7.2}/php-fpm.d/:/etc/php7/php-fpm.d/:ro
       # Drush 9 config file.
       - ./config/drush/drush.yml:/etc/drush/drush.yml:ro
       # Used by dashboard for accessing tools.
       - ./tools:/tools:ro
       # Share db dump folder.
-      - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
+      - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
       # Php FPM socket
       - php-sock:/sock
       ## If PgSQL, ease drush pgsql access.
       - ./config/pgsql/.pg_pass:/home/apache/.pg_pass:ro
-      ## If you have composer set locally, share cache to speed up.
-      # - ${HOME:-}/.composer/cache:/composer/cache
     links:
       # Choose database, uncomment service concerned below.
       - mysql
@@ -83,11 +83,10 @@ services:
     expose:
       - "3306"
     volumes:
-      # Any .sql file will be imported in the MYSQL_DATABASE defined on your
-      # .env (default: drupal).
-      - ${HOST_DATABASE_DUMP:-./data/dump}:/docker-entrypoint-initdb.d
-      ## Comment these two lines on Windows system, permissions issue.
-      - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
+      - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
+      # Any .sql file will be imported here on start.
+      - ./database-mysql-init:/docker-entrypoint-initdb.d
+      ## Comment on Windows system, permissions issue.
       - ./config/mysql:/etc/mysql
     env_file: .env
     restart: unless-stopped
@@ -98,8 +97,7 @@ services:
       - "5432"
     ## Comment these two lines on Windows system, permissions issue.
     volumes:
-      - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
-      - ${HOST_DATABASE_POSTGRES:-./data/database/pgsql}:/var/lib/postgresql/data
+      - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
       # Add pg_pass to ease drush access.
       - ./config/pgsql/.pg_pass:/home/postgres/.pg_pass
     env_file: .env

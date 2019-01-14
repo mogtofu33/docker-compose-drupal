@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Simple wrapper for drush with docker4drupal or dockerComposeDrupal.
+# Simple wrapper for drush with DockerComposeDrupal.
 #
 # Depends on:
 #  docker
-#  docker4drupal or dockerComposeDrupal
+#  DockerComposeDrupal
 
 _SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a symlink

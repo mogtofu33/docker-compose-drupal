@@ -1,4 +1,4 @@
-# Helper bash scripts for docker4drupal or dockerComposeDrupal
+# Helper bash scripts for DockerComposeDrupal
 
 This is a collection of bash scripts to help install, test and manage a docker4drupal or DockerComposeDrupal stack, only tested on Ubuntu 16+.
 

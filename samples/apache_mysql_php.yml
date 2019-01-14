@@ -25,8 +25,6 @@ services:
       - ./config/apache/ssl/:/etc/ssl/apache2/:ro
       # Php FPM socket
       - php-sock:/sock:ro
-      ## If PgSQL, ease drush pgsql access.
-      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass:ro
     env_file: .env
     restart: unless-stopped
     container_name: ${PROJECT_NAME:-dcd}-apache
@@ -46,28 +44,29 @@ services:
       - ${HOST_DATABASE_DUMP:-./dump}:/dump
       # Php FPM socket
       - php-sock:/sock
-      ## If PgSQL, ease drush pgsql access.
-      - ./config/pgsql/.pg_pass:/home/apache/.pg_pass:ro
       ## If you have composer set locally, share cache to speed up.
       # - ${HOME:-}/.composer/cache:/composer/cache
     links:
-      - pgsql
+      - mysql
+      - memcache
+      - solr
       - mailhog
     env_file: .env
     restart: unless-stopped
     container_name: ${PROJECT_NAME:-dcd}-php
-  pgsql:
-    image: postgres:9-alpine
+  mysql:
+    image: mariadb:latest
     expose:
-      - "5432"
-    ## Comment these two lines on Windows system, permissions issue.
+      - "3306"
     volumes:
-      - ${HOST_DATABASE_DUMP:-./dump}:/dump
-      # Add pg_pass to ease drush access.
-      - ./config/pgsql/.pg_pass:/home/postgres/.pg_pass
+      # Any .sql file will be imported in the MYSQL_DATABASE defined on your
+      # .env (default: drupal).
+      - ${HOST_DATABASE_DUMP:-./dump}:/docker-entrypoint-initdb.d
+      ## Comment on Windows system, permissions issue.
+      - ./config/mysql:/etc/mysql
     env_file: .env
     restart: unless-stopped
-    container_name: ${PROJECT_NAME:-dcd}-pgsql
+    container_name: ${PROJECT_NAME:-dcd}-mysql
   mailhog:
     image: mailhog/mailhog:latest
     expose:

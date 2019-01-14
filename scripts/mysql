@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Helper to run mysql dump/restore with docker4drupal or dockerComposeDrupal.
+# Helper to run mysql dump/restore with DockerComposeDrupal.
 #
 # Usage:
 #   mysql dump | restore
 #
 # Depends on:
 #  docker
-#  docker4drupal or dockerComposeDrupal
+#  DockerComposeDrupal
 #
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
@@ -44,8 +44,10 @@ _print_help() {
 Helper to dump, drop and restore MYSQL/MariaDB.
 
 Usage:
-  ${_ME} [dump | dump-no-drush | restore | drop DB_NAME | list | drop-no-drush | create DB_NAME ]
-  ${_ME} dump
+  ${_ME} [ (import | restore) ] [ (optional) Dump filename ]
+  ${_ME} [ (dump | backup) | dump-no-drush | drop | create ]
+  ${_ME} list | l
+    List all available dumps.
 
 'dump' and 'drop' is performed with Drush, dump ignore common cache, search,
 stats and sessions tables from Drupal.
@@ -58,7 +60,7 @@ tables like watchdog, cache*...
 
 'create' use mysql client to create and grant a database DB_NAME, default to 'drupal'.
 
-dumps are located in the ./data/dump folder of Docker Compose Drupal.
+dumps are located in the ./dump folder of Docker compose Drupal.
 
 Options:
   -h --help         Show this screen.
@@ -104,19 +106,23 @@ _restore() {
   if [ -z "$_DUMP_FILE" ]; then
     _select_dump
   fi
-
-  if ! [ -z "$_DUMP_FILE" ]; then
-    printf "Restoring %s...\\n" $_DUMP_FILE
-    _drop
-    _create
-    _mysql_exec 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /docker-entrypoint-initdb.d/'"$_DUMP_FILE"''
+  if ! [ -f "${DUMP_FOLDER}/${_DUMP_FILE}" ]; then
+    printf "File not found: %s\\n" "${DUMP_FOLDER}/${_DUMP_FILE}"
+    _select_dump
   fi
-  printf "Done!\n"
+
+  printf "Restoring %s...\\n" $_DUMP_FILE
+  _drop
+  _create
+  _mysql_exec 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /docker-entrypoint-initdb.d/'"$_DUMP_FILE"''
+
+  printf "... Done!\n"
 }
 
 _list_dump() {
   printf "Available dump files:\\n"
-  ls -lAh "${DUMP_FOLDER}"
+  __list=$(ls -lAh "${DUMP_FOLDER}")
+  printf "%s\\n" "$__list"
 }
 
 _select_dump() {
@@ -154,6 +160,9 @@ _ensure_dump_dir() {
   then
     mkdir -p ${DUMP_FOLDER}
   fi
+  _mysql_exec 'mkdir -p "'"$DUMP_FOLDER_IMAGE"'"'
+  _mysql_exec 'chown -R mysql:mysql "'"$DUMP_FOLDER_IMAGE"'"'
+  _mysql_exec 'chmod -R 777 "'"$DUMP_FOLDER_IMAGE"'"'
 }
 
 _set_dump_file() {
@@ -165,7 +174,17 @@ _set_dump_file() {
 _tests() {
   _DUMP_FILE=dump_test_no_drush.sql
   _dump
+  if [ -f ${DUMP_FOLDER}/${_DUMP_FILE} ]; then
+    echo "... Dump success!"
+  fi
   _restore
+  _list_dump
+}
+
+_tests_with_drush() {
+  if ! [ -f ${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush ]; then
+    echo "[Warning] Could not find Drush, tests skipped, did you install Drupal 8 with Drush?"
+  fi
   _DUMP_FILE=dump_test_drush.sql
   _dump_drush
   _restore
@@ -191,15 +210,16 @@ _main() {
   _DB_NAME=$MYSQL_DATABASE
   _DUMP_FILE=${2:-}
 
-  if [[ "${1:-}" =~ ^list$ ]]; then
+  if [[ "${1:-}" =~ ^list$ ]] || [[ "${1:-}" =~ ^l$ ]];  then
     _list_dump
   elif [[ "${1:-}" =~ ^dump-no-drush$ ]]; then
     _set_dump_file
     _dump
-  elif [[ "${1:-}" =~ ^dump$ ]]; then
+  elif [[ "${1:-}" =~ ^dump$ ]] || [[ "${1:-}" =~ ^backup$ ]]; then
     _set_dump_file
     _dump_drush
-  elif [[ "${1:-}" =~ ^restore$ ]]; then
+  elif [[ "${1:-}" =~ ^restore$ ]] || [[ "${1:-}" =~ ^import$ ]]; then
+    _set_dump_file
     _restore
   elif [[ "${1:-}" =~ ^drop-no-drush$ ]]; then
     _drop ${2:-}
@@ -209,6 +229,7 @@ _main() {
     _create ${2:-}
   elif [[ "${1:-}" =~ ^test$ ]]; then
     _tests
+    _tests_with_drush
   else
     _print_help
   fi

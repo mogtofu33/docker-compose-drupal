@@ -33,32 +33,28 @@ runcmd:
   - wget -q -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-Linux-x86_64"
   - chown "ubuntu:ubuntu" /usr/local/bin/docker-compose
   - chmod +x /usr/local/bin/docker-compose
+  #
   # External script to setup properly Docker-compose, and Drupal Docker Compose
   # dev stack (this project) with user ubuntu.
-  - wget -q -O /home/ubuntu/setup_DCD_ubuntu.sh "https://gitlab.com/mog33/docker-compose-drupal/raw/master/openstack/setup_DCD_ubuntu.sh?inline=false"
-  - chmod +x /home/ubuntu/setup_DCD_ubuntu.sh
-  - chown "ubuntu:ubuntu" /home/ubuntu/setup_DCD_ubuntu.sh
+  - wget -q -O /home/ubuntu/install.sh "https://gitlab.com/mog33/docker-compose-drupal/raw/master/openstack/install.sh?inline=false"
+  - chmod +x /home/ubuntu/install.sh
+  - chown "ubuntu:ubuntu" /home/ubuntu/install.sh
   #
   ##############################################################################
   # Edit this part to fit your needs.
   ##############################################################################
   #
-  # Default is the whole stack, for more default stacks see:
-  #   https://github.com/Mogtofu33/docker-compose-drupal/tree/master/samples
-  # This script accept branch as first argument and samples file name as second.
-  - su -c "/home/ubuntu/setup_DCD_ubuntu.sh" ubuntu
-  # Replace by this for an Apache / Php / MariaDB / Memcache stack.
-  # - su -c "/home/ubuntu/setup_DCD_ubuntu.sh apache_mysql_php_memcache_solr" ubuntu
-  ##############################################################################
-  # This part is an example to install Drupal 8, it can be replaced by an other
-  # specific script to clone an existing Drupal 8 project.
-  # If you clone from a private repo you should add a deploy/token key or use
-  # any ssh-agent strategy.
-  #
-  # Run Drupal 8 demo Umami install, see scripts/install-drupal.sh for more profiles.
-  - chmod +x /home/ubuntu/docker-compose-drupal/scripts/install-drupal.sh
-  - chown -R "ubuntu:ubuntu" /home/ubuntu/docker-compose-drupal/data/www
-  - su -c "/home/ubuntu/docker-compose-drupal/scripts/install-drupal.sh install drupal-demo" ubuntu
+  # This script accept samples file name as first argument and Drupal install as
+  # second. Run scripts/install-drupal.sh for profiles
+  #.
+  # Basic stack with Drupal 8 Demo Umami profile
+  - su -c "/home/ubuntu/install.sh apache_mysql_php drupal-demo" ubuntu
+  # More complete stack with Drupal 8 Demo Umami profile
+  # - su -c "/home/ubuntu/install.sh apache_mysql_php drupal-demo" ubuntu
+  # More complete stack without Drupal
+  # - su -c "/home/ubuntu/install.sh apache_mysql_php_memcache_solr" ubuntu
+  # Default full stack without Drupal
+  # - su -c "/home/ubuntu/install.sh" ubuntu
 
 ################################################################################
 # Basic, cloud config for Ubuntu image with Docker.

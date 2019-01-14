@@ -17,7 +17,7 @@ services:
       # Web root access, optional but can help with multi sites.
       - "${APACHE_HOST_ROOT_PORT:-88}:81"
     volumes:
-      - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
+      - ${HOST_WEB_ROOT:-./drupal}:/var/www/localhost
       # Apache configuration with SSL support.
       - ./config/apache/httpd.conf:/etc/apache2/httpd.conf:ro
       - ./config/apache/vhost.conf:/etc/apache2/vhost.conf:ro
@@ -29,19 +29,19 @@ services:
     restart: unless-stopped
     container_name: ${PROJECT_NAME:-dcd}-apache
   php:
-    image: mogtofu33/php:${PHP_VERSION:-7.1}
+    image: mogtofu33/php:${PHP_VERSION:-7.2}
     volumes:
-      - ${HOST_WEB_ROOT:-./data/www}:/var/www/localhost
-      - ./config/php/${PHP_VERSION:-7.1}/php.ini:/etc/php7/php.ini:ro
-      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.conf:/etc/php7/php-fpm.conf:ro
-      - ./config/php/${PHP_VERSION:-7.1}/conf.d/:/etc/php7/conf.d/:ro
-      - ./config/php/${PHP_VERSION:-7.1}/php-fpm.d/:/etc/php7/php-fpm.d/:ro
+      - ${HOST_WEB_ROOT:-./drupal}:/var/www/localhost
+      - ./config/php/${PHP_VERSION:-7.2}/php.ini:/etc/php7/php.ini:ro
+      - ./config/php/${PHP_VERSION:-7.2}/php-fpm.conf:/etc/php7/php-fpm.conf:ro
+      - ./config/php/${PHP_VERSION:-7.2}/conf.d/:/etc/php7/conf.d/:ro
+      - ./config/php/${PHP_VERSION:-7.2}/php-fpm.d/:/etc/php7/php-fpm.d/:ro
       # Drush 9 config file.
       - ./config/drush/drush.yml:/etc/drush/drush.yml:ro
       # Used by dashboard for accessing tools.
       - ./tools:/tools:ro
       # Share db dump folder.
-      - ${HOST_DATABASE_DUMP:-./data/dump}:/dump
+      - ${HOST_DATABASE_DUMP:-./dump}:/dump
       # Php FPM socket
       - php-sock:/sock
       ## If you have composer set locally, share cache to speed up.
@@ -61,9 +61,8 @@ services:
     volumes:
       # Any .sql file will be imported in the MYSQL_DATABASE defined on your
       # .env (default: drupal).
-      - ${HOST_DATABASE_DUMP:-./data/dump}:/docker-entrypoint-initdb.d
-      ## Comment these two lines on Windows system, permissions issue.
-      - ${HOST_DATABASE_MYSQL:-./data/database/mysql}:/var/lib/mysql
+      - ${HOST_DATABASE_DUMP:-./dump}:/docker-entrypoint-initdb.d
+      ## Comment on Windows system, permissions issue.
       - ./config/mysql:/etc/mysql
     env_file: .env
     restart: unless-stopped
