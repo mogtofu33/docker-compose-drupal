@@ -5,7 +5,11 @@ docker-compose.test*
 !scripts/.env
 !openstack/.env
 # ignore static files
-data/*
+database-dump/*
+!database-dump/README.md
+database-mysql-init/*
+!database-mysql-init/README.md
+drupal
 build/dashboard/app/vendor
 build/dashboard/tools/
 tools/*
@@ -15,3 +19,4 @@ tools/*
 tmp*
 myscripts*
 .phpintel
+.vscode

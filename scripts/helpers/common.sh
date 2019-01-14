@@ -51,7 +51,7 @@ done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
 # Use on a lot of scripts.
-STACK_ROOT=${_DIR%"scripts/helpers"}
+STACK_ROOT=${_DIR%"/scripts/helpers"}
 
 ###############################################################################
 # Die
@@ -102,6 +102,8 @@ if [ -f $_DIR/../.env.local ]; then
   source $_DIR/../.env.local
 fi
 
+STACK_DRUPAL_ROOT=${STACK_ROOT}/${HOST_WEB_ROOT#'./'}
+
 # Basic variables.
 _NOW="$(date +'%Y%m%d.%H-%M-%S')"
 tty=
@@ -113,40 +115,25 @@ _DOCKER=$(which docker)
 # Common Program Functions
 ###############################################################################
 
-# Helpers to run docker exec command.
+# Helpers to run docker exec command on Php.
 _docker_exec() {
   $_DOCKER exec \
     $tty \
     --interactive \
-    --user ${PROJECT_UID} \
-    "${PROJECT_CONTAINER_NAME}" \
-    "$@"
+    --user ${LOCAL_UID} \
+    dcd-php "$@"
 }
 
 _docker_exec_noi() {
   $_DOCKER exec \
     $tty \
-    --user ${PROJECT_UID} \
-    "${PROJECT_CONTAINER_NAME}" \
-    "$@"
+    --user ${LOCAL_UID} \
+    dcd-php "$@"
 }
 
 _docker_exec_noi_u() {
   $_DOCKER exec \
-    "${PROJECT_CONTAINER_NAME}" \
-    "$@"
-}
-
-# Helper to run docker run command.
-_docker_run() {
-  $_DOCKER run \
-    $tty \
-    --interactive \
-    --rm \
-    --user $(id -u):$(id -g) \
-    --volume /etc/passwd:/etc/passwd:ro \
-    --volume /etc/group:/etc/group:ro \
-    "$@"
+    dcd-php "$@"
 }
 
 # Helper to ensure mysql container is runing.
@@ -168,17 +155,6 @@ _set_container_pgsql() {
   else
     PROJECT_CONTAINER_PGSQL=$(docker inspect --format="{{ .Name }}" $RUNNING)
     PROJECT_CONTAINER_PGSQL="${PROJECT_CONTAINER_PGSQL///}"
-  fi
-}
-
-# Helper to ensure php container is runing.
-_set_project_container_php() {
-    RUNNING=$(docker ps -f "name=php" -f "status=running" -q | head -1 2> /dev/null)
-  if [ -z "$RUNNING" ]; then
-    die "No running PHP container found, did you run docker-compose up -d ?"
-  else
-    PROJECT_CONTAINER_NAME=$(docker inspect --format="{{ .Name }}" $RUNNING)
-    PROJECT_CONTAINER_NAME="${PROJECT_CONTAINER_NAME///}"
   fi
 }
 
@@ -206,21 +182,3 @@ _prompt_yn() {
       esac
   done
 }
-
-###############################################################################
-# Init
-###############################################################################
-
-# _init()
-#
-# Description:
-#   Entry point for all programs, check and set minimum variables.
-_init() {
-
-  # The php container is used basically for all scripts.
-  _set_project_container_php
-
-}
-
-# Call `_init` after everything has been defined.
-_init $@

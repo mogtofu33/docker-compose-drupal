@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Helper to run postgres dump/restore, part of Docker Compose Drupal project.
+# Helper to run postgres dump/restore, part of Docker compose Drupal project.
 # https://github.com/Mogtofu33/docker-compose-drupal
 #
 # Usage:
@@ -44,16 +44,14 @@ Helper to dump and restore PGSQL db with pg_dump and pg_restore.
 
 Usage:
   ${_ME} [ (import | restore) ] [ (optional) Dump filename]
-  ${_ME} [ (dump | backup) | drop | create ] [database (default: drupal)]
-  ${_ME} list
+  ${_ME} [ (dump | backup) | drop | create ]
+  ${_ME} list | l
     List all available dumps.
 
 Options:
   -h --help  Show this screen.
 HEREDOC
 }
-
-_STACK_DUMP_FOLDER="${STACK_ROOT}${DUMP_FOLDER#"./"}"
 
 ###############################################################################
 # Program Functions
@@ -81,9 +79,9 @@ _dump() {
   printf "\\nDump %s to %s\\n\\n" "${_DB_NAME}" "${_DUMP_FILE}"
 
   _pgsql_exec_u \
-    'pg_dump -d "'"${_DB_NAME}"'" -U "'"${POSTGRES_USER}"'" -hlocalhost -Fc -c -b -f "'"${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}"'" --exclude-table-data="*.cache*" --exclude-table-data="*.cachetags*" --exclude-table-data="*.watchdog*" --exclude-table-data="*.node_access*" --exclude-table-data="*.search_api_db_*" --exclude-table-data="*.sessions*" --exclude-table-data="*.webprofiler*"'
+    'pg_dump -d "'"${_DB_NAME}"'" -U "'"${POSTGRES_USER}"'" -hlocalhost -Fc -c -b -f "'"/dump/${_DUMP_FILE}"'" --exclude-table-data="*.cache*" --exclude-table-data="*.cachetags*" --exclude-table-data="*.watchdog*" --exclude-table-data="*.node_access*" --exclude-table-data="*.search_api_db_*" --exclude-table-data="*.sessions*" --exclude-table-data="*.webprofiler*"'
 
-  if [ -f "${STACK_ROOT}/${DUMP_FOLDER}/${_DUMP_FILE}" ]; then
+  if [ -f "${DUMP_FOLDER}/${_DUMP_FILE}" ]; then
     printf "\\nDatabase dump saved to %s\\n\\n" ${_DUMP_FILE}
     _pgsql_exec 'chmod -R 777 /dump'
     _list_dump
@@ -93,12 +91,11 @@ _dump() {
 }
 
 _restore() {
-  if ! [ -z "$_DUMP_FILE" ]; then
-    echo "${_STACK_DUMP_FOLDER}/${_DUMP_FILE}"
-    if ! [ -f "${_STACK_DUMP_FOLDER}/${_DUMP_FILE}" ]; then
-      _select_dump
-    fi
-  else
+  if [ -z "$_DUMP_FILE" ]; then
+    _select_dump
+  fi
+  if ! [ -f "${DUMP_FOLDER}/${_DUMP_FILE}" ]; then
+    printf "File not found: %s\\n" "${DUMP_FOLDER}/${_DUMP_FILE}"
     _select_dump
   fi
 
@@ -107,19 +104,20 @@ _restore() {
     _drop
     _create
     _pgsql_exec \
-      'pg_restore -h localhost -p 5432 --no-owner --role="$POSTGRES_USER" -U "$POSTGRES_USER" -d "$POSTGRES_DB" "'"${PROJECT_CONTAINER_DUMP}/${_DUMP_FILE}"'"'
+      'pg_restore -h localhost -p 5432 --no-owner --role="$POSTGRES_USER" -U "$POSTGRES_USER" -d "$POSTGRES_DB" "'"/dump/${_DUMP_FILE}"'"'
     printf "... Done\\n"
   fi
 }
 
 _list_dump() {
   printf "Available dump files:\\n"
-  ls -lAh "${STACK_ROOT}/${DUMP_FOLDER}"
+  __list=$(ls -lAh "${DUMP_FOLDER}")
+  printf "%s\\n" "$__list"
 }
 
 _select_dump() {
 
-  _DUMPS=$(ls "${STACK_ROOT}/${DUMP_FOLDER}")
+  _DUMPS=$(ls "${DUMP_FOLDER}")
   _DUMPS=(`echo $_DUMPS | sed 's/ /\n/g'`)
 
   printf "Select a dump file:\\n"
@@ -155,8 +153,13 @@ _pgsql_exec_u() {
 }
 
 _ensure_dump_dir() {
-  _pgsql_exec 'chown -R postgres:postgres /dump'
-  _pgsql_exec 'chmod -R 777 /dump'
+  if [[ ! -d ${DUMP_FOLDER} ]]
+  then
+    mkdir -p ${DUMP_FOLDER}
+  fi
+  _pgsql_exec 'mkdir -p "'"$DUMP_FOLDER_IMAGE"'"'
+  _pgsql_exec 'chown -R postgres:postgres "'"$DUMP_FOLDER_IMAGE"'"'
+  _pgsql_exec 'chmod -R 777 "'"$DUMP_FOLDER_IMAGE"'"'
 }
 
 _set_dump_file() {
@@ -190,7 +193,7 @@ _main() {
   _DB_NAME=$POSTGRES_DB
   _DUMP_FILE=${2:-}
 
-  if [[ "${1:-}" =~ ^list$ ]]; then
+  if [[ "${1:-}" =~ ^list$ ]] || [[ "${1:-}" =~ ^l$ ]]; then
     _list_dump
   elif [[ "${1:-}" =~ ^dump$ ]] || [[ "${1:-}" =~ ^backup$ ]]; then
     _set_dump_file

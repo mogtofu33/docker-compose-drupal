@@ -5,14 +5,12 @@ services:
 
 stages:
   - build images
-  - test images
   - release images
   - build
   - run
   - tests
 
 variables:
-  CONTAINER_WEB_ROOT: "/var/www/localhost/drupal"
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   LOCAL_IMAGE: registry.gitlab.com/mog33/docker-compose-drupal
@@ -41,13 +39,6 @@ variables:
     - *docker_login_gitlab
   script: *docker_build_push
 
-.test_image: &test_image
-  stage: test images
-  before_script:
-    - *docker_login_gitlab
-    - *docker_pull
-    - docker run -d -t --name test $LOCAL_IMAGE/$IMAGE
-
 .release: &release
   stage: release images
   before_script:
@@ -56,8 +47,6 @@ variables:
     - *docker_pull
     - docker tag $LOCAL_IMAGE/$IMAGE $RELEASE_IMAGE/$IMAGE
     - docker push $RELEASE_IMAGE/$IMAGE
-  only:
-    - master
 
 .install_docker_compose:
     - &install_docker_compose
@@ -70,20 +59,19 @@ variables:
 
 .reset_drupal:
     - &reset_drupal
-      rm -f data/www/drupal/web/sites/default/settings.php &&
-      cp data/www/drupal/web/sites/default/default.settings.php data/www/drupal/web/sites/default/settings.php &&
-      chmod 777 data/www/drupal/web/sites/default/settings.php
+      rm -f drupal/web/sites/default/settings.php &&
+      cp drupal/web/sites/default/default.settings.php drupal/web/sites/default/settings.php &&
+      chmod 777 drupal/web/sites/default/settings.php
 
 .test_run: &test_run
   stage: run
   script:
-    - docker-compose config
     - docker-compose build &> /dev/null
     - chmod -R 600 config/mysql
     - docker-compose up -d
-    - docker exec dcd-php php -v
     - docker-compose ps
     - sleep 5s && docker-compose logs
+    - docker exec dcd-php php -v
 
 .test_install: &test_install
   stage: tests
@@ -93,56 +81,65 @@ variables:
     - apk --no-cache add git
     - scripts/get-tools.sh install
     - scripts/get-tools.sh update
+    - scripts/composer
     - scripts/install-drupal.sh
-    - if [ ! -f 'data/www/drupal/web/index.php' ];
-      then
-        docker exec dcd-php composer create-project drupal-composer/drupal-project:8.x-dev $CONTAINER_WEB_ROOT --stability dev --no-interaction --quiet;
-      fi
-    - scripts/composer show -P
-    - mkdir -p data/www/drupal/config/sync && chmod -R 777 data/www/drupal/config/sync
-    - scripts/drush -y si minimal --db-url=mysql://drupal:drupal@mysql/drupal
-    - scripts/drush status
-    - scripts/mysql test
-    - scripts/pgsql test
+    #- scripts/drush status
+    #- scripts/mysql test
+    #- scripts/pgsql test
 
 ################################################################################
 # Jobs based on previous templates.
 ################################################################################
 
-.dashboard:
+dashboard:
   <<: *build_image
   variables:
     IMAGE: dashboard:latest
     DIR: build/dashboard
+  only:
+    - dashboard
+    - master
 
-.test:dashboard:
-  <<: *test_image
-  script:
-    - docker exec test wget -q --server-response "http://localhost:5000/blocks"
-  variables:
-    IMAGE: dashboard:latest
-
-.release:dashboard:
+release:dashboard:
   <<: *release
   variables:
     IMAGE: dashboard:latest
+  only:
+    - master
 
-dcd:
+build:
   stage: build
   before_script:
     - *install_docker_compose
   script:
     - make setup
-  cache:
-    key: build
-    paths:
-      - .env
-      - docker-compose.yml
+    - docker-compose config
 
 run:
   before_script:
     - *install_docker_compose
     - make setup
+  <<: *test_run
+
+.run basic:
+  before_script:
+    - *install_docker_compose
+    - make setup
+    - cp samples/apache_mysql_php.yml docker-compose.yml
+  <<: *test_run
+
+.run advanced:
+  before_script:
+    - *install_docker_compose
+    - make setup
+    - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
+  <<: *test_run
+
+.run AP9P:
+  before_script:
+    - *install_docker_compose
+    - make setup
+    - cp samples/apache_postgres9_php.yml docker-compose.yml
   <<: *test_run
 
 tests:
