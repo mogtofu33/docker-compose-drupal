@@ -121,21 +121,21 @@ run:
     - make setup
   <<: *test_run
 
-.run basic:
+run basic:
   before_script:
     - *install_docker_compose
     - make setup
     - cp samples/apache_mysql_php.yml docker-compose.yml
   <<: *test_run
 
-.run advanced:
+run advanced:
   before_script:
     - *install_docker_compose
     - make setup
     - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
   <<: *test_run
 
-.run AP9P:
+run AP9P:
   before_script:
     - *install_docker_compose
     - make setup

@@ -48,8 +48,6 @@ services:
       # - ${HOME:-}/.composer/cache:/composer/cache
     links:
       - mysql
-      - memcache
-      - solr
       - mailhog
     env_file: .env
     restart: unless-stopped
