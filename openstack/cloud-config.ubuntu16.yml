@@ -34,8 +34,7 @@ runcmd:
   - chown "ubuntu:ubuntu" /usr/local/bin/docker-compose
   - chmod +x /usr/local/bin/docker-compose
   #
-  # External script to setup properly Docker-compose, and Drupal Docker Compose
-  # dev stack (this project) with user ubuntu.
+  # External script to setup this project, some tools and optionaly Drupal.
   - wget -q -O /home/ubuntu/install.sh "https://gitlab.com/mog33/docker-compose-drupal/raw/master/openstack/install.sh?inline=false"
   - chmod +x /home/ubuntu/install.sh
   - chown "ubuntu:ubuntu" /home/ubuntu/install.sh
@@ -44,15 +43,20 @@ runcmd:
   # Edit this part to fit your needs.
   ##############################################################################
   #
-  # This script accept samples file name as first argument and Drupal install as
-  # second. Run scripts/install-drupal.sh for profiles
+  # This script accept options, most noptable:
+  #  --down                Set the stack down at the end of setup
+  # Options with values:
+  #  -s|--stack            Name of stack file to use from ./samples folder,
+  #                        default is the full stack.
+  #  -i|--install          Install a Drupal profile from
+  #                        ./scripts/install-drupal.sh, eg: drupal, drupal-min...
   #.
   # Basic stack with Drupal 8 Demo Umami profile
-  - su -c "/home/ubuntu/install.sh apache_mysql_php drupal-demo" ubuntu
+  - su -c "/home/ubuntu/install.sh --stack apache_mysql_php --install drupal-demo" ubuntu
   # More complete stack with Drupal 8 Demo Umami profile
-  # - su -c "/home/ubuntu/install.sh apache_mysql_php drupal-demo" ubuntu
+  # - su -c "/home/ubuntu/install.sh --stack apache_mysql_php_memcache_solr --install drupal-demo" ubuntu
   # More complete stack without Drupal
-  # - su -c "/home/ubuntu/install.sh apache_mysql_php_memcache_solr" ubuntu
+  # - su -c "/home/ubuntu/install.sh --stack apache_mysql_php_memcache_solr" ubuntu
   # Default full stack without Drupal
   # - su -c "/home/ubuntu/install.sh" ubuntu
 
