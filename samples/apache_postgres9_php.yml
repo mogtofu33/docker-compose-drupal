@@ -33,6 +33,8 @@ services:
   php:
     image: mogtofu33/php:${PHP_VERSION:-7.2}
     volumes:
+      ## If you have composer set locally, share cache to speed up.
+      # - ${HOME:-}/.composer/cache:/composer/cache
       - ${HOST_WEB_ROOT:-./drupal}:/var/www/localhost
       - ./config/php/${PHP_VERSION:-7.2}/php.ini:/etc/php7/php.ini:ro
       - ./config/php/${PHP_VERSION:-7.2}/php-fpm.conf:/etc/php7/php-fpm.conf:ro
@@ -43,13 +45,11 @@ services:
       # Used by dashboard for accessing tools.
       - ./tools:/tools:ro
       # Share db dump folder.
-      - ${HOST_DATABASE_DUMP:-./dump}:/dump
+      - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
       # Php FPM socket
       - php-sock:/sock
       ## If PgSQL, ease drush pgsql access.
       - ./config/pgsql/.pg_pass:/home/apache/.pg_pass:ro
-      ## If you have composer set locally, share cache to speed up.
-      # - ${HOME:-}/.composer/cache:/composer/cache
     links:
       - pgsql
       - mailhog
@@ -62,7 +62,7 @@ services:
       - "5432"
     ## Comment these two lines on Windows system, permissions issue.
     volumes:
-      - ${HOST_DATABASE_DUMP:-./dump}:/dump
+      - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
       # Add pg_pass to ease drush access.
       - ./config/pgsql/.pg_pass:/home/postgres/.pg_pass
     env_file: .env
