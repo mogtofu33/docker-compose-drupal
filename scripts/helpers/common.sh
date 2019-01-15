@@ -110,6 +110,7 @@ tty=
 tty -s && tty=--tty
 
 _DOCKER=$(which docker)
+_DOCKER_COMPOSE=$(which docker-compose)
 
 ###############################################################################
 # Common Program Functions

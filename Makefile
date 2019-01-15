@@ -26,7 +26,8 @@ demo: setup
 	@sleep 15s;
 	@scripts/install-drupal.sh install drupal-demo;
 
-nuke: clean-setup
+nuke:
+	@docker-compose down;
 	@sudo rm -rf drupal;
 
 .PHONY: setup up clean nuke demo

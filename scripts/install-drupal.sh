@@ -78,6 +78,7 @@ _install() {
   __do_download=${1:-1}
   __do_setup=${2:-1}
 
+  # Select db early to avoid a middle script stop.
   if [[ ${__do_setup} == 1 ]]
   then
     _select_db
@@ -101,18 +102,31 @@ _install() {
       if [[ $__do_download == 1 ]]
       then
         _download $__DOWNLOAD_TYPE
-        _fix_docroot
       fi
 
       if [[ $__do_setup == 1 ]]
       then
         _setup $__SETUP_TYPE
-        _fix_files_perm
       fi
     fi
   done
 
   exit
+}
+
+# _ensure_download()
+#
+# Description:
+#   Check if Drupal already here, stop stack if running.
+_ensure_download() {
+  if [ -d ${STACK_DRUPAL_ROOT} ]; then
+    if [ -f ${STACK_DRUPAL_ROOT}/web/index.php ]; then
+      printf "[Notice] Drupal already exist, do you want to continue and DELETE?\\n"
+      _prompt_yn
+    fi
+    _stack_down
+    sudo rm -rf ${STACK_DRUPAL_ROOT}
+  fi
 }
 
 # _download()
@@ -123,6 +137,7 @@ _download() {
   printf "[info] Start downloading %s, this takes a while...\\n" "${__PROJECT}"
   __call="_download_$1"
   $__call
+  _fix_docroot
 }
 
 # _download_composer()
@@ -132,10 +147,18 @@ _download() {
 _download_composer() {
   # Setup Drupal 8 composer project.
   if [ -x "$(command -v composer)" ]; then
+    _ensure_download
     composer create-project ${__PROJECT} ${STACK_DRUPAL_ROOT} --no-interaction --no-ansi --ignore-platform-reqs --remove-vcs --no-progress --prefer-dist
+    _stack_up
   else
+    _ensure_download
+    _stack_up
     _docker_exec_noi \
-      composer create-project ${__PROJECT} /var/www/localhost --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist
+      composer create-project ${__PROJECT} /tmp/drupal --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist
+    _docker_exec_noi \
+      cp -Rp /tmp/drupal/. /var/www/localhost/
+    _docker_exec_noi_u \
+      rm -rf /tmp/drupal
   fi
 }
 
@@ -160,7 +183,7 @@ _download_composer_contenta() {
   _docker_exec_noi \
     sh -c 'exec '"/tmp/download-contenta.sh"' '"/tmp/contenta"''
   _docker_exec_noi \
-    cp -R /tmp/contenta/. /var/www/localhost/
+    cp -Rp /tmp/contenta/. /var/www/localhost/
 
   # Cleanup.
   _docker_exec_noi \
@@ -211,8 +234,24 @@ _download_curl() {
   if [ -x "$(command -v compass)" ]; then
     compass compile ${STACK_DRUPAL_ROOT}/web/themes/custom/bootstrap_sass
   else
-    printf "[warning] Compile manually from your Drupal code root:\\ncompass compile web/themes/custom/bootstrap_sass"
+    printf "[warning] Compile manually from your Drupal code root:\\ncompass compile web/themes/custom/bootstrap_sass\\n"
   fi
+}
+
+# _stack_up()
+#
+# Description:
+#   Run docker-compose up with build.
+_stack_up() {
+  $_DOCKER_COMPOSE up -d --build
+}
+
+# _stack_down()
+#
+# Description:
+#   Run docker-compose down.
+_stack_down() {
+  $_DOCKER_COMPOSE down
 }
 
 # _setup()
@@ -220,6 +259,8 @@ _download_curl() {
 # Description:
 #   Setup dispatcher depending Drupal profile name.
 _setup() {
+  _stack_up
+
   printf "[info] Install %s with profile %s on db %s\\n" "${__DID}" "${__INSTALL_PROFILE}" "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 
   _clean_setup
@@ -227,6 +268,8 @@ _setup() {
 
   __call="_setup_$1"
   $__call
+
+  _fix_files_perm
 
   printf "\\n >> Access %s on\\nhttp://${PROJECT_BASE_URL}\\n >> Log-in with: admin / password\\n\\n" "${__DID}"
 }

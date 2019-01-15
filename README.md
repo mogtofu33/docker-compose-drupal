@@ -4,23 +4,28 @@
 
 - [Require](#require)
 - [Introduction](#introduction)
-- [(Quick) Install with a new Drupal 8 project](#quick-install-with-a-new-drupal-8-project)
+- [Quick demo (Ubuntu)](quick-demo-ubuntu)
+- [Install with an existing Drupal 8 project](#install-with-an-existing-drupal-8-project)
 - [Reset the stack](#reset-the-stack)
-- [Ubuntu/Linux helpers](#ubuntulinux-helpers)
+- [Linux helpers](#linux-helpers)
 - [Upgrade](#upgrade)
 - [Suggested tools](#suggested-tools)
 - [Troubleshooting](#troubleshooting)
+
+**Full** Linux support. Tested daily on Ubuntu 16+.
+
+**Windows** support is **very, very limited** due to Docker for [Windows permissions problems](https://github.com/docker/for-win/issues/1829) and no privileged support :(
+
+**Mac** support is **very limited** due to the fact that I don't have a Mac!
 
 ## Require
 
 - [Docker engine 18+](https://docs.docker.com/install)
 - [Docker compose 1.23+](https://docs.docker.com/compose/install)
 
-**Full** Linux support. Tested daily on Ubuntu 16/18.
+### Recommended
 
-**Windows** support is **very, very limited** due to Docker for [Windows permissions problems](https://github.com/docker/for-win/issues/1829) and no privileged support :(
-
-**Mac** support is **very limited** due to the fact that I don't have a Mac!
+- [Composer](https://getcomposer.org)
 
 ## Introduction
 
@@ -58,7 +63,23 @@ _Every service is optional as declared in the yml file._
 
 - [Adminer](https://www.adminer.org)
 
-## (Quick) Install with a new Drupal 8 project
+## Quick demo (Ubuntu)
+
+Clone this project
+
+```bash
+git clone https://gitlab.com/mog33/docker-compose-drupal.git
+cd docker-compose-drupal
+```
+
+Install this stack with minimal services, download and install Drupal 8 with
+profile [Demo Umami](https://www.drupal.org/project/demo_umami)
+
+```bash
+make demo
+```
+
+## Install with an existing Drupal 8 project
 
 ### Get this project
 
@@ -99,7 +120,7 @@ docker-compose config
 
 ### Existing Drupal 8 project
 
-#### Import codebase
+#### Copy codebase
 
 For an existing Drupal 8 project, copy it here and rename in _drupal_
 Note that based on Composer template web root must be under _drupal/web_
@@ -139,14 +160,14 @@ You can import the database from the adminer link in the dashboard.
 
 #### Code download
 
-Setup a new Drupal 8 based on a Composer project (yes it's slower, but this is the good way!) with user Apache.
+Setup a new Drupal 8 based on a Composer project with user Apache.
 
 Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/), using [Composer](https://getcomposer.org) in the docker service:
 
 ```bash
 docker exec -it -u apache dcd-php \
     composer create-project drupal-composer/drupal-project:8.x-dev \
-    /var/www/localhost/drupal --stability dev --no-interaction
+    /var/www/localhost --stability dev --no-interaction
 ```
 
 _OR_ locally if you have [Composer](https://getcomposer.org/download) installed, from this project root:
@@ -162,8 +183,8 @@ To use **PostGreSQL** change **mysql** to **pgsql**
 You can replace **standard** by an other profile as **minimal** or **demo_umami** for [Drupal 8.6+](https://www.drupal.org/project/demo_umami).
 
 ```bash
-docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y site:install standard \
-    --root=/var/www/localhost/drupal/web \
+docker exec -it -u apache dcd-php /var/www/localhost/vendor/bin/drush -y site:install standard \
+    --root=/var/www/localhost/web \
     --account-name=admin \
     --account-pass=password \
     --db-url=mysql://drupal:drupal@mysql/drupal
@@ -182,10 +203,10 @@ Here is an example, assuming we use composer from docker:
 # Step 1: Grab code
 docker exec -it -u apache dcd-php \
     composer create-project acquia/lightning-project \
-    /var/www/localhost/drupal --no-interaction
+    /var/www/localhost --no-interaction
 # Step 2: Install
-docker exec -it -u apache dcd-php /var/www/localhost/drupal/vendor/bin/drush -y site:install lightning \
-    --root=/var/www/localhost/drupal/web \
+docker exec -it -u apache dcd-php /var/www/localhost/vendor/bin/drush -y site:install lightning \
+    --root=/var/www/localhost/web \
     --account-name=admin \
     --account-pass=password \
     --db-url=mysql://drupal:drupal@mysql/drupal
@@ -203,7 +224,7 @@ Login with _admin_ / _password_:
 
 ```bash
 docker exec -it -u apache dcd-php \
-    composer --working-dir=/var/www/localhost/drupal require \
+    composer --working-dir=/var/www/localhost require \
     drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 ```
 
@@ -217,8 +238,8 @@ scripts/composer require drupal/admin_toolbar drupal/ctools drupal/pathauto drup
 
 ```bash
 docker exec -it -u apache dcd-php \
-    /var/www/localhost/drupal/vendor/bin/drush -y en \
-    --root=/var/www/localhost/drupal/web \
+    /var/www/localhost/vendor/bin/drush -y en \
+    --root=/var/www/localhost/web \
     admin_toolbar ctools ctools_block ctools_views panels token pathauto
 ```
 
@@ -232,7 +253,7 @@ scripts/drush -y en admin_toolbar ctools ctools_block ctools_views panels token 
 
 ```bash
 docker exec -it -u apache dcd-php \
-    ls -lah /var/www/localhost/drupal/web
+    ls -lah /var/www/localhost/web
 ```
 
 ## Reset the stack
@@ -258,7 +279,7 @@ docker-compose down
 rm -rf data
 ```
 
-## Ubuntu/Linux helpers
+## Linux helpers
 
 For Ubuntu (16+) or Linux you can find in _scripts/_ multiple helpers to quickly
 run some daily commands from root folder, and drush/drupal links at the root.
