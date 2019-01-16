@@ -198,6 +198,7 @@ _install_composer() {
     composer global require "hirak/prestissimo:^0.3" "drupal/coder"
   else
     printf "\\n\\n[setup::notice] Composer already here!\\n\\n"
+    composer selfupdate
     if ! [ -d "${HOME}/.config/composer/vendor/hirak" ]; then
       composer global require "hirak/prestissimo:^0.3" "drupal/coder"
     fi
