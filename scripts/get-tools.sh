@@ -48,7 +48,7 @@ Depends on:
   git
 
 Usage:
-  ${_ME} [install | update | delete]
+  ${_ME} [install (i) | update (u) | delete (del)]
 
 Options:
   -h --help  Show this screen.
@@ -145,13 +145,13 @@ _main() {
     die 'git is required for this script.'
   fi
 
-  if [[ "${1:-}" =~ ^install$ ]]
+  if [[ "${1:-}" =~ ^install$ ]] || [[ "${1:-}" =~ ^i$ ]]
   then
     _install
-  elif [[ "${1:-}" =~ ^delete$ ]]
+  elif [[ "${1:-}" =~ ^delete$ ]] || [[ "${1:-}" =~ ^del$ ]]
   then
     _delete
-  elif [[ "${1:-}" =~ ^update$ ]]
+  elif [[ "${1:-}" =~ ^update$ ]] || [[ "${1:-}" =~ ^u$ ]]
   then
     _update
   else

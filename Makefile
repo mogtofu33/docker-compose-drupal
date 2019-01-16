@@ -24,10 +24,14 @@ demo: setup
 	@cp -f ./samples/apache_mysql_php.yml ./docker-compose.yml;
 	@docker-compose up -d --build;
 	@sleep 15s;
-	@scripts/install-drupal.sh install drupal-demo;
+	@scripts/install-drupal.sh install -p drupal-demo;
 
 nuke:
 	@docker-compose down;
 	@sudo rm -rf drupal;
 
-.PHONY: setup up clean nuke demo
+st: status
+status:
+	@docker-compose ps;
+
+.PHONY: setup up clean nuke demo status

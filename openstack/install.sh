@@ -6,23 +6,6 @@
 # script (From cloud config files in this folder).
 # This script is used with a cloud config setup from this folder.
 
-# Help usage
-# Options:
-#  --down                Set the stack down at the end of setup
-# Options with values:
-#  -s|--stack            Name of stack file to use from ./samples folder,
-#                        default is the full stack.
-#  -i|--install          Install a Drupal profile from
-#                        ./scripts/install-drupal.sh, eg: drupal, drupal-min...
-#  -b|--branch           Branch for this project, default is "master"
-#  -u|--user             Local user name to use, default "ubuntu"
-#  -g|--group            Local user group to use, default "ubuntu"
-#  -p|--path             Local project path, default "$HOME/docker-compose-drupal"
-
-# Usage:
-#   ./install.sh -b apache_mysql_php -i drupal-min
-#   ./install.sh -b apache_postgres9_php --down
-
 set -o nounset
 set -o errexit
 trap 'echo "Aborting due to errexit on line $LINENO. Exit code: $?" >&2' ERR
@@ -30,6 +13,42 @@ set -o errtrace
 set -o pipefail
 SAFER_IFS=$'\n\t'
 IFS="${SAFER_IFS}"
+
+###############################################################################
+# Help
+###############################################################################
+
+# _print_help()
+#
+# Usage:
+#   _print_help
+#
+# Print the program help information.
+_print_help() {
+  cat <<HEREDOC
+Install Docker Compose Drupal on a Ubuntu distribution, firstly in Openstack.
+
+Options:
+ --down                Set the stack down at the end of setup
+  -h --help            Show this screen.
+
+Options with argument:
+ -s|--stack            Name of stack file to use from ./samples folder,
+                       default is the full stack.
+ -i|--install          Install a Drupal profile from
+                       ./scripts/install-drupal.sh, eg: drupal, drupal-min...
+ -b|--branch           Branch for this project, default is "master"
+ -u|--user             Local user name to use, default "ubuntu"
+ -g|--group            Local user group to use, default "ubuntu"
+ -p|--path             Local project path, default "$HOME/docker-compose-drupal"
+
+Usage:
+  ./install.sh -b apache_mysql_php -i drupal-min
+  ./install.sh -b apache_postgres9_php --down
+
+HEREDOC
+printf "\\n"
+}
 
 # Parse Options ###############################################################
 
@@ -69,6 +88,10 @@ do
   __option="${1:-}"
   __maybe_param="${2:-}"
   case "${__option}" in
+    -h|--help)
+      _print_help
+      exit 0
+      ;;
     --down)
       __set_down=1
       ;;
@@ -107,7 +130,7 @@ do
       break
       ;;
     -*)
-      _die printf "Unexpected option: %s\\n" "${__option}"
+      printf "[setup::WARNING] Unexpected option: %s\\n" "${__option}"
       ;;
   esac
   shift
@@ -189,25 +212,25 @@ _install_composer() {
 
 _download_drupal() {
   printf "\\n\\n[setup::info] Download Drupal %s\\n\\n" "${__install_drupal}"
-  ${STACK_ROOT}/scripts/install-drupal.sh download ${__install_drupal}
+  ${STACK_ROOT}/scripts/install-drupal.sh download -f -p ${__install_drupal}
 }
 
 _setup_drupal() {
   printf "\\n\\n[setup::info] Install Drupal ${__install_drupal}\\n\\n"
   # Wait a bit for the stack to be up.
   sleep 20s
-  ${STACK_ROOT}/scripts/install-drupal.sh setup ${__install_drupal}
+  ${STACK_ROOT}/scripts/install-drupal.sh setup -f -p ${__install_drupal}
 }
 
 _up_stack() {
   printf "\\n\\n[setup::info] Up stack...\\n\\n"
-  docker-compose --file "${STACK_ROOT}/docker-compose.yml" up -d --build
+  $_DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" up -d --build
 }
 
 _down_stack() {
   printf "\\n\\n[setup::info] Down stack...\\n\\n"
   sleep 20s
-  docker-compose --file "${STACK_ROOT}/docker-compose.yml" down
+  $_DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" down
 }
 
 _env_tasks() {
@@ -217,15 +240,12 @@ _env_tasks() {
 PATH=\$PATH:${HOME}/.config/composer/vendor/bin
 EOT
 
-  # Add docker, phpcs, drush and drupal console aliases.
+  # Add docker, phpcs aliases.
   cat <<EOT >> ${HOME}/.bash_aliases
-# Dockercd do 
+# Docker
 alias dk='docker'
 # Docker-compose
 alias dkc='docker-compose'
-# Drush and Drupal console
-alias drush="${STACK_ROOT}/scripts/drush"
-alias drupal="${STACK_ROOT}/scripts/drupal"
 # Check Drupal coding standards
 alias csdr="${HOME}/.config/composer/vendor/bin/phpcs --standard=Drupal --extensions='php,module,inc,install,test,profile,theme,info'"
 # Check Drupal best practices
@@ -237,6 +257,13 @@ EOT
 
 _links() {
   printf "\\n\\n[setup::info] Set links...\\n\\n"
+  # Drush and Drupal links.
+  if ! [ -f "/usr/local/bin/drush" ] && [ -f "/usr/bin/drush" ]; then
+    ln -s ${STACK_ROOT}/scripts/drush /usr/local/bin/drush
+  fi
+  if ! [ -f "/usr/local/bin/drupal" ] && [ -f "/usr/bin/drupal" ]; then
+    ln -s ${STACK_ROOT}/scripts/drupal /usr/local/bin/drupal
+  fi
   # Convenient links.
   if ! [ -d "${HOME}/drupal" ]; then
     ln -s ${STACK_DRUPAL_ROOT} ${HOME}/drupal
@@ -269,6 +296,12 @@ _get_tools() {
 # Description:
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
+
+  if [[ "${1:-}" =~ ^help$ ]] || [[ "${1:-}" =~ ^--help$ ]] || [[ "${1:-}" =~ ^-h$ ]]; then
+    _print_help
+    exit 0
+  fi
+
   _ensure_permissions
   _ensure_docker
   _install_stack

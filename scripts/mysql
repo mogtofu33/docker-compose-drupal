@@ -45,22 +45,24 @@ Helper to dump, drop and restore MYSQL/MariaDB.
 
 Usage:
   ${_ME} [ (import | restore) ] [ (optional) Dump filename ]
-  ${_ME} [ (dump | backup) | dump-no-drush | drop | create ]
+  ${_ME} [ (dump | backup) | dump-no-drush | drop | drop-no-drush | create ]
   ${_ME} list | l
     List all available dumps.
 
 'dump' and 'drop' is performed with Drush, dump ignore common cache, search,
 stats and sessions tables from Drupal.
+
 'dump' append the current timestamp.
 
-'dump-no-drush' use mysql client and do not ignore data in Drupal temporary
-tables like watchdog, cache*...
+But if Drush is not found fallback is to use mysql client and do not ignore data
+in Drupal temporary tables like watchdog, cache*...
 
-'drop-no-drush' use mysql native client to completly DROP the database.
+'dump-no-drush' Use mysql client.
+'drop-no-drush' Use mysql client.
 
 'create' use mysql client to create and grant a database DB_NAME, default to 'drupal'.
 
-dumps are located in the ./dump folder of Docker compose Drupal.
+dumps are located in the ./database-dump folder of Docker compose Drupal.
 
 Options:
   -h --help         Show this screen.
@@ -86,19 +88,28 @@ _drop() {
 }
 
 _drop_drush() {
-  _docker_exec_noi \
-    "${DRUSH_BIN}" -r "${DRUPAL_DOCROOT}" -y sql-drop
+  if ! [ -f ${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush ]; then
+    _drop
+  else
+    _docker_exec_noi \
+      "${DRUSH_BIN}" --root "${DRUPAL_DOCROOT}" -y sql-drop
+  fi
 }
 
 _dump_drush() {
-  _docker_exec_noi \
-    "${DRUSH_BIN}" -r "${DRUPAL_DOCROOT}" sql-dump \
-      --structure-tables-list=cache*,history,node_counter,search_*,sessions,watchdog \
-      --result-file="/dump/${_DUMP_FILE}"
+  if ! [ -f "${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush" ]; then
+    printf "Drush not found, fallback to mysql dump"
+    _dump
+  else
+    _docker_exec_noi \
+      "${DRUSH_BIN}" --root "${DRUPAL_DOCROOT}" sql-dump \
+        --structure-tables-list=cache*,history,node_counter,search_*,sessions,watchdog \
+        --result-file="/dump/${_DUMP_FILE}"
+  fi
 }
 
 _dump() {
-  _mysql_exec 'exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > /docker-entrypoint-initdb.d/'"$_DUMP_FILE"''
+  _mysql_exec 'exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > /dump/'"$_DUMP_FILE"''
   printf "Database dump saved to %s\\n" ${DUMP_FOLDER}/${_DUMP_FILE}
 }
 
@@ -114,7 +125,7 @@ _restore() {
   printf "Restoring %s...\\n" $_DUMP_FILE
   _drop
   _create
-  _mysql_exec 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /docker-entrypoint-initdb.d/'"$_DUMP_FILE"''
+  _mysql_exec 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /dump/'"$_DUMP_FILE"''
 
   printf "... Done!\n"
 }
@@ -221,10 +232,10 @@ _main() {
   elif [[ "${1:-}" =~ ^restore$ ]] || [[ "${1:-}" =~ ^import$ ]]; then
     _set_dump_file
     _restore
-  elif [[ "${1:-}" =~ ^drop-no-drush$ ]]; then
-    _drop ${2:-}
   elif [[ "${1:-}" =~ ^drop$ ]]; then
     _drop_drush
+  elif [[ "${1:-}" =~ ^drop-no-drush$ ]]; then
+    _drop
   elif [[ "${1:-}" =~ ^create$ ]]; then
     _create ${2:-}
   elif [[ "${1:-}" =~ ^test$ ]]; then

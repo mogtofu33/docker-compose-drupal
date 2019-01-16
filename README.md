@@ -296,16 +296,18 @@ scripts/composer --help
 scripts/composer status
 ```
 
-(WIP) Install Drupal 8 variant helpers
+Install Drupal 8 variant helpers (This delete and replace existing Drupal in _./drupal_ folder)
 
 ```bash
 scripts/install-drupal.sh
+scripts/install-drupal.sh install -p drupal-demo
 ```
 
 ## Upgrade
 
-Because this project is mainly focused on a one time usage the best way to
-upgrade is to copy your project to a new version of this project.
+Because this project is mainly focused on a one time usage, there is currently
+no upgrade path and the best way to upgrade is to dump and copy your project to
+a new version of this project.
 
 ## Suggested tools
 
@@ -315,7 +317,7 @@ upgrade is to copy your project to a new version of this project.
 - [Adminer extended](https://github.com/dg/adminer-custom)
 - [Php Redis Admin](https://github.com/ErikDubbelboer/phpRedisAdmin)
 
-You can find a script for Linux in scripts/get-tools.sh folder to download or update all tools:
+You can find a script for Linux in _scripts/get-tools.sh_ folder to download or update all tools:
 
 ```bash
 cd THIS_PROJECT

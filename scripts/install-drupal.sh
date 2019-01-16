@@ -46,19 +46,96 @@ Install and prepare multiple Drupal 8 project based on top Drupal distributions 
 
 Usage:
   ${_ME} list
-  ${_ME} [list | install (= download + setup) | download | setup | delete] [DISTRIBUTION] [mysql (default) | postgres]
-  ${_ME} install drupal
-  ${_ME} install drupal mysql
-    Install Drupal standard with MySQL.
-  ${_ME} install drupal postgres
-    Install Drupal standard with PgSQL.
+  ${_ME} install -p drupal
+  ${_ME} i -p drupal-demo -db postgres
+
+Arguments: 
+  list | l          List available projects.
+  install | i       Download and setup a project.
+  download | dl     Download a project codebase.
+  setup | set       Install a project.
+  delete | del      Delete a previously downloaded project.
+
+Options with argument:
+  -p --project      Optinal project name, from list option, if not set select prompt.
+  -d --database    Database service: postgres or mysql, default "mysql"
 
 Options:
-  -h --help  Show this screen.
+  -f --force        Force prompt with Yes if any.
+  -v --verbose      More messages, mostly with composer.
+  -h --help         Show this screen.
+
 HEREDOC
 printf "\\n"
-_distributions_list
 }
+
+# Parse Options ###############################################################
+
+# Initialize program option variables.
+_SELECTED_PROJECT=0
+_DEFAULT_DB="mysql"
+__force=0
+__verbose=""
+__do_download=0
+__do_setup=0
+__cmd=""
+
+# _require_argument()
+#
+# Usage:
+#   _require_argument <option> <argument>
+#
+# If <argument> is blank or another option, print an error message and  exit
+# with status 1.
+_require_argument() {
+  # Set local variables from arguments.
+  #
+  # NOTE: 'local' is a non-POSIX bash feature and keeps the variable local to
+  # the block of code, as defined by curly braces. It's easiest to just think
+  # of them as local to a function.
+  local _option="${1:-}"
+  local _argument="${2:-}"
+
+  if [[ -z "${_argument}" ]] || [[ "${_argument}" =~ ^- ]]
+  then
+    _die printf "Option requires a argument: %s\\n" "${_option}"
+  fi
+}
+
+while [[ ${#} -gt 0 ]]
+do
+  __option="${1:-}"
+  __maybe_param="${2:-}"
+  case "${__option}" in
+    -f|--force)
+      __force=1
+      ;;
+    -v|--verbose)
+      __verbose="-vvv"
+      ;;
+    -p|--project)
+      _require_argument "${__option}" "${__maybe_param}"
+      _SELECTED_PROJECT="${__maybe_param}"
+      shift
+      ;;
+    -d|--database)
+      _require_argument "${__option}" "${__maybe_param}"
+      _DEFAULT_DB="${__maybe_param}"
+      shift
+      ;;
+    --endopts)
+      # Terminate option parsing.
+      break
+      ;;
+    -*)
+      _die printf "Unexpected option: %s\\n" "${__option}"
+      ;;
+    *)
+      __cmd=${__option}
+      ;;
+  esac
+  shift
+done
 
 ###############################################################################
 # Program Functions
@@ -70,13 +147,11 @@ _distributions_list
 #   Main install dispatcher.
 _install() {
 
+
   if [[ ${_SELECTED_PROJECT} == 0 ]]
   then
     _select_project
   fi
-
-  __do_download=${1:-1}
-  __do_setup=${2:-1}
 
   # Select db early to avoid a middle script stop.
   if [[ ${__do_setup} == 1 ]]
@@ -120,7 +195,7 @@ _install() {
 #   Check if Drupal already here, stop stack if running.
 _ensure_download() {
   if [ -d ${STACK_DRUPAL_ROOT} ]; then
-    if [ -f ${STACK_DRUPAL_ROOT}/web/index.php ]; then
+    if [ -f ${STACK_DRUPAL_ROOT}/web/index.php ] && [ ${__force} == 0 ]; then
       printf "[Notice] Drupal already exist, do you want to continue and DELETE?\\n"
       _prompt_yn
     fi
@@ -148,13 +223,13 @@ _download_composer() {
   # Setup Drupal 8 composer project.
   if [ -x "$(command -v composer)" ]; then
     _ensure_download
-    composer create-project ${__PROJECT} ${STACK_DRUPAL_ROOT} --no-interaction --no-ansi --ignore-platform-reqs --remove-vcs --no-progress --prefer-dist
+    composer create-project ${__PROJECT} ${STACK_DRUPAL_ROOT} --no-interaction --no-ansi --ignore-platform-reqs --remove-vcs --no-progress --prefer-dist ${__verbose}
     _stack_up
   else
     _ensure_download
     _stack_up
     _docker_exec_noi \
-      composer create-project ${__PROJECT} /tmp/drupal --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist
+      composer create-project ${__PROJECT} /tmp/drupal --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__verbose}
     _docker_exec_noi \
       cp -Rp /tmp/drupal/. /var/www/localhost/
     _docker_exec_noi_u \
@@ -171,8 +246,11 @@ _download_composer_contenta() {
   if [ -f "download-contenta.sh" ]; then
     rm -f "download-contenta.sh"
   fi
-
-  curl --silent --output download-contenta.sh "https://raw.githubusercontent.com/contentacms/contenta_jsonapi_project/8.x-2.x/scripts/download.sh"
+  if [ ${__verbose} == "" ]; then
+    curl --silent --output download-contenta.sh "https://raw.githubusercontent.com/contentacms/contenta_jsonapi_project/8.x-2.x/scripts/download.sh"
+  else
+    curl --output download-contenta.sh "https://raw.githubusercontent.com/contentacms/contenta_jsonapi_project/8.x-2.x/scripts/download.sh"
+  fi
 
   # Move to the container and set permission.
   $_DOCKER cp download-contenta.sh dcd-php:/tmp/download-contenta.sh
@@ -198,37 +276,30 @@ _download_composer_contenta() {
 _download_curl() {
 
   # Download the archive and extract.
-  curl -fsSL "${__PROJECT}" -o drupal.tar.gz
-  tar -xzf drupal.tar.gz -C ${HOST_WEB_ROOT}
-  mv ${HOST_WEB_ROOT}/drupal-composer-advanced-template-8.x-dev ${STACK_DRUPAL_ROOT}
+  curl -fsSL "${__PROJECT}" -o /tmp/drupal.tar.gz
+  tar -xzf /tmp/drupal.tar.gz -C /tmp/
+
+  _ensure_download
+
+  mv /tmp/drupal-composer-advanced-template-8.x-dev ${STACK_DRUPAL_ROOT}
+
+  _stack_up
 
   _docker_exec_noi_u \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
 
   # Cleanup.
-  rm -f drupal.tar.gz
+  rm -f /tmp/drupal.tar.gz
 
   # Setup Drupal 8 composer project.
   if [ -x "$(command -v composer)" ]; then
-    composer install --working-dir="${STACK_DRUPAL_ROOT}" --no-suggest --no-interaction --ignore-platform-reqs
-  else
-  
-    # Fix composer cache because we are root.
-    _docker_exec_noi_u \
-      mkdir -p /.composer/cache
-
-    _docker_exec_noi_u \
-      chown -R ${LOCAL_UID}:${LOCAL_GID} /.composer
-
-    _docker_exec_noi \
-      composer install --working-dir="/var/www/localhost" --no-suggest --no-interaction 
-  fi
-
-  if [ -x "$(command -v composer)" ]; then
-    composer install-boostrap-sass --working-dir="${STACK_DRUPAL_ROOT}"
+    composer install --working-dir="${STACK_DRUPAL_ROOT}" --no-suggest --no-interaction --ignore-platform-reqs ${__verbose}
+    composer install-boostrap-sass --working-dir="${STACK_DRUPAL_ROOT}" ${__verbose}
   else
     _docker_exec_noi \
-      composer install-boostrap-sass --working-dir="/var/www/localhost"
+      composer install --working-dir="/var/www/localhost" --no-suggest --no-interaction ${__verbose}
+    _docker_exec_noi \
+      composer install-boostrap-sass --working-dir="/var/www/localhost" ${__verbose}
   fi
 
   if [ -x "$(command -v compass)" ]; then
@@ -243,7 +314,8 @@ _download_curl() {
 # Description:
 #   Run docker-compose up with build.
 _stack_up() {
-  $_DOCKER_COMPOSE up -d --build
+  printf "[info] Launch stack..."
+  $_DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" up -d --build
 }
 
 # _stack_down()
@@ -251,7 +323,8 @@ _stack_up() {
 # Description:
 #   Run docker-compose down.
 _stack_down() {
-  $_DOCKER_COMPOSE down
+  printf "[info] Stop stack..."
+  $_DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" down
 }
 
 # _setup()
@@ -332,7 +405,7 @@ _setup_contenta() {
   echo "ACCOUNT_PASS=password" >> "${STACK_DRUPAL_ROOT}/.env.local"
 
   _docker_exec_noi \
-    composer --working-dir="/var/www/localhost" run-script install:with-mysql
+    composer --working-dir="/var/www/localhost" run-script install:with-mysql ${__verbose}
 }
 
 # _setup_advanced()
@@ -370,10 +443,10 @@ _ensure_drush() {
     printf "[info] Install missing drush\\n"
     # Drush is not included in varbase distribution.
     if [ -x "$(command -v composer)" ]; then
-      composer require drush/drush --working-dir="${STACK_DRUPAL_ROOT}" --ignore-platform-reqs -vv
+      composer require drush/drush --working-dir="${STACK_DRUPAL_ROOT}" --ignore-platform-reqs ${__verbose}
     else
       _docker_exec_noi \
-        composer require drush/drush --working-dir="/var/www/localhost" -vv
+        composer require drush/drush --working-dir="/var/www/localhost" ${__verbose}
     fi
   fi
 }
@@ -393,7 +466,7 @@ _select_project() {
     __list[i]=${!DRUPAL_DISTRIBUTIONS[i]:0:1}
   done
 
-  select opt in "${__list[@]}"; do
+  select opt in "Cancel" "${__list[@]}"; do
     case $opt in
       *)
         _SELECTED_PROJECT=$opt
@@ -524,7 +597,9 @@ _fix_files_perm() {
 # Description:
 #   Delete a previous downloaded Drupal.
 _nuke() {
-  _prompt_yn
+  if [ ${__force} == 0 ]; then
+    _prompt_yn
+  fi
   sudo rm -rf ${STACK_DRUPAL_ROOT}
 }
 
@@ -541,22 +616,23 @@ _nuke() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
-  _SELECTED_PROJECT=${2:-0}
-  _DEFAULT_DB=${3:-"mysql"}
-
-  if [[ "${1:-}" =~ ^install$ ]]
+  if [[ "${__cmd}" =~ ^install$ ]] || [[ "${__cmd}" =~ ^i$ ]]
   then
     _install
-  elif [[ "${1:-}" =~ ^list$ ]]
+  elif [[ "${__cmd}" =~ ^list$ ]] || [[ "${__cmd}" =~ ^l$ ]]
   then
     _distributions_list
-  elif [[ "${1:-}" =~ ^download$ ]]
+  elif [[ "${__cmd}" =~ ^download$ ]] || [[ "${__cmd}" =~ ^dl$ ]]
   then
-    _install 1 0
-  elif [[ "${1:-}" =~ ^setup$ ]]
+    __do_download=1
+    __do_setup=0
+    _install
+  elif [[ "${__cmd}" =~ ^setup$ ]] || [[ "${__cmd}" =~ ^set$ ]]
   then
-    _install 0 1
-  elif [[ "${1:-}" =~ ^delete$ ]]
+    __do_download=0
+    __do_setup=1
+    _install
+  elif [[ "${__cmd}" =~ ^delete$ ]] || [[ "${__cmd}" =~ ^del$ ]]
   then
     _nuke
   else
