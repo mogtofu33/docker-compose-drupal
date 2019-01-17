@@ -259,11 +259,13 @@ EOT
 _links() {
   printf "\\n\\n[setup::info] Set links...\\n\\n"
   # Drush and Drupal links.
-  if ! [ -f "/usr/local/bin/drush" ] && [ -f "/usr/bin/drush" ]; then
-    ln -s ${STACK_ROOT}/scripts/drush /usr/local/bin/drush
+  if ! [ -f "/usr/local/bin/drush" ] && ! [ -f "/usr/local/bin/drush" ]; then
+    sudo ln -s ${STACK_ROOT}/scripts/drush /usr/local/bin/drush
+    sudo chmod a+x /usr/local/bin/drush
   fi
-  if ! [ -f "/usr/local/bin/drupal" ] && [ -f "/usr/bin/drupal" ]; then
-    ln -s ${STACK_ROOT}/scripts/drupal /usr/local/bin/drupal
+  if ! [ -f "/usr/local/bin/drupal" ] && ! [ -f "/usr/local/bin/drupal" ]; then
+    sudo ln -s ${STACK_ROOT}/scripts/drupal /usr/local/bin/drupal
+    sudo chmod a+x /usr/local/bin/drupal
   fi
   # Convenient links.
   if ! [ -d "${HOME}/drupal" ]; then
