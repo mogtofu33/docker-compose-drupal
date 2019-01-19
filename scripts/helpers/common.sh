@@ -76,35 +76,34 @@ if [ -f $STACK_ROOT/.env ]; then
   source $STACK_ROOT/.env
 fi
 
+if [ -f $STACK_ROOT/.env.local ]; then
+  source $STACK_ROOT/.env.local
+fi
+
 # Get scripts values.
 if [ -f $_DIR/../.env ]; then
   source $_DIR/../.env
 fi
 
-# Get local overrides.
-if [ -f $_DIR/../.env.local ]; then
-  source $_DIR/../.env.local
-fi
-
 STACK_DRUPAL_ROOT=${STACK_ROOT}/${HOST_WEB_ROOT#'./'}
 
 # Basic variables.
-_NOW="$(date +'%Y%m%d.%H-%M-%S')"
+NOW="$(date +'%Y%m%d.%H-%M-%S')"
 tty=
 tty -s && tty=--tty
 
 if ! [ -x "$(command -v docker)" ]; then
   printf "[notice] docker not found and is probably required for this script.\\n"
-  _DOCKER=""
+  DOCKER=""
 else
-  _DOCKER=$(which docker)
+  DOCKER=$(which docker)
 fi
 
 if ! [ -x "$(command -v docker-compose)" ]; then
   printf "[notice] docker-compose not found and is probably required for this script.\\n"
-  _DOCKER=""
+  DOCKER_COMPOSE=""
 else
-  _DOCKER_COMPOSE=$(which docker-compose)
+  DOCKER_COMPOSE=$(which docker-compose)
 fi
 
 PROJECT_CONTAINER_PHP="${PROJECT_NAME}-php"
@@ -115,7 +114,7 @@ PROJECT_CONTAINER_PHP="${PROJECT_NAME}-php"
 
 # Helpers to run docker exec command on Php.
 _docker_exec() {
-  $_DOCKER exec \
+  $DOCKER exec \
     $tty \
     --interactive \
     --user ${LOCAL_UID} \
@@ -123,14 +122,14 @@ _docker_exec() {
 }
 
 _docker_exec_noi() {
-  $_DOCKER exec \
+  $DOCKER exec \
     $tty \
     --user ${LOCAL_UID} \
     ${PROJECT_CONTAINER_PHP} "$@"
 }
 
 _docker_exec_noi_u() {
-  $_DOCKER exec \
+  $DOCKER exec \
     ${PROJECT_CONTAINER_PHP} "$@"
 }
 
@@ -154,6 +153,24 @@ _set_container_pgsql() {
     PROJECT_CONTAINER_PGSQL=$(docker inspect --format="{{ .Name }}" $RUNNING)
     PROJECT_CONTAINER_PGSQL="${PROJECT_CONTAINER_PGSQL///}"
   fi
+}
+
+# _stack_down()
+#
+# Description:
+#   Run docker-compose down.
+_stack_down() {
+  printf "[info] Stop stack..."
+  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" down
+}
+
+# _stack_up()
+#
+# Description:
+#   Run docker-compose up with build.
+_stack_up() {
+  printf "[info] Launch stack..."
+  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" up -d --build
 }
 
 ###############################################################################
@@ -183,76 +200,6 @@ _prompt_yn() {
           No ) die "Canceled";;
       esac
   done
-}
-
-# _function_exists()
-#
-# Usage:
-#   _function_exists "possible_function_name"
-#
-# Returns:
-#   0  If a function with the given name is defined in the current environment.
-#   1  If not.
-#
-# Other implementations, some with better performance:
-# http://stackoverflow.com/q/85880
-_function_exists() {
-  [ "$(type -t "${1}")" == 'function' ]
-}
-
-# _command_exists()
-#
-# Usage:
-#   _command_exists "possible_command_name"
-#
-# Returns:
-#   0  If a command with the given name is defined in the current environment.
-#   1  If not.
-#
-# Information on why `hash` is used here:
-# http://stackoverflow.com/a/677212
-_command_exists() {
-  hash "${1}" 2>/dev/null
-}
-
-# _contains()
-#
-# Usage:
-#   _contains "$item" "${list[*]}"
-#
-# Returns:
-#   0  If the item is included in the list.
-#   1  If not.
-_contains() {
-  local _test_list=(${*:2})
-  for __test_element in "${_test_list[@]:-}"
-  do
-    _debug printf "_contains() \${__test_element}: %s\\n" "${__test_element}"
-    if [[ "${__test_element}" == "${1}" ]]
-    then
-      _debug printf "_contains() match: %s\\n" "${1}"
-      return 0
-    fi
-  done
-  return 1
-}
-
-# _join()
-#
-# Usage:
-#   _join <separator> <array>
-#
-# Examples:
-#   _join , a "b c" d     => a,b c,d
-#   _join / var local tmp => var/local/tmp
-#   _join , "${FOO[@]}"   => a,b,c
-#
-# More Information:
-#   http://stackoverflow.com/a/17841619
-_join() {
-  local IFS="${1}"
-  shift
-  printf "%s\\n" "${*}"
 }
 
 ###############################################################################

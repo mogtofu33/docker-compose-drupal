@@ -21,4 +21,4 @@ fi
 source $_DIR/helpers/common.sh
 
 _docker_exec \
-  "${DRUSH_BIN}" -r "${DRUPAL_DOCROOT}" "$@"
+  "${DRUSH_BIN}" --root="${DRUPAL_DOCROOT}" "$@"

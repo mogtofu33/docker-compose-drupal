@@ -14,14 +14,14 @@ while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a sym
 done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
-if [ ! -f $_DIR/../.env ]; then
-  echo -e "[ERROR] Missing .env file."
+if [ ! -f $_DIR/helpers/common.sh ]; then
+  echo -e "(ERROR] Missing helpers/common.sh file."
   exit 1
 fi
-source $_DIR/../.env
+source $_DIR/helpers/common.sh
 
 _docker_exec_noi_u mkdir -p /.composer/cache
 _docker_exec_noi_u chown -R ${LOCAL_UID}:${LOCAL_GID} /.composer
 
 _docker_exec \
-  composer --working-dir="/var/www/localhost" "$@"
+  composer --working-dir="${WEB_ROOT}" "$@"

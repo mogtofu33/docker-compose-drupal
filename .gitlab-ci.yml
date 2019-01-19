@@ -73,19 +73,19 @@ variables:
     - sleep 5s && docker-compose logs
     - docker exec dcd-php php -v
 
-.test_install: &test_install
+.test: &test
   stage: tests
   script:
     - chmod -R 600 config/mysql
     - docker-compose up -d --build &> /dev/null
     - apk --no-cache add git
-    - scripts/get-tools.sh install
-    - scripts/get-tools.sh update
+    - scripts/get-tools.sh test
     - scripts/composer
     - scripts/install-drupal.sh
-    #- scripts/drush status
-    #- scripts/mysql test
-    #- scripts/pgsql test
+    - scripts/install-drupal.sh install -p drupal-min
+    - scripts/drush status
+    - scripts/mysql test
+    - scripts/pgsql test
 
 ################################################################################
 # Jobs based on previous templates.
@@ -142,8 +142,8 @@ run AP9P:
     - cp samples/apache_postgres9_php.yml docker-compose.yml
   <<: *test_run
 
-tests:
+test:
   before_script:
     - *install_docker_compose
     - make setup
-  <<: *test_install
+  <<: *test

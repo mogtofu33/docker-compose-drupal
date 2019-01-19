@@ -69,13 +69,15 @@ _drop() {
     'dropdb -U $POSTGRES_USER --if-exists "'"${_DB_NAME}"'"'
 }
 
-_fix_user() {
+_fix() {
   _USER_NAME=${1:-"drupal"}
   _pgsql_exec \
     'createuser -d -r -s "'"${_USER_NAME}"'"'
 }
 
 _dump() {
+  _set_dump_file
+
   printf "\\nDump %s to %s\\n\\n" "${_DB_NAME}" "${_DUMP_FILE}"
 
   _pgsql_exec_u \
@@ -84,16 +86,19 @@ _dump() {
   if [ -f "${DUMP_FOLDER}/${_DUMP_FILE}" ]; then
     printf "\\nDatabase dump saved to %s\\n\\n" ${_DUMP_FILE}
     _pgsql_exec 'chmod -R 777 /dump'
-    _list_dump
+    _list
   else
     printf "\\n[ERROR] Database dump failed!%s\\n\\n"
   fi
 }
 
 _restore() {
+  _set_dump_file
+
   if [ -z "$_DUMP_FILE" ]; then
     _select_dump
   fi
+
   if ! [ -f "${DUMP_FOLDER}/${_DUMP_FILE}" ]; then
     printf "File not found: %s\\n" "${DUMP_FOLDER}/${_DUMP_FILE}"
     _select_dump
@@ -109,7 +114,7 @@ _restore() {
   fi
 }
 
-_list_dump() {
+_list() {
   printf "Available dump files:\\n"
   __list=$(ls -lAh "${DUMP_FOLDER}")
   printf "%s\\n" "$__list"
@@ -141,13 +146,13 @@ _select_dump() {
 }
 
 _pgsql_exec() {
-  $_DOCKER exec \
+  $DOCKER exec \
     "${PROJECT_CONTAINER_PGSQL}" \
       sh -c $@
 }
 
 _pgsql_exec_u() {
-  $_DOCKER exec -t -u postgres \
+  $DOCKER exec -t -u postgres \
     "${PROJECT_CONTAINER_PGSQL}" \
       sh -c $@
 }
@@ -164,15 +169,15 @@ _ensure_dump_dir() {
 
 _set_dump_file() {
   if [ -z ${_DUMP_FILE} ]; then
-    _DUMP_FILE=dump_${_NOW}.pg_dump
+    _DUMP_FILE=dump_${NOW}.pg_dump
   fi
 }
 
-_tests() {
+_test() {
   _DUMP_FILE=dump_test.pg_dump
   _dump
   _restore
-  _list_dump
+  _list
 }
 
 ###############################################################################
@@ -193,25 +198,14 @@ _main() {
   _DB_NAME=$POSTGRES_DB
   _DUMP_FILE=${2:-}
 
-  if [[ "${1:-}" =~ ^list$ ]] || [[ "${1:-}" =~ ^l$ ]]; then
-    _list_dump
-  elif [[ "${1:-}" =~ ^dump$ ]] || [[ "${1:-}" =~ ^backup$ ]]; then
-    _set_dump_file
-    _dump
-  elif [[ "${1:-}" =~ ^restore$ ]] || [[ "${1:-}" =~ ^import$ ]]; then
-    _set_dump_file
-    _restore 
-  elif [[ "${1:-}" =~ ^drop$ ]]; then
-    _drop
-  elif [[ "${1:-}" =~ ^create$ ]]; then
-    _create
-  elif [[ "${1:-}" =~ ^fix$ ]]; then
-    _fix_user
-  elif [[ "${1:-}" =~ ^test$ ]]; then
-    _tests
+  # Run command if exist.
+  __call="_${1:-}"
+  if [ "$(type -t "${__call}")" == 'function' ]; then
+    $__call
   else
     _print_help
   fi
+
 }
 
 # Call `_main` after everything has been defined.
