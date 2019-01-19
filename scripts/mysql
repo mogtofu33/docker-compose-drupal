@@ -45,7 +45,7 @@ Helper to dump, drop and restore MYSQL/MariaDB.
 
 Usage:
   ${_ME} [ (import | restore) ] [ (optional) Dump filename ]
-  ${_ME} [ (dump | backup) | dump-no-drush | drop | drop-no-drush | create ]
+  ${_ME} [ dump | dump_native | drop | drop_native | create ]
   ${_ME} list | l
     List all available dumps.
 
@@ -57,8 +57,8 @@ stats and sessions tables from Drupal.
 But if Drush is not found fallback is to use mysql client and do not ignore data
 in Drupal temporary tables like watchdog, cache*...
 
-'dump-no-drush' Use mysql client.
-'drop-no-drush' Use mysql client.
+'dump_native' Use mysql client.
+'drop_native' Use mysql client.
 
 'create' use mysql client to create and grant a database DB_NAME, default to 'drupal'.
 
@@ -78,25 +78,26 @@ _create() {
 
   _GRANT="GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES ON $_DB_NAME.* TO '$MYSQL_USER'@'%';"
   echo $_GRANT > tmp_grant.sql
-  $_DOCKER cp tmp_grant.sql "${PROJECT_CONTAINER_MYSQL}":/tmp/tmp_grant.sql
+  $DOCKER cp tmp_grant.sql "${PROJECT_CONTAINER_MYSQL}":/tmp/tmp_grant.sql
   _mysql_exec 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD < /tmp/tmp_grant.sql'
   rm -f tmp_grant.sql
 }
 
-_drop() {
+_drop_native() {
   _mysql_exec 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "DROP DATABASE IF EXISTS "'"$_DB_NAME"''
 }
 
-_drop_drush() {
+_drop() {
   if ! [ -f ${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush ]; then
-    _drop
+    _drop_native
   else
     _docker_exec_noi \
       "${DRUSH_BIN}" --root "${DRUPAL_DOCROOT}" -y sql-drop
   fi
 }
 
-_dump_drush() {
+_dump() {
+  _set_dump_file
   if ! [ -f "${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush" ]; then
     printf "Drush not found, fallback to mysql dump"
     _dump
@@ -108,12 +109,15 @@ _dump_drush() {
   fi
 }
 
-_dump() {
+_dump_native() {
+  _set_dump_file
   _mysql_exec 'exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > /dump/'"$_DUMP_FILE"''
   printf "Database dump saved to %s\\n" ${DUMP_FOLDER}/${_DUMP_FILE}
 }
 
 _restore() {
+  _set_dump_file
+
   if [ -z "$_DUMP_FILE" ]; then
     _select_dump
   fi
@@ -123,14 +127,18 @@ _restore() {
   fi
 
   printf "Restoring %s...\\n" $_DUMP_FILE
-  _drop
+  _drop_native
   _create
   _mysql_exec 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /dump/'"$_DUMP_FILE"''
 
   printf "... Done!\n"
 }
 
-_list_dump() {
+_import() {
+  _restore
+}
+
+_list() {
   printf "Available dump files:\\n"
   __list=$(ls -lAh "${DUMP_FOLDER}")
   printf "%s\\n" "$__list"
@@ -161,7 +169,7 @@ _select_dump() {
 }
 
 _mysql_exec() {
-  $_DOCKER exec \
+  $DOCKER exec \
     "${PROJECT_CONTAINER_MYSQL}" \
       sh -c $@
 }
@@ -178,29 +186,34 @@ _ensure_dump_dir() {
 
 _set_dump_file() {
   if [ -z ${_DUMP_FILE} ]; then
-    _DUMP_FILE=dump_${_NOW}.sql
+    _DUMP_FILE=dump_${NOW}.sql
   fi
 }
 
-_tests() {
+_test_native() {
   _DUMP_FILE=dump_test_no_drush.sql
   _dump
   if [ -f ${DUMP_FOLDER}/${_DUMP_FILE} ]; then
     echo "... Dump success!"
   fi
   _restore
-  _list_dump
+  _list
 }
 
-_tests_with_drush() {
+_test_drush() {
   if ! [ -f ${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush ]; then
     echo "[Warning] Could not find Drush, tests skipped, did you install Drupal 8 with Drush?"
   fi
   _DUMP_FILE=dump_test_drush.sql
-  _dump_drush
+  _dump
   _restore
-  _list_dump
-  _drop_drush
+  _list
+  _drop
+}
+
+_test() {
+  _test_native
+  _test_drush
 }
 
 ###############################################################################
@@ -221,29 +234,14 @@ _main() {
   _DB_NAME=$MYSQL_DATABASE
   _DUMP_FILE=${2:-}
 
-  if [[ "${1:-}" =~ ^list$ ]] || [[ "${1:-}" =~ ^l$ ]];  then
-    _list_dump
-  elif [[ "${1:-}" =~ ^dump-no-drush$ ]]; then
-    _set_dump_file
-    _dump
-  elif [[ "${1:-}" =~ ^dump$ ]] || [[ "${1:-}" =~ ^backup$ ]]; then
-    _set_dump_file
-    _dump_drush
-  elif [[ "${1:-}" =~ ^restore$ ]] || [[ "${1:-}" =~ ^import$ ]]; then
-    _set_dump_file
-    _restore
-  elif [[ "${1:-}" =~ ^drop$ ]]; then
-    _drop_drush
-  elif [[ "${1:-}" =~ ^drop-no-drush$ ]]; then
-    _drop
-  elif [[ "${1:-}" =~ ^create$ ]]; then
-    _create ${2:-}
-  elif [[ "${1:-}" =~ ^test$ ]]; then
-    _tests
-    _tests_with_drush
+  # Run command if exist.
+  __call="_${1:-}"
+  if [ "$(type -t "${__call}")" == 'function' ]; then
+    $__call
   else
     _print_help
   fi
+
 }
 
 # Call `_main` after everything has been defined.

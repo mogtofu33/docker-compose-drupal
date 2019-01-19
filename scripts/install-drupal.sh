@@ -47,14 +47,14 @@ Install and prepare multiple Drupal 8 project based on top Drupal distributions 
 Usage:
   ${_ME} list
   ${_ME} install -p drupal
-  ${_ME} i -p drupal-demo -db postgres
+  ${_ME} install -p drupal-demo -db postgres
 
 Arguments: 
-  list | l          List available projects.
-  install | i       Download and setup a project.
-  download | dl     Download a project codebase.
-  setup | set       Install a project.
-  delete | del      Delete a previously downloaded project.
+  list           List available projects.
+  install        Download and setup a project.
+  download       Download a project codebase.
+  setup          Install a project.
+  delete         Delete a previously downloaded project.
 
 Options with argument:
   -p --project      Optinal project name, from list option, if not set select prompt.
@@ -72,13 +72,16 @@ printf "\\n"
 # Parse Options ###############################################################
 
 # Initialize program option variables.
+_PRINT_HELP=0
+
+# Initialize additional expected option variables.
+_CMD="print_help"
 _SELECTED_PROJECT=0
 _DEFAULT_DB="mysql"
 __force=0
 __verbose=""
 __do_download=0
 __do_setup=0
-__cmd=""
 
 # _require_argument()
 #
@@ -107,6 +110,9 @@ do
   __option="${1:-}"
   __maybe_param="${2:-}"
   case "${__option}" in
+    -h|--help)
+      _PRINT_HELP=1
+      ;;
     -f|--force)
       __force=1
       ;;
@@ -131,7 +137,7 @@ do
       _die printf "Unexpected option: %s\\n" "${__option}"
       ;;
     *)
-      __cmd=${__option}
+      _CMD=${__option}
       ;;
   esac
   shift
@@ -144,9 +150,38 @@ done
 # _install()
 #
 # Description:
-#   Main install dispatcher.
+#   Download and setup the project.
 _install() {
+  __do_download=1
+  __do_setup=1
+  _install_dispatch
+}
 
+# _download()
+#
+# Description:
+#   Download the project.
+_download() {
+  __do_download=1
+  __do_setup=0
+  _install_dispatch
+}
+
+# _setup()
+#
+# Description:
+#   Install a downloaded project.
+_setup() {
+  __do_download=0
+  __do_setup=1
+  _install_dispatch
+}
+
+# _install()
+#
+# Description:
+#   Main install dispatcher.
+_install_dispatch() {
 
   if [[ ${_SELECTED_PROJECT} == 0 ]]
   then
@@ -200,7 +235,7 @@ _ensure_download() {
       _prompt_yn
     fi
     _stack_down
-    sudo rm -rf ${STACK_DRUPAL_ROOT}
+    ${SUDO} rm -rf ${STACK_DRUPAL_ROOT}
   fi
 }
 
@@ -210,7 +245,7 @@ _ensure_download() {
 #   Download dispatcher depending download type of the project (composer or git).
 _download() {
   printf "[info] Start downloading %s, this takes a while...\\n" "${__PROJECT}"
-  __call="_download_$1"
+  __call="_download_${1}"
   $__call
   _fix_docroot
 }
@@ -231,7 +266,7 @@ _download_composer() {
     _docker_exec_noi \
       composer create-project ${__PROJECT} /tmp/drupal --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__verbose}
     _docker_exec_noi \
-      cp -Rp /tmp/drupal/. /var/www/localhost/
+      cp -Rp /tmp/drupal/. ${WEB_ROOT}
     _docker_exec_noi_u \
       rm -rf /tmp/drupal
   fi
@@ -253,7 +288,7 @@ _download_composer_contenta() {
   fi
 
   # Move to the container and set permission.
-  $_DOCKER cp download-contenta.sh ${PROJECT_CONTAINER_PHP}:/tmp/download-contenta.sh
+  $DOCKER cp download-contenta.sh ${PROJECT_CONTAINER_PHP}:/tmp/download-contenta.sh
   _docker_exec_noi_u \
     chmod a+x /tmp/download-contenta.sh
 
@@ -261,7 +296,7 @@ _download_composer_contenta() {
   _docker_exec_noi \
     sh -c 'exec '"/tmp/download-contenta.sh"' '"/tmp/contenta"''
   _docker_exec_noi \
-    cp -Rp /tmp/contenta/. /var/www/localhost/
+    cp -Rp /tmp/contenta/. ${WEB_ROOT}
 
   # Cleanup.
   _docker_exec_noi \
@@ -297,9 +332,9 @@ _download_curl() {
     composer install-boostrap-sass --working-dir="${STACK_DRUPAL_ROOT}" ${__verbose}
   else
     _docker_exec_noi \
-      composer install --working-dir="/var/www/localhost" --no-suggest --no-interaction ${__verbose}
+      composer install --working-dir="${WEB_ROOT}" --no-suggest --no-interaction ${__verbose}
     _docker_exec_noi \
-      composer install-boostrap-sass --working-dir="/var/www/localhost" ${__verbose}
+      composer install-boostrap-sass --working-dir="${WEB_ROOT}" ${__verbose}
   fi
 
   if [ -x "$(command -v compass)" ]; then
@@ -309,39 +344,19 @@ _download_curl() {
   fi
 }
 
-# _stack_up()
-#
-# Description:
-#   Run docker-compose up with build.
-_stack_up() {
-  printf "[info] Launch stack..."
-  $_DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" up -d --build
-}
-
-# _stack_down()
-#
-# Description:
-#   Run docker-compose down.
-_stack_down() {
-  printf "[info] Stop stack..."
-  $_DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" down
-}
-
-# _setup()
 #
 # Description:
 #   Setup dispatcher depending Drupal profile name.
 _setup() {
+
   _stack_up
 
   printf "[info] Install %s with profile %s on db %s\\n" "${__DID}" "${__INSTALL_PROFILE}" "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 
   _clean_setup
   _ensure_drush
-
-  __call="_setup_$1"
+  __call="_setup_${1}"
   $__call
-
   _fix_files_perm
 
   printf "\\n >> Access %s on\\nhttp://${PROJECT_BASE_URL}\\n >> Log-in with: admin / password\\n\\n" "${__DID}"
@@ -353,7 +368,7 @@ _setup() {
 #   Helper to ensure we don't have an existing setup.
 _clean_setup() {
   _docker_exec_noi \
-    rm -f "/var/www/localhost/web/sites/dfault/settings.php"
+    rm -f "${DRUPAL_DOCROOT}/sites/dfault/settings.php"
 }
 
 # _setup_standard()
@@ -405,7 +420,7 @@ _setup_contenta() {
   echo "ACCOUNT_PASS=password" >> "${STACK_DRUPAL_ROOT}/.env.local"
 
   _docker_exec_noi \
-    composer --working-dir="/var/www/localhost" run-script install:with-mysql ${__verbose}
+    composer --working-dir="${WEB_ROOT}" run-script install:with-mysql ${__verbose}
 }
 
 # _setup_advanced()
@@ -428,7 +443,7 @@ _setup_advanced() {
 
   # Fix permission.
   _docker_exec_noi_u \
-    chown -R ${LOCAL_UID}:${LOCAL_GID} /var/www/localhost/web/sites/default/
+    chown -R ${LOCAL_UID}:${LOCAL_GID} ${DRUPAL_DOCROOT}/sites/default/
 
   # Install this profile with config_installer
   _docker_exec_noi "${DRUSH_BIN}" -y site:install "${__INSTALL_PROFILE}" \
@@ -446,7 +461,7 @@ _ensure_drush() {
       composer require drush/drush --working-dir="${STACK_DRUPAL_ROOT}" --ignore-platform-reqs ${__verbose}
     else
       _docker_exec_noi \
-        composer require drush/drush --working-dir="/var/www/localhost" ${__verbose}
+        composer require drush/drush --working-dir="${WEB_ROOT}" ${__verbose}
     fi
   fi
 }
@@ -540,12 +555,12 @@ _select_db() {
   fi
 }
 
-# _distributions_list()
+# _list()
 #
 # Description:
 #   Helper to return the list of available distributions/profiles for this
 #   script with description.
-_distributions_list() {
+_list() {
   printf "Available distributions:\\n"
   __COUNT=${#DRUPAL_DISTRIBUTIONS[@]}
   for ((i=0; i<$__COUNT; i++))
@@ -565,7 +580,7 @@ _fix_docroot() {
   then
     printf "[info] Fix Drupal %s to web\\n" ${__WEBROOT}
     _docker_exec_noi \
-      ln -s /var/www/localhost/${__WEBROOT} /var/www/localhost/web
+      ln -s ${WEB_ROOT}/${__WEBROOT} ${DRUPAL_DOCROOT}
   fi
 }
 
@@ -575,32 +590,33 @@ _fix_docroot() {
 #   Helper to fix Drupal permission hardly.
 _fix_files_perm() {
   _docker_exec_noi_u \
-    mkdir -p /var/www/localhost/web/sites/default/files/tmp
+    mkdir -p ${DRUPAL_DOCROOT}/sites/default/files/tmp
   _docker_exec_noi_u \
-    mkdir -p /var/www/localhost/web/sites/default/files/private
+    mkdir -p ${DRUPAL_DOCROOT}/sites/default/files/private
   _docker_exec_noi_u \
-    chmod -R 777 /var/www/localhost/web/sites/default/files
+    chmod -R 777 ${DRUPAL_DOCROOT}/sites/default/files
   _docker_exec_noi_u \
-    chown -R ${LOCAL_UID}:${LOCAL_GID} /var/www/localhost/web/sites/default/files
+    chown -R ${LOCAL_UID}:${LOCAL_GID} ${DRUPAL_DOCROOT}/sites/default/files
   # contenta specific.
   if [[ ${__DID} == "contenta" ]]
   then
     _docker_exec_noi_u \
-      chmod -R 660 /var/www/localhost/keys/public.key
+      chmod -R 660 ${WEB_ROOT}/keys/public.key
   fi
   _docker_exec_noi_u \
     chmod -R 777 /tmp
 }
 
-# _nuke()
+# _delete()
 #
 # Description:
 #   Delete a previous downloaded Drupal.
-_nuke() {
+_delete() {
   if [ ${__force} == 0 ]; then
     _prompt_yn
   fi
-  sudo rm -rf ${STACK_DRUPAL_ROOT}
+  _stack_down
+  ${SUDO} rm -rf ${STACK_DRUPAL_ROOT}
 }
 
 ###############################################################################
@@ -616,28 +632,24 @@ _nuke() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
-  if [[ "${__cmd}" =~ ^install$ ]] || [[ "${__cmd}" =~ ^i$ ]]
+  if ((_PRINT_HELP))
   then
-    _install
-  elif [[ "${__cmd}" =~ ^list$ ]] || [[ "${__cmd}" =~ ^l$ ]]
-  then
-    _distributions_list
-  elif [[ "${__cmd}" =~ ^download$ ]] || [[ "${__cmd}" =~ ^dl$ ]]
-  then
-    __do_download=1
-    __do_setup=0
-    _install
-  elif [[ "${__cmd}" =~ ^setup$ ]] || [[ "${__cmd}" =~ ^set$ ]]
-  then
-    __do_download=0
-    __do_setup=1
-    _install
-  elif [[ "${__cmd}" =~ ^delete$ ]] || [[ "${__cmd}" =~ ^del$ ]]
-  then
-    _nuke
-  else
     _print_help
+  else
+    if ! [ -x "$(command -v sudo)" ]; then
+      SUDO=""
+    else
+      SUDO="sudo"
+    fi
+    # Run command if exist.
+    __call="_${_CMD}"
+    if [ "$(type -t "${__call}")" == 'function' ]; then
+      $__call "$@"
+    else
+      printf "[ERROR] Unknown command: %s\\n" "${_CMD}"
+    fi
   fi
+
 }
 
 # Call `_main` after everything has been defined.
