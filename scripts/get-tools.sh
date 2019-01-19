@@ -59,7 +59,7 @@ HEREDOC
 # Variables
 ###############################################################################
 
-_PROGRAMS=(
+__TOOLS_REPOS=(
   # "potsky/PimpMyLog.git:PimpMyLog"
   "wp-cloud/phpmemcacheadmin.git:PhpMemcachedAdmin"
   "amnuts/opcache-gui.git:Opcache-gui"
@@ -68,7 +68,7 @@ _PROGRAMS=(
   "ErikDubbelboer/phpRedisAdmin.git:phpRedisAdmin"
   "nrk/predis.git:phpRedisAdmin/vendor"
 )
-_CONFIG=(
+__TOOLS_CONFIG=(
   # "pimpmylog/config.user.php:PimpMyLog"
   "memcache/Memcache.php:PhpMemcachedAdmin/Config"
   "redis/config.inc.php:phpRedisAdmin/includes"
@@ -83,7 +83,7 @@ _install() {
   if [ ! -d "${_DIR}/../../tools" ]; then
     mkdir -p "${_DIR}/../../tools"
   fi
-  for i in "${_PROGRAMS[@]:-}"
+  for i in "${__TOOLS_REPOS[@]:-}"
   do
     arr=($(echo "$i" | tr ':' "\n"))
     repo=${arr[0]}
@@ -95,7 +95,7 @@ _install() {
       printf "Program already installed, you should run update ?: %s\n" "${program}"
     fi
   done
-  for i in "${_CONFIG[@]:-}"
+  for i in "${__TOOLS_CONFIG[@]:-}"
   do
     arr=($(echo "$i" | tr ':' "\n"))
     file=${arr[0]}
@@ -106,7 +106,7 @@ _install() {
 }
 
 _update() {
-  for i in "${_PROGRAMS[@]:-}"
+  for i in "${__TOOLS_REPOS[@]:-}"
   do
     arr=($(echo "$i" | tr ':' "\n"))
     dir=${arr[1]}
@@ -119,7 +119,7 @@ _update() {
 
 _delete() {
   _prompt_yn
-  for i in "${_PROGRAMS[@]:-}"
+  for i in "${__TOOLS_REPOS[@]:-}"
   do
     arr=($(echo "$i" | tr ':' "\n"))
     dir=${arr[1]}

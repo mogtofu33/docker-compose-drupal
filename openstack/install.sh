@@ -11,8 +11,7 @@ set -o errexit
 trap 'echo "Aborting due to errexit on line $LINENO. Exit code: $?" >&2' ERR
 set -o errtrace
 set -o pipefail
-SAFER_IFS=$'\n\t'
-IFS="${SAFER_IFS}"
+IFS=$'\n\t'
 
 ###############################################################################
 # Help
@@ -53,13 +52,16 @@ printf "\\n"
 # Parse Options ###############################################################
 
 # Initialize program option variables.
-__local_user="ubuntu"
-__local_group="ubuntu"
-__project_path="${HOME}/docker-compose-drupal"
-__base_stack="full"
-__set_down=0
-__install_drupal=0
-__branch="master"
+_PRINT_HELP=0
+
+# Initialize additional expected option variables.
+__LOCAL_USER="ubuntu"
+__LOCAL_GROUP="ubuntu"
+__PROJECT_PATH="${HOME}/docker-compose-drupal"
+__BASE_STACK="full"
+__PUT_DOWN=0
+__INSTALL_DRUPAL=0
+__BRANCH="master"
 
 # _require_argument()
 #
@@ -89,40 +91,39 @@ do
   __maybe_param="${2:-}"
   case "${__option}" in
     -h|--help)
-      _print_help
-      exit 0
+      _PRINT_HELP=1
       ;;
     --down)
-      __set_down=1
+      __PUT_DOWN=1
       ;;
     -s|--stack)
       _require_argument "${__option}" "${__maybe_param}"
-      __base_stack="${__maybe_param}"
+      __BASE_STACK="${__maybe_param}"
       shift
       ;;
     -i|--install)
       _require_argument "${__option}" "${__maybe_param}"
-      __install_drupal="${__maybe_param}"
+      __INSTALL_DRUPAL="${__maybe_param}"
       shift
       ;;
     -b|--branch)
       _require_argument "${__option}" "${__maybe_param}"
-      __branch="${__maybe_param}"
+      __BRANCH="${__maybe_param}"
       shift
       ;;
     -u|--user)
       _require_argument "${__option}" "${__maybe_param}"
-      __local_user="${__maybe_param}"
+      __LOCAL_USER="${__maybe_param}"
       shift
       ;;
     -g|--group)
       _require_argument "${__option}" "${__maybe_param}"
-      __local_group="${__maybe_param}"
+      __LOCAL_GROUP="${__maybe_param}"
       shift
       ;;
     -p|--path)
       _require_argument "${__option}" "${__maybe_param}"
-      __project_path="${__maybe_param}"
+      __PROJECT_PATH="${__maybe_param}"
       shift
       ;;
     --endopts)
@@ -142,21 +143,21 @@ done
 
 _ensure_permissions() {
   printf "\\n[setup::info] Ensure permissions.\\n\\n"
-  sudo chown -R ${__local_user}:${__local_group} ${HOME}
+  sudo chown -R ${__LOCAL_USER}:${__LOCAL_GROUP} ${HOME}
 }
 
 _ensure_docker() {
   printf "\\n[setup::info] Ensure Docker user fix.\\n\\n"
   # Set Docker group to our user (temporary fix?).
-  sudo usermod -a -G docker ${__local_user}
+  sudo usermod -a -G docker ${__LOCAL_USER}
 }
 
 _install_stack() {
   # Get a Docker compose stack.
-  if ! [ -d "${__project_path}" ]; then
-    printf "\\n[setup::info] Get Docker stack %s\\n\\n" "${__branch}"
-    git clone -b ${__branch} https://gitlab.com/mog33/docker-compose-drupal.git ${__project_path}
-    if ! [ -f "${__project_path}/docker-compose.tpl.yml" ]; then
+  if ! [ -d "${__PROJECT_PATH}" ]; then
+    printf "\\n[setup::info] Get Docker stack %s\\n\\n" "${__BRANCH}"
+    git clone -b ${__BRANCH} https://gitlab.com/mog33/docker-compose-drupal.git ${__PROJECT_PATH}
+    if ! [ -f "${__PROJECT_PATH}/docker-compose.tpl.yml" ]; then
       printf "\\n[setup::ERROR] Failed to download Docker compose Drupal :(\\n\\n"
       exit 1
     fi
@@ -167,23 +168,23 @@ _install_stack() {
 
   # Set-up and launch this Docker compose stack.
   printf "\\n\\n[setup::info] Prepare Docker stack...\\n\\n"
-  (cd ${__project_path} && make setup)
+  (cd ${__PROJECT_PATH} && make setup)
 
 }
 
 _source_common() {
   # Get stack variables and functions.
-  if ! [ -f ${__project_path}/scripts/helpers/common.sh ]; then
-    printf "\\n\\n[setup::ERROR] Missing %s file!\\n\\n" "${__project_path}/scripts/helpers/common.sh"
+  if ! [ -f ${__PROJECT_PATH}/scripts/helpers/common.sh ]; then
+    printf "\\n\\n[setup::ERROR] Missing %s file!\\n\\n" "${__PROJECT_PATH}/scripts/helpers/common.sh"
     exit 1
   fi
-  source ${__project_path}/scripts/helpers/common.sh
+  source ${__PROJECT_PATH}/scripts/helpers/common.sh
 }
 
 _setup_stack() {
-  printf "\\n\\n[setup::info] Prepare stack %s\\n\\n" "${__base_stack}"
-  if [ -f "${STACK_ROOT}/samples/${__base_stack}.yml" ]; then
-    cp ${STACK_ROOT}/samples/${__base_stack}.yml ${STACK_ROOT}/docker-compose.yml
+  printf "\\n\\n[setup::info] Prepare stack %s\\n\\n" "${__BASE_STACK}"
+  if [ -f "${STACK_ROOT}/samples/${__BASE_STACK}.yml" ]; then
+    cp ${STACK_ROOT}/samples/${__BASE_STACK}.yml ${STACK_ROOT}/docker-compose.yml
   fi
 }
 
@@ -212,15 +213,15 @@ _install_composer() {
 }
 
 _download_drupal() {
-  printf "\\n\\n[setup::info] Download Drupal %s\\n\\n" "${__install_drupal}"
-  ${STACK_ROOT}/scripts/install-drupal.sh download -f -p ${__install_drupal}
+  printf "\\n\\n[setup::info] Download Drupal %s\\n\\n" "${__INSTALL_DRUPAL}"
+  ${STACK_ROOT}/scripts/install-drupal.sh download -f -p ${__INSTALL_DRUPAL}
 }
 
 _setup_drupal() {
-  printf "\\n\\n[setup::info] Install Drupal ${__install_drupal}\\n\\n"
+  printf "\\n\\n[setup::info] Install Drupal ${__INSTALL_DRUPAL}\\n\\n"
   # Wait a bit for the stack to be up.
   sleep 20s
-  ${STACK_ROOT}/scripts/install-drupal.sh setup -f -p ${__install_drupal}
+  ${STACK_ROOT}/scripts/install-drupal.sh setup -f -p ${__INSTALL_DRUPAL}
 }
 
 _up_stack() {
@@ -287,6 +288,39 @@ _get_tools() {
   fi
 }
 
+_install_all() {
+  _ensure_permissions
+  _ensure_docker
+  _install_stack
+  _source_common
+  _setup_stack
+  _install_composer
+
+  if ! [ ${__INSTALL_DRUPAL} == 0 ]; then
+    _download_drupal
+  fi
+
+  _up_stack
+
+  if ! [ ${__INSTALL_DRUPAL} == 0 ]; then
+    _setup_drupal
+  fi
+
+  _env_tasks
+  _links
+  _get_tools
+  _ensure_permissions
+
+  if ((__PUT_DOWN))
+  then
+    _down_stack
+  fi
+
+  printf "\\n\\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  \\n[setup::info] Docker compose stack install finished!\\n
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\\n\\n"
+}
+
 ###############################################################################
 # Main
 ###############################################################################
@@ -300,34 +334,13 @@ _get_tools() {
 #   Entry point for the program, handling basic option parsing and dispatching.
 _main() {
 
-  if [[ "${1:-}" =~ ^help$ ]] || [[ "${1:-}" =~ ^--help$ ]] || [[ "${1:-}" =~ ^-h$ ]]; then
+  if ((_PRINT_HELP))
+  then
     _print_help
-    exit 0
+  else
+    _install_all
   fi
 
-  _ensure_permissions
-  _ensure_docker
-  _install_stack
-  _source_common
-  _setup_stack
-  _install_composer
-  if ! [ ${__install_drupal} == 0 ]; then
-    _download_drupal
-  fi
-  _up_stack
-  if ! [ ${__install_drupal} == 0 ]; then
-    _setup_drupal
-  fi
-  _env_tasks
-  _links
-  _get_tools
-  _ensure_permissions
-  if [ ${__set_down} == 1 ]; then
-    _down_stack
-  fi
-  printf "\\n\\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  \\n[setup::info] Docker compose stack install finished!\\n
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\\n\\n"
 }
 
 # Call `_main` after everything has been defined.

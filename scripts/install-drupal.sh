@@ -253,7 +253,7 @@ _download_composer_contenta() {
   fi
 
   # Move to the container and set permission.
-  $_DOCKER cp download-contenta.sh dcd-php:/tmp/download-contenta.sh
+  $_DOCKER cp download-contenta.sh ${PROJECT_CONTAINER_PHP}:/tmp/download-contenta.sh
   _docker_exec_noi_u \
     chmod a+x /tmp/download-contenta.sh
 

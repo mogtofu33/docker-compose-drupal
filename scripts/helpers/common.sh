@@ -6,28 +6,12 @@
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
 
-# Short form: set -u
 set -o nounset
-
-# Exit immediately if a pipeline returns non-zero.
 set -o errexit
-
-# Print a helpful message if a pipeline with non-zero exit code causes the
-# script to exit as described above.
 trap 'echo "Aborting due to errexit on line $LINENO. Exit code: $?" >&2' ERR
-
-# Allow the above trap be inherited by all functions in the script.
-# Short form: set -E
 set -o errtrace
-
-# Return value of a pipeline is the value of the last (rightmost) command to
-# exit with a non-zero status, or zero if all commands in the pipeline exit
-# successfully.
 set -o pipefail
-
-# Set IFS to just newline and tab at the start
-SAFER_IFS=$'\n\t'
-IFS="${SAFER_IFS}"
+IFS=$'\n\t'
 
 ###############################################################################
 # Environment
@@ -88,8 +72,8 @@ die() {
 ###############################################################################
 
 # Get Stack values if any.
-if [ -f $_DIR/../../.env ]; then
-  source $_DIR/../../.env
+if [ -f $STACK_ROOT/.env ]; then
+  source $STACK_ROOT/.env
 fi
 
 # Get scripts values.
@@ -109,8 +93,21 @@ _NOW="$(date +'%Y%m%d.%H-%M-%S')"
 tty=
 tty -s && tty=--tty
 
-_DOCKER=$(which docker)
-_DOCKER_COMPOSE=$(which docker-compose)
+if ! [ -x "$(command -v docker)" ]; then
+  printf "[notice] docker not found and is probably required for this script.\\n"
+  _DOCKER=""
+else
+  _DOCKER=$(which docker)
+fi
+
+if ! [ -x "$(command -v docker-compose)" ]; then
+  printf "[notice] docker-compose not found and is probably required for this script.\\n"
+  _DOCKER=""
+else
+  _DOCKER_COMPOSE=$(which docker-compose)
+fi
+
+PROJECT_CONTAINER_PHP="${PROJECT_NAME}-php"
 
 ###############################################################################
 # Common Program Functions
@@ -122,19 +119,19 @@ _docker_exec() {
     $tty \
     --interactive \
     --user ${LOCAL_UID} \
-    dcd-php "$@"
+    ${PROJECT_CONTAINER_PHP} "$@"
 }
 
 _docker_exec_noi() {
   $_DOCKER exec \
     $tty \
     --user ${LOCAL_UID} \
-    dcd-php "$@"
+    ${PROJECT_CONTAINER_PHP} "$@"
 }
 
 _docker_exec_noi_u() {
   $_DOCKER exec \
-    dcd-php "$@"
+    ${PROJECT_CONTAINER_PHP} "$@"
 }
 
 # Helper to ensure mysql container is runing.
@@ -159,6 +156,10 @@ _set_container_pgsql() {
   fi
 }
 
+###############################################################################
+# Utility Functions
+###############################################################################
+
 # A logo, because it's cool.
 _help_logo() {
   cat <<HEREDOC
@@ -182,4 +183,118 @@ _prompt_yn() {
           No ) die "Canceled";;
       esac
   done
+}
+
+# _function_exists()
+#
+# Usage:
+#   _function_exists "possible_function_name"
+#
+# Returns:
+#   0  If a function with the given name is defined in the current environment.
+#   1  If not.
+#
+# Other implementations, some with better performance:
+# http://stackoverflow.com/q/85880
+_function_exists() {
+  [ "$(type -t "${1}")" == 'function' ]
+}
+
+# _command_exists()
+#
+# Usage:
+#   _command_exists "possible_command_name"
+#
+# Returns:
+#   0  If a command with the given name is defined in the current environment.
+#   1  If not.
+#
+# Information on why `hash` is used here:
+# http://stackoverflow.com/a/677212
+_command_exists() {
+  hash "${1}" 2>/dev/null
+}
+
+# _contains()
+#
+# Usage:
+#   _contains "$item" "${list[*]}"
+#
+# Returns:
+#   0  If the item is included in the list.
+#   1  If not.
+_contains() {
+  local _test_list=(${*:2})
+  for __test_element in "${_test_list[@]:-}"
+  do
+    _debug printf "_contains() \${__test_element}: %s\\n" "${__test_element}"
+    if [[ "${__test_element}" == "${1}" ]]
+    then
+      _debug printf "_contains() match: %s\\n" "${1}"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# _join()
+#
+# Usage:
+#   _join <separator> <array>
+#
+# Examples:
+#   _join , a "b c" d     => a,b c,d
+#   _join / var local tmp => var/local/tmp
+#   _join , "${FOO[@]}"   => a,b,c
+#
+# More Information:
+#   http://stackoverflow.com/a/17841619
+_join() {
+  local IFS="${1}"
+  shift
+  printf "%s\\n" "${*}"
+}
+
+###############################################################################
+# _spinner()
+#
+# Usage:
+#   _spinner <pid>
+#
+# Description:
+#   Display an ascii spinner while <pid> is running.
+#
+# Example Usage:
+#   ```
+#   _spinner_example() {
+#     printf "Working..."
+#     (sleep 1) &
+#     _spinner $!
+#     printf "Done!\n"
+#   }
+#   (_spinner_example)
+#   ```
+#
+# More Information:
+#   http://fitnr.com/showing-a-bash-spinner.html
+_spinner() {
+  local _pid="${1:-}"
+  local _delay=0.75
+  local _spin_string="|/-\\"
+
+  if [[ -z "${_pid}" ]]
+  then
+    printf "Usage: _spinner <pid>\\n"
+    return 1
+  fi
+
+  while ps a | awk '{print $1}' | grep -q "${_pid}"
+  do
+    local _temp="${_spin_string#?}"
+    printf " [%c]  " "${_spin_string}"
+    _spin_string="${_temp}${_spin_string%${_temp}}"
+    sleep ${_delay}
+    printf "\\b\\b\\b\\b\\b\\b"
+  done
+  printf "    \\b\\b\\b\\b"
 }
