@@ -211,12 +211,12 @@ _install_dispatch() {
     then
       if [[ $__do_download == 1 ]]
       then
-        _download $__DOWNLOAD_TYPE
+        _download_dispatch $__DOWNLOAD_TYPE
       fi
 
       if [[ $__do_setup == 1 ]]
       then
-        _setup $__SETUP_TYPE
+        _setup_dispatch $__SETUP_TYPE
       fi
     fi
   done
@@ -239,11 +239,11 @@ _ensure_download() {
   fi
 }
 
-# _download()
+# _download_dispatch()
 #
 # Description:
 #   Download dispatcher depending download type of the project (composer or git).
-_download() {
+_download_dispatch() {
   printf "[info] Start downloading %s, this takes a while...\\n" "${__PROJECT}"
   __call="_download_${1}"
   $__call
@@ -347,7 +347,7 @@ _download_curl() {
 #
 # Description:
 #   Setup dispatcher depending Drupal profile name.
-_setup() {
+_setup_dispatch() {
 
   _stack_up
 
@@ -636,21 +636,24 @@ _main() {
   then
     _print_help
   else
+
     if ! [ -x "$(command -v sudo)" ]; then
       SUDO=""
     else
       SUDO="sudo"
     fi
+
     # Run command if exist.
     __call="_${_CMD}"
     if [ "$(type -t "${__call}")" == 'function' ]; then
-      $__call "$@"
+      $__call
     else
       printf "[ERROR] Unknown command: %s\\n" "${_CMD}"
     fi
+
   fi
 
 }
 
 # Call `_main` after everything has been defined.
-_main "$@"
+_main
