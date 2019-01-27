@@ -226,13 +226,13 @@ _setup_drupal() {
 
 _up_stack() {
   printf "\\n\\n[setup::info] Up stack...\\n\\n"
-  $_DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" up -d --build
+  docker-compose --file "${STACK_ROOT}/docker-compose.yml" up -d --build
 }
 
 _down_stack() {
   printf "\\n\\n[setup::info] Down stack...\\n\\n"
   sleep 20s
-  $_DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" down
+  docker-compose --file "${STACK_ROOT}/docker-compose.yml" down
 }
 
 _env_tasks() {
