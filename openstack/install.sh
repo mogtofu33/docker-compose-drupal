@@ -163,7 +163,6 @@ _install_stack() {
     fi
   else
     printf "\\n\\n[setup::notice] Docker stack already here!\\n\\n"
-    exit 1
   fi
 
   # Set-up and launch this Docker compose stack.
