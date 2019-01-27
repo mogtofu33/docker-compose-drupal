@@ -160,7 +160,7 @@ _set_container_pgsql() {
 # Description:
 #   Run docker-compose down.
 _stack_down() {
-  printf "[info] Stop stack..."
+  printf "[info] Stop stack...\\n"
   $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" down
 }
 
@@ -169,7 +169,7 @@ _stack_down() {
 # Description:
 #   Run docker-compose up with build.
 _stack_up() {
-  printf "[info] Launch stack..."
+  printf "[info] Launch stack...\\n"
   $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" up -d --build
 }
 
