@@ -190,21 +190,21 @@ _check_prerequisites() {
   __error=0
 
   if ! [ -x "$(command -v git)" ]; then
-    printf "\\n[setup::ERROR] Missing git, please install, eg: apt update && apt install git\\n\\n"
+    printf "\\n[setup::ERROR] Missing git, please install, eg: apt update && apt install git\\n"
     __error=1
   fi
   if ! [ -x "$(command -v make)" ]; then
-    printf "\\n[setup::ERROR] Missing make, please install, eg: apt update && apt install make\\n\\n"
+    printf "\\n[setup::ERROR] Missing make, please install, eg: apt update && apt install make\\n"
     __error=1
   fi
 
   if ! [ -x "$(command -v docker)" ]; then
-    printf "\\n[setup::ERROR] Missing docker, please install, see https://docs.docker.com/install/linux/docker-ce/ubuntu\\n\\n"
+    printf "\\n[setup::ERROR] Missing docker, please install, see https://docs.docker.com/install/linux/docker-ce/ubuntu\\n"
     __error=1
   fi
 
   if ! [ -x "$(command -v docker-compose)" ]; then
-    printf "\\n[setup::ERROR] Missing docker-compose, please install, see https://docs.docker.com/compose/install\\n\\n"
+    printf "\\n[setup::ERROR] Missing docker-compose, please install, see https://docs.docker.com/compose/install\\n"
     __error=1
   fi
 
@@ -214,12 +214,12 @@ _check_prerequisites() {
 }
 
 _ensure_permissions() {
-  printf "\\n[setup::info] Ensure permissions.\\n\\n"
+  printf "\\n[setup::info] Ensure permissions.\\n"
   sudo chown -R ${__LOCAL_USER}:${__LOCAL_GROUP} ${__HERE_DIR}
 }
 
 _ensure_docker() {
-  printf "\\n[setup::info] Ensure Docker user fix.\\n\\n"
+  printf "\\n[setup::info] Ensure Docker user fix.\\n"
   # Set Docker group to our user (temporary fix?).
   sudo usermod -a -G docker ${__LOCAL_USER}
 }
@@ -227,20 +227,20 @@ _ensure_docker() {
 _install_stack() {
   # Get a Docker compose stack.
   if ! [ -d "${__PROJECT_PATH}" ]; then
-    printf "\\n[setup::info] Get Docker stack %s to %s\\n\\n" "${__BRANCH}" "${__PROJECT_PATH}"
+    printf "\\n[setup::info] Get Docker stack %s to %s\\n" "${__BRANCH}" "${__PROJECT_PATH}"
     git clone -b ${__BRANCH} https://gitlab.com/mog33/docker-compose-drupal.git ${__PROJECT_PATH}
     if ! [ -f "${__PROJECT_PATH}/docker-compose.tpl.yml" ]; then
-      printf "\\n[setup::ERROR] Failed to download Docker compose Drupal :(\\n\\n"
+      printf "\\n[setup::ERROR] Failed to download Docker compose Drupal :(\\n"
       exit 1
     fi
   else
-    printf "\\n\\n[setup::notice] Docker stack already here!\\n\\n"
+    printf "\\n[setup::notice] Docker stack already here!\\n"
   fi
 
   # Set-up and launch this Docker compose stack.
-  printf "\\n\\n[setup::info] Prepare Docker stack...\\n\\n"
+  printf "\\n[setup::info] Prepare Docker stack...\\n"
   if ! [ -x "$(command -v make)" ]; then
-      printf "\\n[setup::ERROR] Missing make, please install, eg: apt update && apt install make\\n\\n"
+      printf "\\n[setup::ERROR] Missing make, please install, eg: apt update && apt install make\\n"
       exit 1
   fi
   (cd ${__PROJECT_PATH} && make setup)
@@ -250,14 +250,14 @@ _install_stack() {
 _source_common() {
   # Get stack variables and functions.
   if ! [ -f ${__PROJECT_PATH}/scripts/helpers/common.sh ]; then
-    printf "\\n\\n[setup::ERROR] Missing %s file!\\n\\n" "${__PROJECT_PATH}/scripts/helpers/common.sh"
+    printf "\\n[setup::ERROR] Missing %s file!\\n" "${__PROJECT_PATH}/scripts/helpers/common.sh"
     exit 1
   fi
   source ${__PROJECT_PATH}/scripts/helpers/common.sh
 }
 
 _setup_stack() {
-  printf "\\n\\n[setup::info] Prepare stack %s\\n\\n" "${__BASE_STACK}"
+  printf "\\n[setup::info] Prepare stack %s\\n" "${__BASE_STACK}"
   if [ -f "${STACK_ROOT}/samples/${__BASE_STACK}.yml" ]; then
     cp ${STACK_ROOT}/samples/${__BASE_STACK}.yml ${STACK_ROOT}/docker-compose.yml
   fi
@@ -266,14 +266,14 @@ _setup_stack() {
 _install_composer() {
   # Set-up Composer.
   if ! [ -x "$(command -v composer)" ]; then
-    printf "\\n\\n[setup::info] Set-up Composer and dependencies...\\n\\n"
+    printf "\\n[setup::info] Set-up Composer and dependencies...\\n"
     cd ${HOME}
     curl -sS https://getcomposer.org/installer | php -- --install-dir=${HOME} --filename=composer
     sudo mv ${HOME}/composer /usr/local/bin/composer
     sudo chmod +x /usr/local/bin/composer
     composer global require "hirak/prestissimo:^0.3" "drupal/coder"
   else
-    printf "\\n\\n[setup::notice] Composer already here!\\n\\n"
+    printf "\\n[setup::notice] Composer already here!\\n"
     composer selfupdate
     if ! [ -d "${HOME}/.config/composer/vendor/hirak" ]; then
       composer global require "hirak/prestissimo:^0.3" "drupal/coder"
@@ -282,36 +282,36 @@ _install_composer() {
 
   # Set-up Code sniffer.
   if [ -f "${HOME}/.config/composer/vendor/bin/phpcs" ]; then
-    printf "\\n\\n[setup::info] Set-up Code sniffer...\\n\\n"
+    printf "\\n[setup::info] Set-up Code sniffer...\\n"
     ${HOME}/.config/composer/vendor/bin/phpcs --config-set installed_paths ${HOME}/.config/composer/vendor/drupal/coder/coder_sniffer
   fi
 }
 
 _download_drupal() {
-  printf "\\n\\n[setup::info] Download Drupal %s\\n\\n" "${__INSTALL_DRUPAL}"
+  printf "\\n[setup::info] Download Drupal %s\\n" "${__INSTALL_DRUPAL}"
   ${STACK_ROOT}/scripts/install-drupal.sh download -f -p ${__INSTALL_DRUPAL}
 }
 
 _setup_drupal() {
-  printf "\\n\\n[setup::info] Install Drupal ${__INSTALL_DRUPAL}\\n\\n"
+  printf "\\n[setup::info] Install Drupal ${__INSTALL_DRUPAL}\\n"
   # Wait a bit for the stack to be up.
   sleep 20s
   ${STACK_ROOT}/scripts/install-drupal.sh setup -f -p ${__INSTALL_DRUPAL}
 }
 
 _up_stack() {
-  printf "\\n\\n[setup::info] Up stack...\\n\\n"
+  printf "\\n[setup::info] Bring the stack up...\\n"
   docker-compose --file "${STACK_ROOT}/docker-compose.yml" up -d --build
 }
 
 _down_stack() {
-  printf "\\n\\n[setup::info] Put down the stack...\\n\\n"
+  printf "\\n[setup::info] Put down the stack...\\n"
   sleep 20s
   docker-compose --file "${STACK_ROOT}/docker-compose.yml" down
 }
 
 _env_tasks() {
-  printf "\\n\\n[setup::info] Set env...\\n\\n"
+  printf "\\n[setup::info] Set env...\\n"
   # Add composer path to environment.
   cat <<EOT >> ${HOME}/.profile
 PATH=\$PATH:${HOME}/.config/composer/vendor/bin
@@ -333,7 +333,7 @@ EOT
 }
 
 _bin_links() {
-  printf "\\n\\n[setup::info] Set links...\\n\\n"
+  printf "\\n[setup::info] Set links...\\n"
   # Drush and Drupal links.
   if ! [ -f "/usr/local/bin/drush" ] && ! [ -f "/usr/local/bin/drush" ]; then
     sudo ln -s ${STACK_ROOT}/scripts/drush /usr/local/bin/drush
@@ -361,7 +361,7 @@ _links() {
 _get_tools() {
   # Set up tools from stack.
   if [ -f "${STACK_ROOT}/scripts/get-tools.sh" ]; then
-    printf "\\n\\n[setup::info] Setup Docker stack tools...\\n\\n"
+    printf "\\n[setup::info] Setup Docker stack tools...\\n"
     ${STACK_ROOT}/scripts/get-tools.sh install
   fi
 }
