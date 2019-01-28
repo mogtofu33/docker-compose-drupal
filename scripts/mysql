@@ -77,10 +77,10 @@ _create() {
   _mysql_exec 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS "'"$_DB_NAME"'" CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"'
 
   _GRANT="GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES ON $_DB_NAME.* TO '$MYSQL_USER'@'%';"
-  echo $_GRANT > tmp_grant.sql
-  $DOCKER cp tmp_grant.sql "${PROJECT_CONTAINER_MYSQL}":/tmp/tmp_grant.sql
+  echo $_GRANT > /tmp/tmp_grant.sql
+  $DOCKER cp /tmp/tmp_grant.sql "${PROJECT_CONTAINER_MYSQL}":/tmp/tmp_grant.sql
   _mysql_exec 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD < /tmp/tmp_grant.sql'
-  rm -f tmp_grant.sql
+  rm -f /tmp/tmp_grant.sql
 }
 
 _drop_native() {
