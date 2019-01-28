@@ -372,7 +372,7 @@ _install_all() {
 
   if ! [ ${__SET_PERMISSIONS} == 0 ]; then
     _ensure_permissions
-    _ensure_docker
+    #_ensure_docker
   fi
 
   _install_stack
