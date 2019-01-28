@@ -63,6 +63,8 @@ services:
     ## Comment these two lines on Windows system, permissions issue.
     volumes:
       - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
+      # A dump.pg_dump file will be imported from here on start.
+      - ./database-pgsql-init:/docker-entrypoint-initdb.d
       # Add pg_pass to ease drush access.
       - ./config/pgsql/.pg_pass:/home/postgres/.pg_pass
     env_file: .env
