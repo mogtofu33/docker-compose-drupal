@@ -27,10 +27,10 @@ _ME=$(basename "${0}")
 # Set to the program's source.
 _SOURCE="${BASH_SOURCE[0]}"
 
-while [ -h "$_SOURCE" ]; do # resolve $_SOURCE until the file is no longer a symlink
+while [ -h "$_SOURCE" ]; do
   _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
   _SOURCE="$(readlink "$_SOURCE")"
-  [[ $_SOURCE != /* ]] && _SOURCE="$_DIR/$_SOURCE" # if $_SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+  [[ $_SOURCE != /* ]] && _SOURCE="$_DIR/$_SOURCE"
 done
 _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 

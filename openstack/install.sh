@@ -10,7 +10,7 @@
 #   make
 #   git
 #   docker
-#   docker-compose
+#   ocker-compose
 
 set -o nounset
 set -o errexit
@@ -243,8 +243,8 @@ _install_stack() {
       printf "\\n[setup::ERROR] Missing make, please install, eg: apt update && apt install make\\n"
       exit 1
   fi
-  (cd ${__PROJECT_PATH} && make setup)
 
+  (cd ${__PROJECT_PATH} && make setup)
 }
 
 _source_common() {
@@ -372,7 +372,7 @@ _install_all() {
 
   if ! [ ${__SET_PERMISSIONS} == 0 ]; then
     _ensure_permissions
-    #_ensure_docker
+    # _ensure_docker
   fi
 
   _install_stack
