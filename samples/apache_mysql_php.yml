@@ -61,7 +61,7 @@ services:
       # Any .sql file will be imported here on start.
       - ./database-mysql-init:/docker-entrypoint-initdb.d
       ## Comment on Windows system, permissions issue.
-      - ./config/mysql:/etc/mysql
+      - ./config/mysql:/etc/mysql:ro
     env_file: .env
     restart: unless-stopped
     container_name: ${PROJECT_NAME:-dcd}-mysql
