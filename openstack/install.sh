@@ -43,25 +43,25 @@ Install Docker Compose Drupal on a Ubuntu distribution, firstly in Openstack but
 can be used on a local Ubuntu 16+.
 
 Options:
- --down                Set the stack down at the end of setup
+  --down                Set the stack down at the end of setup
 
- --no-composer         Do not install composer
- --no-links            Do not set links fro Drush / Drupal console on the system
- --no-env              Do not set env / aliases on the system
- --no-fix-perms        Do not fix permissions on the system
+  --no-composer         Do not install composer
+  --no-links            Do not set links fro Drush / Drupal console on the system
+  --no-env              Do not set env / aliases on the system
+  --no-fix-perms        Do not fix permissions on the system
 
- --local               Flag to indicate a local setup, force all previous
-                       options: --no-composer --no-links --no-env --no-fix-perms
+  --local               Flag to indicate a local setup, force all previous
+                        options: --no-composer --no-links --no-env --no-fix-perms
 
-Options with argument:
- -s|--stack            Name of stack file to use from ./samples folder,
-                       default is the full stack.
- -i|--install          Install a Drupal profile from
-                       ./scripts/install-drupal.sh, eg: drupal, drupal-min...
- -b|--branch           Branch for this project, default is "master"
- -u|--user             Local user name to use, default current user
- -g|--group            Local user group to use, default current group
- -p|--path             Local project path, default "./docker-compose-drupal"
+  Options with argument:
+  -s|--stack            Name of stack file to use from ./samples folder,
+                        default is the full stack.
+  -i|--install          Install a Drupal profile from
+                        ./scripts/install-drupal.sh, eg: drupal, drupal-min...
+  -b|--branch           Branch for this project, default is "master"
+  -u|--user             Local user name to use, default current user
+  -g|--group            Local user group to use, default current group
+  -p|--path             Local project path, default "./docker-compose-drupal"
 
 Usage:
   ./install.sh -s apache_mysql_php -i drupal-min

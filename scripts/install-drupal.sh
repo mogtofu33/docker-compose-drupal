@@ -12,7 +12,8 @@
 # Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
 
-if [ -z ${STACK_ROOT} ]; then
+if [[ -z ${STACK_ROOT} ]]
+  then
   _SOURCE="${BASH_SOURCE[0]}"
   while [ -h "$_SOURCE" ]; do
     _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
@@ -21,7 +22,8 @@ if [ -z ${STACK_ROOT} ]; then
   done
   _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
-  if [ ! -f $_DIR/helpers/common.sh ]; then
+  if [[ ! -f $_DIR/helpers/common.sh ]]
+  then
     echo -e "Missing helpers/common.sh file."
     exit 1
   fi
@@ -47,7 +49,7 @@ Install and prepare multiple Drupal 8 project based on top Drupal distributions 
 Usage:
   ${_ME} list
   ${_ME} install -p drupal
-  ${_ME} install -p drupal-demo -db postgres
+  ${_ME} install -p drupal-demo -d postgres
 
 Arguments: 
   list           List available projects.
@@ -58,7 +60,7 @@ Arguments:
 
 Options with argument:
   -p --project      Optinal project name, from list option, if not set select prompt.
-  -d --database    Database service: postgres or mysql, default "mysql"
+  -d --database     Database service: postgres or mysql, default "mysql"
 
 Options:
   -f --force        Force prompt with Yes if any.
@@ -207,16 +209,16 @@ _install_dispatch() {
     __PROJECT=${!DRUPAL_DISTRIBUTIONS[i]:5:1}
     __SETUP_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:6:1}
 
-    if [[ ${_SELECTED_PROJECT} == ${__DID} ]]
+    if [[ ${_SELECTED_PROJECT} == "${__DID}" ]]
     then
       if [[ $__do_download == 1 ]]
       then
-        _download_dispatch $__DOWNLOAD_TYPE
+        _download_dispatch "$__DOWNLOAD_TYPE"
       fi
 
       if [[ $__do_setup == 1 ]]
       then
-        _setup_dispatch $__SETUP_TYPE
+        _setup_dispatch "$__SETUP_TYPE"
       fi
     fi
   done
@@ -229,13 +231,15 @@ _install_dispatch() {
 # Description:
 #   Check if Drupal already here, stop stack if running.
 _ensure_download() {
-  if [ -d ${STACK_DRUPAL_ROOT} ]; then
-    if [ -f ${STACK_DRUPAL_ROOT}/web/index.php ] && [ ${__force} == 0 ]; then
+  if [[ -d ${STACK_DRUPAL_ROOT} ]]
+  then
+    if [[ -f ${STACK_DRUPAL_ROOT}/web/index.php ]] && [[ ${__force} == 0 ]]
+    then
       printf "[Notice] Drupal already exist, do you want to continue and DELETE?\\n"
       _prompt_yn
     fi
     _stack_down
-    ${SUDO} rm -rf ${STACK_DRUPAL_ROOT}
+    ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
   fi
 }
 
@@ -244,7 +248,7 @@ _ensure_download() {
 # Description:
 #   Download dispatcher depending download type of the project (composer or git).
 _download_dispatch() {
-  printf "[info] Start downloading %s, this takes a while...\\n" "${__PROJECT}"
+  printf "[info] Start downloading %s\\n" "${__PROJECT}"
   __call="_download_${1}"
   $__call
   _fix_docroot
@@ -354,9 +358,12 @@ _setup_dispatch() {
   printf "[info] Install %s with profile %s on db %s\\n" "${__DID}" "${__INSTALL_PROFILE}" "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 
   _clean_setup
+
   _ensure_drush
+
   __call="_setup_${1}"
   $__call
+
   _fix_files_perm
 
   printf "\\n >> Access %s on\\nhttp://${PROJECT_BASE_URL}\\n >> Log-in with: admin / password\\n\\n" "${__DID}"
@@ -368,7 +375,7 @@ _setup_dispatch() {
 #   Helper to ensure we don't have an existing setup.
 _clean_setup() {
   _docker_exec_noi \
-    rm -f "${DRUPAL_DOCROOT}/sites/dfault/settings.php"
+    rm -f "${DRUPAL_DOCROOT}/sites/default/settings.php"
 }
 
 # _setup_standard()
@@ -390,7 +397,7 @@ _setup_standard() {
 #   Specific Varbase setup, can not be done with drush, but add drush for dev.
 #   The problem is the Varbase install form with many options.
 _setup_varbase() {
-  printf "[warning] Varbase profile can not be installed from drush, install from \\nhttp://${PROJECT_BASE_URL}\\n"
+  printf "[warning] Varbase profile can not be installed from drush, install from \\nhttp://%s\\n" "${PROJECT_BASE_URL}"
 }
 
 # _setup_contenta()
@@ -409,7 +416,7 @@ _setup_contenta() {
   cp "${STACK_DRUPAL_ROOT}/.env.example" "${STACK_DRUPAL_ROOT}/.env"
   cp "${STACK_DRUPAL_ROOT}/.env.local.example" "${STACK_DRUPAL_ROOT}/.env.local"
 
-  echo "SITE_MAIL=admin@localhost" >>"${STACK_DRUPAL_ROOT}/.env"
+  echo "SITE_MAIL=admin@localhost" >> "${STACK_DRUPAL_ROOT}/.env"
   echo "ACCOUNT_MAIL=admin@localhost" >> "${STACK_DRUPAL_ROOT}/.env"
   echo "SITE_NAME='Contenta CMS'" >> "${STACK_DRUPAL_ROOT}/.env"
   echo "ACCOUNT_NAME=admin" >> "${STACK_DRUPAL_ROOT}/.env"
@@ -472,7 +479,7 @@ _ensure_drush() {
 #   Helper to let user select a project for this script.
 _select_project() {
 
-  printf "For more information on each option run ${_ME} list\\n"
+  printf "For more information on each option run %s list\\n" "${_ME}"
 
   __list=()
   __COUNT=${#DRUPAL_DISTRIBUTIONS[@]}
@@ -507,28 +514,31 @@ _select_db() {
 
   # Check if any mysql container is running.
   RUNNING=$(docker ps -f "name=mariadb" -f "status=running" -q | head -1 2> /dev/null)
-  if [ ! -z "$RUNNING" ]; then
+  if [[ -n "$RUNNING" ]]
+  then
     _DB_LIST[0]="mariadb"
   fi
 
   # Check if any mysql container is running.
   RUNNING=$(docker ps -f "name=mysql" -f "status=running" -q | head -1 2> /dev/null)
-  if [ ! -z "$RUNNING" ]; then
+  if [[ -n "$RUNNING" ]]
+  then
     _DB_LIST[0]="mysql"
   fi
 
   # Check if any postgresql container is running.
   RUNNING=$(docker ps -f "name=pgsql" -f "status=running" -q | head -1 2> /dev/null)
-  if [ ! -z "$RUNNING" ]; then
+  if [[ -n "$RUNNING" ]]
+  then
     _DB_LIST[1]="postgres"
   fi
 
   if [[ ${_DB_LIST} == 0 ]]
   then
-    die "No database container found, please ensure your stack is running."
+    die "No database container found, please ensure your stack is running eg: docker-compose up -d."
   fi
 
-  if [[ ${_DB_LIST[0]} == $_DEFAULT_DB ]] || [[ ${_DB_LIST[1]} == $_DEFAULT_DB ]]
+  if [[ ${_DB_LIST[0]} == "$_DEFAULT_DB" ]] || [[ ${_DB_LIST[1]} == "$_DEFAULT_DB" ]]
   then
     _DB=$_DEFAULT_DB
   fi
@@ -616,7 +626,7 @@ _delete() {
     _prompt_yn
   fi
   _stack_down
-  ${SUDO} rm -rf ${STACK_DRUPAL_ROOT}
+  ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
 }
 
 ###############################################################################
