@@ -347,6 +347,7 @@ _bin_links() {
 
 _links() {
   # Convenient links.
+  printf "\\n[setup::info] Check convenient links...\\n"
   if ! [ -d "${__HERE_DIR}/drupal" ]; then
     ln -s ${STACK_DRUPAL_ROOT} ${__HERE_DIR}/drupal
   fi
@@ -387,22 +388,23 @@ _install_all() {
     _download_drupal
   fi
 
-  _up_stack
-
-  if ! [ ${__INSTALL_DRUPAL} == 0 ]; then
-    _setup_drupal
-  fi
-
   if ! [ ${__SET_ENV} == 0 ]; then
     _env_tasks
   fi
 
   _links
+
   if ! [ ${__SET_LINKS} == 0 ]; then
     _bin_links
   fi
 
+  _up_stack
+
   _get_tools
+
+  if ! [ ${__INSTALL_DRUPAL} == 0 ]; then
+    _setup_drupal
+  fi
 
   if ! [ ${__SET_PERMISSIONS} == 0 ]; then
     _ensure_permissions

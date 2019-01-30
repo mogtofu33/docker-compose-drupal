@@ -436,7 +436,7 @@ _setup_contenta() {
 #   Specific install for advanced template with .env and drush.
 _setup_advanced() {
 
-  cp ${HOST_WEB_ROOT}/.env.example ${STACK_DRUPAL_ROOT}/.env
+  cp "${STACK_DRUPAL_ROOT}/.env.example" "${STACK_DRUPAL_ROOT}/.env"
 
   echo "MYSQL_DATABASE=$DB_NAME" >> "${STACK_DRUPAL_ROOT}/.env"
   echo "MYSQL_HOSTNAME=$DB_HOST" >> "${STACK_DRUPAL_ROOT}/.env"
