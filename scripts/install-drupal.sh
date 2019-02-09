@@ -52,11 +52,11 @@ Usage:
   ${_ME} install -p drupal-demo -d postgres
 
 Arguments: 
-  list           List available projects.
-  install        Download and setup a project.
-  download       Download a project codebase.
-  setup          Install a project.
-  delete         Delete a previously downloaded project.
+  list              List available projects.
+  install | in      Download and setup a project.
+  download | dl     Download a project codebase.
+  setup | set       Install a project.
+  delete            Delete a previously downloaded project.
 
 Options with argument:
   -p --project      Optinal project name, from list option, if not set select prompt.
@@ -158,6 +158,9 @@ _install() {
   __do_setup=1
   _install_dispatch
 }
+_in() {
+  _install
+}
 
 # _download()
 #
@@ -168,6 +171,9 @@ _download() {
   __do_setup=0
   _install_dispatch
 }
+_dl() {
+  _download
+}
 
 # _setup()
 #
@@ -177,6 +183,9 @@ _setup() {
   __do_download=0
   __do_setup=1
   _install_dispatch
+}
+_set() {
+  _setup
 }
 
 # _install()
@@ -269,6 +278,8 @@ _download_composer() {
     _stack_up
     _docker_exec_noi \
       composer create-project ${__PROJECT} /tmp/drupal --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__verbose}
+    _docker_exec_noi_u \
+      chown apache:www-data ${WEB_ROOT}
     _docker_exec_noi \
       cp -Rp /tmp/drupal/. ${WEB_ROOT}
     _docker_exec_noi_u \
