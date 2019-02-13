@@ -128,7 +128,7 @@ _docker_exec_noi() {
     ${PROJECT_CONTAINER_PHP} "$@"
 }
 
-_docker_exec_noi_u() {
+_docker_exec_root() {
   $DOCKER exec \
     ${PROJECT_CONTAINER_PHP} "$@"
 }
@@ -193,13 +193,13 @@ HEREDOC
 # Description:
 #   Display a simple yes/no prompt and stop if no.
 _prompt_yn() {
-  printf "Are you sure?\\n"
-  select yn in "Yes" "No"; do
-      case $yn in
-          Yes ) break;;
-          No ) die "Canceled";;
-      esac
-  done
+  printf "%s\\n" "$@"
+  read -p "Are you sure? (y/n) " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]
+  then
+      die "Canceled"
+  fi
 }
 
 ###############################################################################

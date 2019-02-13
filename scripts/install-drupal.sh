@@ -59,12 +59,12 @@ Arguments:
   delete            Delete a previously downloaded project.
 
 Options with argument:
-  -p --project      Optinal project name, from list option, if not set select prompt.
+  -p --project      Optional project name, if not set select prompt.
   -d --database     Database service: postgres or mysql, default "mysql"
 
 Options:
   -f --force        Force prompt with Yes if any.
-  -v --verbose      More messages, mostly with composer.
+  -v --verbose      More messages with composer.
   -h --help         Show this screen.
 
 HEREDOC
@@ -244,8 +244,7 @@ _ensure_download() {
   then
     if [[ -f ${STACK_DRUPAL_ROOT}/web/index.php ]] && [[ ${__force} == 0 ]]
     then
-      printf "[Notice] Drupal already exist, do you want to continue and DELETE?\\n"
-      _prompt_yn
+      _prompt_yn "[Notice] Drupal already exist, do you want to continue and DELETE?"
     fi
     _stack_down
     ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
@@ -271,18 +270,20 @@ _download_composer() {
   # Setup Drupal 8 composer project.
   if [ -x "$(command -v composer)" ]; then
     _ensure_download
+    printf "[Notice] Using local composer"
     composer create-project ${__PROJECT} ${STACK_DRUPAL_ROOT} --no-interaction --no-ansi --ignore-platform-reqs --remove-vcs --no-progress --prefer-dist ${__verbose}
     _stack_up
   else
     _ensure_download
     _stack_up
+    printf "[Notice] Using composer from the stack"
     _docker_exec_noi \
       composer create-project ${__PROJECT} /tmp/drupal --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__verbose}
-    _docker_exec_noi_u \
+    _docker_exec_root \
       chown apache:www-data ${WEB_ROOT}
     _docker_exec_noi \
       cp -Rp /tmp/drupal/. ${WEB_ROOT}
-    _docker_exec_noi_u \
+    _docker_exec_root \
       rm -rf /tmp/drupal
   fi
 }
@@ -304,7 +305,7 @@ _download_composer_contenta() {
 
   # Move to the container and set permission.
   $DOCKER cp download-contenta.sh ${PROJECT_CONTAINER_PHP}:/tmp/download-contenta.sh
-  _docker_exec_noi_u \
+  _docker_exec_root \
     chmod a+x /tmp/download-contenta.sh
 
   # Contenta script require a new folder.
@@ -325,17 +326,17 @@ _download_composer_contenta() {
 #   Download with curl based on an url with a tar.gz archive.
 _download_curl() {
 
+  _ensure_download
+
   # Download the archive and extract.
   curl -fsSL "${__PROJECT}" -o /tmp/drupal.tar.gz
   tar -xzf /tmp/drupal.tar.gz -C /tmp/
-
-  _ensure_download
 
   mv /tmp/drupal-composer-advanced-template-8.x-dev ${STACK_DRUPAL_ROOT}
 
   _stack_up
 
-  _docker_exec_noi_u \
+  _docker_exec_root \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
 
   # Cleanup.
@@ -343,20 +344,19 @@ _download_curl() {
 
   # Setup Drupal 8 composer project.
   if [ -x "$(command -v composer)" ]; then
+    printf "[Notice] Using local composer"
     composer install --working-dir="${STACK_DRUPAL_ROOT}" --no-suggest --no-interaction --ignore-platform-reqs ${__verbose}
-    composer install-boostrap-sass --working-dir="${STACK_DRUPAL_ROOT}" ${__verbose}
+    composer install-bootstrap-sass --working-dir="${STACK_DRUPAL_ROOT}" ${__verbose}
   else
+    printf "[Notice] Using composer from the stack"
     _docker_exec_noi \
       composer install --working-dir="${WEB_ROOT}" --no-suggest --no-interaction ${__verbose}
     _docker_exec_noi \
-      composer install-boostrap-sass --working-dir="${WEB_ROOT}" ${__verbose}
+      composer install-bootstrap-sass --working-dir="${WEB_ROOT}" ${__verbose}
   fi
-
-  if [ -x "$(command -v compass)" ]; then
-    compass compile ${STACK_DRUPAL_ROOT}/web/themes/custom/bootstrap_sass
-  else
-    printf "[warning] Compile manually from your Drupal code root:\\ncompass compile web/themes/custom/bootstrap_sass\\n"
-  fi
+  __theme_root="${WEB_ROOT}/web/themes/custom/bootstrap_sass"
+  _docker_exec_noi \
+    ${WEB_ROOT}/vendor/bin/pscss ${__theme_root}/scss/style.scss > ${__theme_root}/css/style.css
 }
 
 #
@@ -385,14 +385,23 @@ _setup_dispatch() {
 # Description:
 #   Helper to ensure we don't have an existing setup.
 _clean_setup() {
-  _docker_exec_noi \
+  if [[ -f ${STACK_DRUPAL_ROOT}/web/sites/default/settings.php ]] && [[ ${__force} == 0 ]]
+  then
+    _prompt_yn "[warning] settings.php already exist, mean Drupal is already installed, do you want to install over?"
+  fi
+
+  _docker_exec_root \
     rm -f "${DRUPAL_DOCROOT}/sites/default/settings.php"
+  _docker_exec_root \
+    cp -f "${DRUPAL_DOCROOT}/sites/default/default.settings.php" "${DRUPAL_DOCROOT}/sites/default/settings.php"
+  _docker_exec_root \
+    chown ${LOCAL_UID}:${LOCAL_GID} "${DRUPAL_DOCROOT}/sites/default/settings.php"
 }
 
 # _setup_standard()
 #
 # Description:
-#   Setup with drush for a specific profile.
+#   Setup with Drush for a specific profile.
 _setup_standard() {
   # Install this profile.
   _docker_exec_noi "${DRUSH_BIN}" -y site:install ${__INSTALL_PROFILE} \
@@ -405,7 +414,7 @@ _setup_standard() {
 # _setup_varbase()
 #
 # Description:
-#   Specific Varbase setup, can not be done with drush, but add drush for dev.
+#   Specific Varbase setup, can not be done with Drush, but add Drush for dev.
 #   The problem is the Varbase install form with many options.
 _setup_varbase() {
   printf "[warning] Varbase profile can not be installed from drush, install from \\nhttp://%s\\n" "${PROJECT_BASE_URL}"
@@ -460,7 +469,7 @@ _setup_advanced() {
   cp ${STACK_DRUPAL_ROOT}/example.settings.prod.php ${STACK_DRUPAL_ROOT}/web/sites/default/settings.prod.php
 
   # Fix permission.
-  _docker_exec_noi_u \
+  _docker_exec_root \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${DRUPAL_DOCROOT}/sites/default/
 
   # Install this profile with config_installer
@@ -476,8 +485,10 @@ _ensure_drush() {
     printf "[info] Install missing drush\\n"
     # Drush is not included in varbase distribution.
     if [ -x "$(command -v composer)" ]; then
+      printf "[Notice] Using local composer"
       composer require drush/drush --working-dir="${STACK_DRUPAL_ROOT}" --ignore-platform-reqs ${__verbose}
     else
+      printf "[Notice] Using composer from the stack"
       _docker_exec_noi \
         composer require drush/drush --working-dir="${WEB_ROOT}" ${__verbose}
     fi
@@ -610,21 +621,21 @@ _fix_docroot() {
 # Description:
 #   Helper to fix Drupal permission hardly.
 _fix_files_perm() {
-  _docker_exec_noi_u \
+  _docker_exec_root \
     mkdir -p ${DRUPAL_DOCROOT}/sites/default/files/tmp
-  _docker_exec_noi_u \
+  _docker_exec_root \
     mkdir -p ${DRUPAL_DOCROOT}/sites/default/files/private
-  _docker_exec_noi_u \
+  _docker_exec_root \
     chmod -R 777 ${DRUPAL_DOCROOT}/sites/default/files
-  _docker_exec_noi_u \
+  _docker_exec_root \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${DRUPAL_DOCROOT}/sites/default/files
   # contenta specific.
   if [[ ${__DID} == "contenta" ]]
   then
-    _docker_exec_noi_u \
+    _docker_exec_root \
       chmod -R 660 ${WEB_ROOT}/keys/public.key
   fi
-  _docker_exec_noi_u \
+  _docker_exec_root \
     chmod -R 777 /tmp
 }
 
@@ -634,7 +645,7 @@ _fix_files_perm() {
 #   Delete a previous downloaded Drupal.
 _delete() {
   if [ ${__force} == 0 ]; then
-    _prompt_yn
+    _prompt_yn "[warning] Deletion is permanent and can not be recovered!"
   fi
   _stack_down
   ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"

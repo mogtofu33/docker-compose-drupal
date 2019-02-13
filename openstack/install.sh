@@ -10,7 +10,7 @@
 #   make
 #   git
 #   docker
-#   ocker-compose
+#   docker-compose
 
 set -o nounset
 set -o errexit

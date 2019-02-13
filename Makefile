@@ -9,7 +9,10 @@ setup: clean-setup
 	@sed -i "s/LOCAL_UID=1000/LOCAL_UID=$(UID)/g" ./.env;
 	@sed -i "s/LOCAL_GID=1000/LOCAL_GID=$(GID)/g" ./.env;
 
-up: setup
+up:
+	@docker-compose up -d --build;
+
+sup: setup
 	@docker-compose up -d --build;
 
 clean:
@@ -34,4 +37,4 @@ st: status
 status:
 	@docker-compose ps;
 
-.PHONY: setup up clean nuke demo status
+.PHONY: setup up sup clean nuke demo status

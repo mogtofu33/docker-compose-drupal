@@ -1,5 +1,6 @@
 ################################################################################
-# Docker Compose Drupal full dev stack.
+# Docker Compose Drupal 8 full Pgsql9 variant stack.
+#
 # Project page:
 #   https://github.com/Mogtofu33/docker-compose-drupal
 # Documentation:
@@ -14,7 +15,7 @@ services:
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
-      # Web root access, optional but can help with multi sites.
+      # Web root access, optional.
       - "${APACHE_HOST_ROOT_PORT:-88}:81"
     volumes:
       - ${HOST_WEB_ROOT:-./drupal}:/var/www/localhost
@@ -60,10 +61,9 @@ services:
     image: postgres:9-alpine
     expose:
       - "5432"
-    ## Comment these two lines on Windows system, permissions issue.
     volumes:
       - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
-      # A dump.pg_dump file will be imported from here on start.
+      # A dump.pg_dump file will be imported from here on first start.
       - ./database-pgsql-init:/docker-entrypoint-initdb.d
       # Add pg_pass to ease drush access.
       - ./config/pgsql/.pg_pass:/home/postgres/.pg_pass

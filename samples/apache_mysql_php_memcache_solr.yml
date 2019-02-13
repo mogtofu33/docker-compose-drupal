@@ -1,5 +1,6 @@
 ################################################################################
-# Docker Compose Drupal full dev stack.
+# Docker Compose Drupal 8 full dev stack.
+#
 # Project page:
 #   https://github.com/Mogtofu33/docker-compose-drupal
 # Documentation:
@@ -14,7 +15,7 @@ services:
     ports:
       - "${APACHE_HOST_HTTP_PORT:-80}:80"
       - "${APACHE_HOST_HTTPS_PORT:-443}:443"
-      # Web root access, optional but can help with multi sites.
+      # Web root access, optional.
       - "${APACHE_HOST_ROOT_PORT:-88}:81"
     volumes:
       - ${HOST_WEB_ROOT:-./drupal}:/var/www/localhost
@@ -60,9 +61,8 @@ services:
       - "3306"
     volumes:
       - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
-      # Any .sql file will be imported here on start.
+      # All .sql files will be imported on first start by order.
       - ./database-mysql-init:/docker-entrypoint-initdb.d
-      ## Comment on Windows system, permissions issue.
       - ./config/mysql:/etc/mysql:ro
     env_file: .env
     restart: unless-stopped

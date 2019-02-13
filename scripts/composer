@@ -20,8 +20,8 @@ if [ ! -f $_DIR/helpers/common.sh ]; then
 fi
 source $_DIR/helpers/common.sh
 
-_docker_exec_noi_u mkdir -p /.composer/cache
-_docker_exec_noi_u chown -R ${LOCAL_UID}:${LOCAL_GID} /.composer
+_docker_exec_root mkdir -p /.composer/cache
+_docker_exec_root chown -R ${LOCAL_UID}:${LOCAL_GID} /.composer
 
 _docker_exec \
   composer --working-dir="${WEB_ROOT}" "$@"
