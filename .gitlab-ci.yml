@@ -4,8 +4,9 @@ services:
   - docker:dind
 
 stages:
-  - build images
-  - release images
+  - prepare image
+  - build image
+  - release image
   - build
   - run
   - tests
@@ -34,13 +35,13 @@ variables:
   - &docker_pull docker pull $LOCAL_IMAGE/$IMAGE
 
 .build_image: &build_image
-  stage: build images
+  stage: build image
   before_script:
     - *docker_login_gitlab
   script: *docker_build_push
 
 .release: &release
-  stage: release images
+  stage: release image
   before_script:
     - docker login -u $RELEASE_USER -p $RELEASE_PASSWORD $RELEASE_REGISTRY
   script:
@@ -93,7 +94,7 @@ variables:
 
 build:dashboard:
   image: node:latest
-  stage: build images
+  stage: prepare image
   script:
     - npm install --prefix build/dashboard build/dashboard --save
     - npm run build --prefix build/dashboard
