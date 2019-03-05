@@ -1,0 +1,29 @@
+{
+  "name": "dashboard",
+  "version": "1.0.0",
+  "description": "Simple assets management for minimal dashboard with Docker Compose Drupal.",
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "jquery": "^3.3.1",
+    "popper.js": "^1.14.7",
+    "clipboard": "^1",
+    "octicons": "4.4.0"
+  },
+  "scripts": {
+    "cp-bs-css": "cp node_modules/bootstrap/dist/css/bootstrap.min.css app/static/assets/bootstrap.css",
+    "cp-bs-js": "cp node_modules/bootstrap/dist/js/bootstrap.min.js app/static/assets/bootstrap.js",
+    "cp-jquery": "cp node_modules/jquery/dist/jquery.min.js app/static/assets/jquery.js",
+    "cp-popper": "cp node_modules/popper.js/dist/umd/popper.min.js app/static/assets/popper.js",
+    "cp-clipboard": "cp node_modules/clipboard/dist/clipboard.min.js app/static/assets/clipboard.js",
+    "cp-octicons": "cp -r node_modules/octicons/build/font app/static/assets && mv app/static/assets/font app/static/assets/octicons && rm -f app/static/assets/octicons/octicons.css app/static/assets/octicons/_octicons.scss && mv app/static/assets/octicons/octicons.min.css app/static/assets/octicons/octicons.css",
+    "build": "npm run nuke && mkdir -p app/static/assets && npm run cp-bs-css && npm run cp-bs-js && npm run cp-jquery && npm run cp-popper && npm run cp-clipboard && npm run cp-octicons",
+    "cp-bs-css:dev": "cp node_modules/bootstrap/dist/css/bootstrap.css app/static/assets/bootstrap.css",
+    "cp-bs-js:dev": "cp node_modules/bootstrap/dist/js/bootstrap.js app/static/assets/bootstrap.js",
+    "cp-jquery:dev": "cp node_modules/jquery/dist/jquery.js app/static/assets/jquery.js",
+    "cp-popper:dev": "cp node_modules/popper.js/dist/umd/popper.js app/static/assets/popper.js",
+    "cp-clipboard:dev": "cp node_modules/clipboard/dist/clipboard.js app/static/assets/clipboard.js",
+    "cp-octicons:dev": "cp -r node_modules/octicons/build/font app/static/assets && mv app/static/assets/font app/static/assets/octicons && rm -f app/static/assets/octicons/_octicons.scss app/static/assets/octicons/octicons.min.css",
+    "build:dev": "npm run nuke && mkdir -p app/static/assets && npm run cp-bs-css:dev && npm run cp-bs-js:dev && npm run cp-jquery:dev && npm run cp-popper:dev && npm run cp-clipboard:dev && npm run cp-octicons:dev",
+    "nuke": "rm -rf app/static/assets"
+  }
+}

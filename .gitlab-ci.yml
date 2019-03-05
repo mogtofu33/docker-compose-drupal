@@ -91,11 +91,23 @@ variables:
 # Jobs based on previous templates.
 ################################################################################
 
+build:dashboard:
+  image: node:latest
+  stage: build dashboard
+  script:
+    - npm install --prefix build/dashboard build/dashboard --save
+    - npm run build --prefix build/dashboard
+  only:
+    - dashboard
+    - master
+
 dashboard:
   <<: *build_image
   variables:
     IMAGE: dashboard:latest
     DIR: build/dashboard
+  dependencies:
+    - build:dashboard
   only:
     - dashboard
     - master
@@ -104,6 +116,8 @@ release:dashboard:
   <<: *release
   variables:
     IMAGE: dashboard:latest
+  dependencies:
+    - dashboard
   only:
     - master
 
