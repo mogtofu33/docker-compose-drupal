@@ -93,7 +93,7 @@ variables:
 
 build:dashboard:
   image: node:latest
-  stage: build dashboard
+  stage: build images
   script:
     - npm install --prefix build/dashboard build/dashboard --save
     - npm run build --prefix build/dashboard
