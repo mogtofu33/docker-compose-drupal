@@ -52,7 +52,7 @@ variables:
 # https://github.com/docker/compose/issues/6617
 .install_docker_compose:
     - &install_docker_compose
-      apk add --quiet --no-cache bash py-pip && pip install --quiet docker-compose==1.23.2
+      apk add --quiet --no-cache bash make py-pip && pip install --quiet docker-compose==1.23.2
 
 .reset_drupal:
     - &reset_drupal
