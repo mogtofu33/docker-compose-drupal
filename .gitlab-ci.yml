@@ -49,14 +49,10 @@ variables:
     - docker tag $LOCAL_IMAGE/$IMAGE $RELEASE_IMAGE/$IMAGE
     - docker push $RELEASE_IMAGE/$IMAGE
 
+# https://github.com/docker/compose/issues/6617
 .install_docker_compose:
     - &install_docker_compose
-      apk --no-cache add make gettext bash python3 > /dev/null &&
-      python3 -m ensurepip > /dev/null &&
-      pip3 install --upgrade pip setuptools > /dev/null &&
-      if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip; fi &&
-      if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi &&
-      pip install 'docker-compose' > /dev/null
+      apk add --quiet --no-cache bash py-pip && pip install --quiet docker-compose==1.23.2
 
 .reset_drupal:
     - &reset_drupal
