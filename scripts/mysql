@@ -100,7 +100,7 @@ _dump() {
   _set_dump_file
   if ! [ -f "${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush" ]; then
     printf "Drush not found, fallback to mysql dump"
-    _dump
+    _dump_native
   else
     _docker_exec_noi \
       "${DRUSH_BIN}" --root "${DRUPAL_DOCROOT}" sql-dump \
