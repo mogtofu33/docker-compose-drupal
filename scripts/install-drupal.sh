@@ -206,6 +206,7 @@ _install_dispatch() {
   fi
 
   __COUNT=${#DRUPAL_DISTRIBUTIONS[@]}
+  __DID=0
 
   for ((i=0; i<$__COUNT; i++))
   do
@@ -231,6 +232,11 @@ _install_dispatch() {
       fi
     fi
   done
+
+  if [[ ${__DID} == 0 ]]
+  then
+    printf "[ERROR] Unknown project: %s\\n" "${_SELECTED_PROJECT}"
+  fi
 
   exit
 }
@@ -354,9 +360,7 @@ _download_curl() {
     _docker_exec_noi \
       composer install-bootstrap-sass --working-dir="${WEB_ROOT}" ${__verbose}
   fi
-  __theme_root="${WEB_ROOT}/web/themes/custom/bootstrap_sass"
-  _docker_exec_noi \
-    ${WEB_ROOT}/vendor/bin/pscss ${__theme_root}/scss/style.scss > ${__theme_root}/css/style.css
+
 }
 
 #
@@ -560,9 +564,16 @@ _select_db() {
     die "No database container found, please ensure your stack is running eg: docker-compose up -d."
   fi
 
-  if [[ ${_DB_LIST[0]} == "$_DEFAULT_DB" ]] || [[ ${_DB_LIST[1]} == "$_DEFAULT_DB" ]]
+  if [[ ${_DB_LIST[0]} == "$_DEFAULT_DB" ]]
   then
     _DB=$_DEFAULT_DB
+  fi
+  if [[ ${#_DB_LIST[@]} > 1 ]]
+  then
+    if [[ ${_DB_LIST[1]} == "$_DEFAULT_DB" ]]
+    then
+      _DB=$_DEFAULT_DB
+    fi
   fi
 
   if [[ ${#_DB_LIST[@]} > 1 ]] && [[ $_DB == 0 ]]
