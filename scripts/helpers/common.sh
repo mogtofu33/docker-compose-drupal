@@ -36,6 +36,42 @@ _DIR="$( cd -P "$( dirname "$_SOURCE" )" && pwd )"
 
 # Use on a lot of scripts.
 STACK_ROOT=${_DIR%"/scripts/helpers"}
+_USE_DEBUG=0
+
+###############################################################################
+# Debug
+###############################################################################
+
+# _debug()
+#
+# Usage:
+#   _debug printf "Debug info. Variable: %s\\n" "$0"
+#
+# A simple function for executing a specified command if the `$_USE_DEBUG`
+# variable has been set. The command is expected to print a message and
+# should typically be either `echo`, `printf`, or `cat`.
+__DEBUG_COUNTER=0
+_debug() {
+  if [[ "${_USE_DEBUG:-"0"}" -eq 1 ]]
+  then
+    __DEBUG_COUNTER=$((__DEBUG_COUNTER+1))
+    # Prefix debug message with "bug (U+1F41B)"
+    printf "🐛  %s " "${__DEBUG_COUNTER}"
+    "${@}"
+    printf "――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――\\n"
+  fi
+}
+# debug()
+#
+# Usage:
+#   debug "Debug info. Variable: $0"
+#
+# Print the specified message if the `$_USE_DEBUG` variable has been set.
+#
+# This is a shortcut for the _debug() function that simply echos the message.
+debug() {
+  _debug echo "${@}"
+}
 
 ###############################################################################
 # Die
@@ -112,7 +148,7 @@ PROJECT_CONTAINER_PHP="${PROJECT_NAME}-php"
 # Common Program Functions
 ###############################################################################
 
-# Helpers to run docker exec command on Php.
+# Helpers to run docker exec commands on Php container.
 _docker_exec() {
   $DOCKER exec \
     $tty \
@@ -160,7 +196,7 @@ _set_container_pgsql() {
 # Description:
 #   Run docker-compose down.
 _stack_down() {
-  printf "[info] Stop stack...\\n"
+  log_info "Stop stack..."
   $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" down
 }
 
@@ -169,7 +205,7 @@ _stack_down() {
 # Description:
 #   Run docker-compose up with build.
 _stack_up() {
-  printf "[info] Launch stack...\\n"
+  log_info "Launch stack..."
   $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" up -d --build
 }
 
@@ -185,6 +221,36 @@ _help_logo() {
   \__ \ )(_)(  )    (  )__)   \__ \( (__  )   / _)(_  )___/  )(  \__ \ 
   (___/(_____)(_/\/\_)(____)  (___/ \___)(_)\_)(____)(__)   (__) (___/ 
 HEREDOC
+}
+
+# Logging functions inspired from
+# https://github.com/gruntwork-io/bash-commons/blob/master/modules/bash-commons/src/log.sh
+
+# Log the given message at the given level. All logs are written to stderr with a timestamp.
+function _log {
+  local -r level="$1"
+  local -r message="$2"
+  local -r color="$3"
+  local -r timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+  >&2 echo -e "${timestamp} ${3}[${level}]\e[0m ${message}"
+}
+
+# Log the given message at INFO level. All logs are written to stderr with a timestamp.
+function log_info {
+  local -r message="$1"
+  _log "INFO" "$message" '\e[0;34m'
+}
+
+# Log the given message at WARN level. All logs are written to stderr with a timestamp.
+function log_warn {
+  local -r message="$1"
+  _log "WARN" "$message" '\e[0;33m'
+}
+
+# Log the given message at ERROR level. All logs are written to stderr with a timestamp.
+function log_error {
+  local -r message="$1"
+  _log "ERROR" "$message" '\e[0;31m'
 }
 
 ###############################################################################
