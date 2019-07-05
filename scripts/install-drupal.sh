@@ -7,9 +7,10 @@
 #
 # Depends on:
 #  docker
+#  docker-compose
 #  DockerComposeDrupal
 #
-# Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
+# Inspiration from Bash Boilerplate: https://github.com/alphabetum/bash-boilerplate
 # Bash Boilerplate: Copyright (c) 2015 William Melody • hi@williammelody.com
 
 if [[ -z ${STACK_ROOT} ]]
@@ -52,10 +53,10 @@ Usage:
   ${_ME} install -p drupal-demo -d postgres
 
 Arguments: 
-  list              List available projects.
-  install | in      Download and setup a project.
-  download | dl     Download a project codebase.
-  setup | set       Install a project.
+  list | l          List available projects.
+  install | i       Download + Setup a project in one command.
+  download | dl     Download a project codebase as a single command.
+  setup | set       Setup a Drupal project as a single command.
   delete            Delete a previously downloaded project.
 
 Options with argument:
@@ -64,7 +65,8 @@ Options with argument:
 
 Options:
   -f --force        Force prompt with Yes if any.
-  -v --verbose      More messages with composer.
+  -v --verbose      More messages with this scripts.
+  --debug           Debug messages.
   -h --help         Show this screen.
 
 HEREDOC
@@ -80,10 +82,14 @@ _PRINT_HELP=0
 _CMD="print_help"
 _SELECTED_PROJECT=0
 _DEFAULT_DB="mysql"
+
 __force=0
 __verbose=""
 __do_download=0
 __do_setup=0
+__login_help=1
+__composer_local=
+__composer_options=""
 
 # _require_argument()
 #
@@ -120,6 +126,11 @@ do
       ;;
     -v|--verbose)
       __verbose="-vvv"
+      debug "-v specified: Verbose mode"
+      ;;
+    --debug)
+      _USE_DEBUG=1
+      debug "Debug mode is ON"
       ;;
     -p|--project)
       _require_argument "${__option}" "${__maybe_param}"
@@ -145,6 +156,7 @@ do
   shift
 done
 
+
 ###############################################################################
 # Program Functions
 ###############################################################################
@@ -158,7 +170,7 @@ _install() {
   __do_setup=1
   _install_dispatch
 }
-_in() {
+_i() {
   _install
 }
 
@@ -207,20 +219,23 @@ _install_dispatch() {
 
   __COUNT=${#DRUPAL_DISTRIBUTIONS[@]}
   __DID=0
+  __DID_FOUND=0
 
   for ((i=0; i<$__COUNT; i++))
   do
 
     __DID=${!DRUPAL_DISTRIBUTIONS[i]:0:1}
-    __DESC=${!DRUPAL_DISTRIBUTIONS[i]:1:1}
-    __INSTALL_PROFILE=${!DRUPAL_DISTRIBUTIONS[i]:2:1}
-    __WEBROOT=${!DRUPAL_DISTRIBUTIONS[i]:3:1}
-    __DOWNLOAD_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:4:1}
-    __PROJECT=${!DRUPAL_DISTRIBUTIONS[i]:5:1}
-    __SETUP_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:6:1}
 
     if [[ ${_SELECTED_PROJECT} == "${__DID}" ]]
     then
+      __DID_FOUND=1
+      __DESC=${!DRUPAL_DISTRIBUTIONS[i]:1:1}
+      __INSTALL_PROFILE=${!DRUPAL_DISTRIBUTIONS[i]:2:1}
+      __WEBROOT=${!DRUPAL_DISTRIBUTIONS[i]:3:1}
+      __DOWNLOAD_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:4:1}
+      __PROJECT=${!DRUPAL_DISTRIBUTIONS[i]:5:1}
+      __SETUP_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:6:1}
+
       if [[ $__do_download == 1 ]]
       then
         _download_dispatch "$__DOWNLOAD_TYPE"
@@ -233,12 +248,13 @@ _install_dispatch() {
     fi
   done
 
-  if [[ ${__DID} == 0 ]]
+  if [[ ${__DID_FOUND} == 0 ]]
   then
-    printf "[ERROR] Unknown project: %s\\n" "${_SELECTED_PROJECT}"
+    log_error "Unknown project: ${_SELECTED_PROJECT}"
+    printf "\\nTo have a list of available projects run:\\n%s list\\n\\n" "${_ME}"
+    exit
   fi
 
-  exit
 }
 
 # _ensure_download()
@@ -250,7 +266,7 @@ _ensure_download() {
   then
     if [[ -f ${STACK_DRUPAL_ROOT}/web/index.php ]] && [[ ${__force} == 0 ]]
     then
-      _prompt_yn "[Notice] Drupal already exist, do you want to continue and DELETE?"
+      _prompt_yn "Drupal already exist, do you want to continue and DELETE?"
     fi
     _stack_down
     ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
@@ -262,7 +278,7 @@ _ensure_download() {
 # Description:
 #   Download dispatcher depending download type of the project (composer or git).
 _download_dispatch() {
-  printf "[info] Start downloading %s\\n" "${__PROJECT}"
+  log_info "Start downloading ${__PROJECT}"
   __call="_download_${1}"
   $__call
   _fix_docroot
@@ -272,19 +288,33 @@ _download_dispatch() {
 #
 # Description:
 #   Download with composer create-project command.
+#   Accept composer options as argument.
 _download_composer() {
+
+  # Set and extend composer options.
+  __composer_options="--ignore-platform-reqs --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__verbose}"
+  __composer_options_local="${__composer_options} --ignore-platform-reqs"
+  if [[ ! -z ${1+x} ]]
+  then
+    __composer_options="${__composer_options} ${1}"
+    __composer_options_local="${__composer_options_local} ${1}"
+  fi
+
+  # Delete any existing codebase.
+  _ensure_download
+
   # Setup Drupal 8 composer project.
   if [ -x "$(command -v composer)" ]; then
-    _ensure_download
-    printf "[Notice] Using local composer"
-    composer create-project ${__PROJECT} ${STACK_DRUPAL_ROOT} --no-interaction --no-ansi --ignore-platform-reqs --remove-vcs --no-progress --prefer-dist ${__verbose}
+    log_info "Found composer installed locally"
+    debug "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
+    bash -c "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
     _stack_up
   else
-    _ensure_download
     _stack_up
-    printf "[Notice] Using composer from the stack"
+    log_info "No local composer found, using composer from the stack"
+    debug "docker exec ... composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
     _docker_exec_noi \
-      composer create-project ${__PROJECT} /tmp/drupal --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__verbose}
+      bash -c "composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
     _docker_exec_root \
       chown apache:www-data ${WEB_ROOT}
     _docker_exec_noi \
@@ -292,6 +322,15 @@ _download_composer() {
     _docker_exec_root \
       rm -rf /tmp/drupal
   fi
+}
+
+# _download_composer_commerce()
+#
+# Description:
+#   Download with composer create-project command for Commerce.
+_download_composer_commerce() {
+  # Commerce currently needs the dev stability forced to be installed.
+  _download_composer "--stability dev"
 }
 
 # _download_composer_contenta()
@@ -349,17 +388,10 @@ _download_curl() {
   rm -f /tmp/drupal.tar.gz
 
   # Setup Drupal 8 composer project.
-  if [ -x "$(command -v composer)" ]; then
-    printf "[Notice] Using local composer"
-    composer install --working-dir="${STACK_DRUPAL_ROOT}" --no-suggest --no-interaction --ignore-platform-reqs ${__verbose}
-    composer install-bootstrap-sass --working-dir="${STACK_DRUPAL_ROOT}" ${__verbose}
-  else
-    printf "[Notice] Using composer from the stack"
-    _docker_exec_noi \
-      composer install --working-dir="${WEB_ROOT}" --no-suggest --no-interaction ${__verbose}
-    _docker_exec_noi \
-      composer install-bootstrap-sass --working-dir="${WEB_ROOT}" ${__verbose}
-  fi
+  _composer_cmd "install --no-suggest --no-interaction"
+
+  _docker_exec_noi \
+    composer install-bootstrap-sass --working-dir="${WEB_ROOT}" ${__verbose}
 
 }
 
@@ -370,7 +402,7 @@ _setup_dispatch() {
 
   _stack_up
 
-  printf "[info] Install %s with profile %s on db %s\\n" "${__DID}" "${__INSTALL_PROFILE}" "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
+  log_info "Install ${__DID} with profile ${__INSTALL_PROFILE} on db ${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 
   _clean_setup
 
@@ -381,7 +413,10 @@ _setup_dispatch() {
 
   _fix_files_perm
 
-  printf "\\n >> Access %s on\\nhttp://${PROJECT_BASE_URL}\\n >> Log-in with: admin / password\\n\\n" "${__DID}"
+  if [[ ${__login_help} == 1 ]]
+  then
+    printf "\\n >> Access %s on\\nhttp://${PROJECT_BASE_URL}\\n >> Log-in with: admin / password\\n\\n" "${__DID}"
+  fi
 }
 
 # _clean_setup()
@@ -391,7 +426,8 @@ _setup_dispatch() {
 _clean_setup() {
   if [[ -f ${STACK_DRUPAL_ROOT}/web/sites/default/settings.php ]] && [[ ${__force} == 0 ]]
   then
-    _prompt_yn "[warning] settings.php already exist, mean Drupal is already installed, do you want to install over?"
+    log_warn "settings.php already exist, mean Drupal is already installed"
+    _prompt_yn "Do you want to install over?"
   fi
 
   _docker_exec_root \
@@ -421,7 +457,9 @@ _setup_standard() {
 #   Specific Varbase setup, can not be done with Drush, but add Drush for dev.
 #   The problem is the Varbase install form with many options.
 _setup_varbase() {
-  printf "[warning] Varbase profile can not be installed from drush, install from \\nhttp://%s\\n" "${PROJECT_BASE_URL}"
+  log_warn "Varbase profile has too many options and can not be installed with this script"
+  printf "Please install from \\nhttp://%s\\n" "${PROJECT_BASE_URL}"
+  __login_help=0
 }
 
 # _setup_contenta()
@@ -484,18 +522,58 @@ _setup_advanced() {
     --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 }
 
+# _setup_commerce_demo()
+#
+# Description:
+#   Specific install for commerce with demo modules.
+_setup_commerce_demo() {
+
+  _setup_standard
+
+  # Add commerce demo module.
+  log_info "Extend commerce with commerce_demo"
+  _composer_cmd "require drupal/commerce_demo bower-asset/jquery-simple-color"
+  # drupal/belgrade
+  # drupal/sshop
+  # drupal/estore
+
+  _docker_exec_noi "${DRUSH_BIN}" -y pm:enable commerce_demo
+}
+
+# _ensure_drush()
+#
+# Description:
+#   Helper to detect and add Drush if needed as it's not included in some
+#   projects.
 _ensure_drush() {
   if ! [ -f "${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush" ]; then
-    printf "[info] Install missing drush\\n"
+    log_info "Install drush"
     # Drush is not included in varbase distribution.
-    if [ -x "$(command -v composer)" ]; then
-      printf "[Notice] Using local composer"
-      composer require drush/drush --working-dir="${STACK_DRUPAL_ROOT}" --ignore-platform-reqs ${__verbose}
-    else
-      printf "[Notice] Using composer from the stack"
-      _docker_exec_noi \
-        composer require drush/drush --working-dir="${WEB_ROOT}" ${__verbose}
-    fi
+    _composer_cmd "require drush/drush"
+
+    # if [ -x "$(command -v composer)" ]; then
+    #   log_info "Found composer installed locally"
+    #   composer require drush/drush --working-dir="${STACK_DRUPAL_ROOT}" --ignore-platform-reqs ${__verbose}
+    # else
+    #   log_info "No local composer found, using composer from the stack"
+    #   _docker_exec_noi \
+    #     composer require drush/drush --working-dir="${WEB_ROOT}" ${__verbose}
+    # fi
+  fi
+}
+
+# _composer_cmd()
+#
+# Description:
+#   Helper to run composer command, need the command and parameters as first argument.
+_composer_cmd() {
+  if [ -x "$(command -v composer)" ]; then
+    log_info "Found composer installed locally"
+    bash -c "composer ${1} --working-dir=${STACK_DRUPAL_ROOT} --ignore-platform-reqs"
+  else
+    log_info "No local composer found, using composer from the stack"
+    _docker_exec_noi \
+      bash -c "composer ${1} --working-dir=${WEB_ROOT}"
   fi
 }
 
@@ -505,19 +583,20 @@ _ensure_drush() {
 #   Helper to let user select a project for this script.
 _select_project() {
 
-  printf "For more information on each option run %s list\\n" "${_ME}"
+  log_info "For more information on each option run ${_ME} list"
 
   __list=()
   __COUNT=${#DRUPAL_DISTRIBUTIONS[@]}
   for ((i=0; i<$__COUNT; i++))
   do
-    __list[i]=${!DRUPAL_DISTRIBUTIONS[i]:0:1}
+    __list[i]="${!DRUPAL_DISTRIBUTIONS[i]:0:1} - ${!DRUPAL_DISTRIBUTIONS[i]:1:1}"
   done
 
-  select opt in "Cancel" "${__list[@]}"; do
+  select opt in "${__list[@]}" "Cancel"; do
     case $opt in
+      Cancel) die Cancelled;;
       *)
-        _SELECTED_PROJECT=$opt
+        _SELECTED_PROJECT=${opt% - *}
         break
         ;;
     esac
@@ -561,7 +640,15 @@ _select_db() {
 
   if [[ ${_DB_LIST} == 0 ]]
   then
-    die "No database container found, please ensure your stack is running eg: docker-compose up -d."
+    if [[ -z ${_DB_ERROR+x} ]]
+    then
+      log_error "No database container found, ensure stack is running and a MySQL / MariaDB / Postgres container is running properly."
+    else
+      log_warn "No database container found, launching stack..."
+      _DB_ERROR=1
+      _stack_up
+      _select_db
+    fi
   fi
 
   if [[ ${_DB_LIST[0]} == "$_DEFAULT_DB" ]]
@@ -588,7 +675,10 @@ _select_db() {
       esac
     done
   else
-    printf "[info] Found database %s\\n" ${_DB}
+    if [[ -z ${_DB_ERROR+x} ]]
+    then
+      log_info "Found database ${_DB}"
+    fi
   fi
 
   if [[ $_DB == "postgres" ]]
@@ -613,6 +703,9 @@ _list() {
     printf "  %s\\n   * %s\\n" "${__DID}" "${__DESC}"
   done
 }
+_l() {
+  _list
+}
 
 # _fix_docroot()
 #
@@ -621,7 +714,7 @@ _list() {
 _fix_docroot() {
   if [[ ${__WEBROOT} != "web" ]]
   then
-    printf "[info] Fix Drupal %s to web\\n" ${__WEBROOT}
+    log_info "Fix Drupal ${__WEBROOT} to web"
     _docker_exec_noi \
       ln -s ${WEB_ROOT}/${__WEBROOT} ${DRUPAL_DOCROOT}
   fi
@@ -656,7 +749,8 @@ _fix_files_perm() {
 #   Delete a previous downloaded Drupal.
 _delete() {
   if [ ${__force} == 0 ]; then
-    _prompt_yn "[warning] Deletion is permanent and can not be recovered!"
+    log_warn "Deletion is permanent and can not be recovered!"
+    _prompt_yn "Do you want to proceed?"
   fi
   _stack_down
   ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
@@ -691,7 +785,7 @@ _main() {
     if [ "$(type -t "${__call}")" == 'function' ]; then
       $__call
     else
-      printf "[ERROR] Unknown command: %s\\n" "${_CMD}"
+      log_error "Unknown command: ${_CMD}"
     fi
 
   fi
