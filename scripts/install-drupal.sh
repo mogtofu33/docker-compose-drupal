@@ -537,7 +537,7 @@ _setup_commerce_demo() {
   _docker_exec_noi "${DRUSH_BIN}" -y pm:enable commerce_demo
   _docker_exec_noi "${DRUSH_BIN}" -y theme:enable belgrade
   _docker_exec_noi "${DRUSH_BIN}" -y config-set system.theme default belgrade
-  _docker_exec_noi "${DRUSH_BIN}" -y config-set system.site page.front products
+  _docker_exec_noi "${DRUSH_BIN}" -y config-set system.site page.front /products
 }
 
 # _ensure_drush()
