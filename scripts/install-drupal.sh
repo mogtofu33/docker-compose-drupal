@@ -532,7 +532,7 @@ _setup_commerce_demo() {
 
   # Add commerce demo module.
   log_info "Extend commerce with commerce_demo"
-  _composer_cmd "require drupal/commerce_demo bower-asset/jquery-simple-color"
+  _composer_cmd "require drupal/commerce_demo bower-asset/jquery-simple-color drupal/belgrade drupal/sshop drupal/estore"
   # drupal/belgrade
   # drupal/sshop
   # drupal/estore
@@ -550,15 +550,6 @@ _ensure_drush() {
     log_info "Install drush"
     # Drush is not included in varbase distribution.
     _composer_cmd "require drush/drush"
-
-    # if [ -x "$(command -v composer)" ]; then
-    #   log_info "Found composer installed locally"
-    #   composer require drush/drush --working-dir="${STACK_DRUPAL_ROOT}" --ignore-platform-reqs ${__verbose}
-    # else
-    #   log_info "No local composer found, using composer from the stack"
-    #   _docker_exec_noi \
-    #     composer require drush/drush --working-dir="${WEB_ROOT}" ${__verbose}
-    # fi
   fi
 }
 
@@ -617,6 +608,8 @@ _select_db() {
   _DB=0
   _DB_LIST=0
 
+  _stack_up
+
   # Check if any mysql container is running.
   RUNNING=$(docker ps -f "name=mariadb" -f "status=running" -q | head -1 2> /dev/null)
   if [[ -n "$RUNNING" ]]
@@ -655,6 +648,7 @@ _select_db() {
   then
     _DB=$_DEFAULT_DB
   fi
+
   if [[ ${#_DB_LIST[@]} > 1 ]]
   then
     if [[ ${_DB_LIST[1]} == "$_DEFAULT_DB" ]]
@@ -754,6 +748,45 @@ _delete() {
   fi
   _stack_down
   ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
+}
+
+###############################################################################
+# Tests
+###############################################################################
+
+_test() {
+
+  _CMD="test"
+  _SELECTED_PROJECT=""
+  _DEFAULT_DB="mysql"
+  _DB="mysql"
+
+  __force=1
+
+  __COUNT=${#DRUPAL_DISTRIBUTIONS[@]}
+
+  for ((i=0; i<$__COUNT; i++))
+  do
+
+    __DID=${!DRUPAL_DISTRIBUTIONS[i]:0:1}
+    _SELECTED_PROJECT=${__DID}
+
+    log_info "TEST install $_SELECTED_PROJECT"
+
+    # __DESC=${!DRUPAL_DISTRIBUTIONS[i]:1:1}
+    __INSTALL_PROFILE=${!DRUPAL_DISTRIBUTIONS[i]:2:1}
+    __WEBROOT=${!DRUPAL_DISTRIBUTIONS[i]:3:1}
+    __DOWNLOAD_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:4:1}
+    __PROJECT=${!DRUPAL_DISTRIBUTIONS[i]:5:1}
+    __SETUP_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:6:1}
+
+    _download_dispatch "$__DOWNLOAD_TYPE"
+
+    _setup_dispatch "$__SETUP_TYPE"
+
+    _docker_exec_noi "${DRUSH_BIN}" status
+
+  done
 }
 
 ###############################################################################

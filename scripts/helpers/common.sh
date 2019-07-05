@@ -207,6 +207,8 @@ _stack_down() {
 _stack_up() {
   log_info "Launch stack..."
   $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" up -d --build
+  # Wait to be sure DB is up.
+  sleep 5s
 }
 
 ###############################################################################

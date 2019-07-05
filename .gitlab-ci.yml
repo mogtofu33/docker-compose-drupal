@@ -17,7 +17,6 @@ variables:
   LOCAL_IMAGE: registry.gitlab.com/mog33/docker-compose-drupal
   RELEASE_REGISTRY: docker.io
   RELEASE_IMAGE: index.docker.io/$RELEASE_USER
-  DOCKER_COMPOSE_VERSION: 1.24.1
 
 ################################################################################
 # Templates to avoid repeat.
@@ -53,13 +52,7 @@ variables:
 # https://github.com/docker/compose/issues/6617
 .install_docker_compose:
     - &install_docker_compose
-      apk add --quiet --no-cache bash make py-pip && pip install --quiet docker-compose==$DOCKER_COMPOSE_VERSION
-
-.reset_drupal:
-    - &reset_drupal
-      rm -f drupal/web/sites/default/settings.php &&
-      cp drupal/web/sites/default/default.settings.php drupal/web/sites/default/settings.php &&
-      chmod 777 drupal/web/sites/default/settings.php
+      apk add --quiet --no-cache bash make py-pip && pip install --quiet docker-compose==1.24.1
 
 .test_run: &test_run
   stage: run
@@ -79,9 +72,7 @@ variables:
     - apk --no-cache add git
     - scripts/get-tools.sh test
     - scripts/composer
-    - scripts/install-drupal.sh
-    - scripts/install-drupal.sh install -f -p drupal-min
-    - scripts/drush status
+    - scripts/install-drupal.sh test
     - scripts/mysql test
     - scripts/pgsql test
 
