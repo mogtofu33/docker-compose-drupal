@@ -532,12 +532,12 @@ _setup_commerce_demo() {
 
   # Add commerce demo module.
   log_info "Extend commerce with commerce_demo"
-  _composer_cmd "require drupal/commerce_demo bower-asset/jquery-simple-color drupal/belgrade drupal/sshop drupal/estore"
-  # drupal/belgrade
-  # drupal/sshop
-  # drupal/estore
+  _composer_cmd "require drupal/commerce_demo bower-asset/jquery-simple-color drupal/belgrade"
 
   _docker_exec_noi "${DRUSH_BIN}" -y pm:enable commerce_demo
+  _docker_exec_noi "${DRUSH_BIN}" -y theme:enable belgrade
+  _docker_exec_noi "${DRUSH_BIN}" -y config-set system.theme default belgrade
+  _docker_exec_noi "${DRUSH_BIN}" -y config-set system.site page.front products
 }
 
 # _ensure_drush()
