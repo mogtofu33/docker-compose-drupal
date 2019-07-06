@@ -33,7 +33,7 @@ Based mostly on Docker official images and lightweight [Alpine Linux](https://al
 
 This stack is meant to be used as a one Drupal 8 project only quick setup and run.
 
-The purpose is to give flexibility in managment, try to rely as much as possible on offcial tools to avoid any new custom patterns.
+The purpose is to give flexibility in management, try to rely as much as possible on official tools to avoid any new custom patterns.
 If you have to learn the meta tool instead of the tool, then it's not a good one...
 This stack is not a one line command but more for users with a good dev-op level and knowledge on each technology used.
 
@@ -162,15 +162,7 @@ You can import the database from the adminer link in the dashboard.
 
 Setup a new Drupal 8 based on a Composer project with user Apache.
 
-Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/), using [Composer](https://getcomposer.org) in the docker service:
-
-```bash
-docker exec -it -u apache dcd-php \
-    composer create-project drupal-composer/drupal-project:8.x-dev \
-    /var/www/localhost --stability dev --no-interaction
-```
-
-_OR_ locally if you have [Composer](https://getcomposer.org/download) installed, from this project root:
+Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/), using [Composer](https://getcomposer.org) locally:
 
 ```bash
 composer create-project drupal-composer/drupal-project:8.x-dev drupal --stability dev --no-interaction
@@ -189,27 +181,6 @@ docker exec -it -u apache dcd-php /var/www/localhost/vendor/bin/drush -y site:in
     --account-pass=password \
     --db-url=mysql://drupal:drupal@mysql/drupal
     #--db-url=pgsql://drupal:drupal@pgsql/drupal
-```
-
-#### Option 2: Install a Drupal 8 Distribution
-
-Drupal provide some usefull [distributions](https://www.drupal.org/project/project_distribution?f%5B2%5D=drupal_core%3A7234) to help you start with a more complete Drupal 8 out of the box.
-
-Here is an example, assuming we use composer from docker:
-
-- [Lightning](https://www.drupal.org/project/lightning)
-
-```bash
-# Step 1: Grab code
-docker exec -it -u apache dcd-php \
-    composer create-project acquia/lightning-project \
-    /var/www/localhost --no-interaction
-# Step 2: Install
-docker exec -it -u apache dcd-php /var/www/localhost/vendor/bin/drush -y site:install lightning \
-    --root=/var/www/localhost/web \
-    --account-name=admin \
-    --account-pass=password \
-    --db-url=mysql://drupal:drupal@mysql/drupal
 ```
 
 #### Access your Drupal 8
@@ -300,6 +271,7 @@ Install Drupal 8 variant helpers (This delete and replace existing Drupal in _./
 
 ```bash
 scripts/install-drupal.sh
+scripts/install-drupal.sh list
 scripts/install-drupal.sh install -p drupal-demo
 ```
 
@@ -329,7 +301,7 @@ chmod +x scripts/get-tools.sh
 
 ### General problem
 
-In case of any problem, first step is to check the configuraion ansd the logs
+In case of any problem, first step is to check the configuration and the logs
 
 ```bash
 docker-compose config
