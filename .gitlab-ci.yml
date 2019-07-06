@@ -112,7 +112,7 @@ release:dashboard:
     - master
 
 build:
-  image: docker/compose:latest
+  image: docker/compose:1.24.1
   stage: build
 #  before_script:
 #    - *install_docker_compose
@@ -121,14 +121,14 @@ build:
     - docker-compose config
 
 run:
-  image: docker/compose:latest
+  image: docker/compose:1.24.1
   before_script:
     # - *install_docker_compose
     - make setup
   <<: *test_run
 
 run basic:
-  image: docker/compose:latest
+  image: docker/compose:1.24.1
   before_script:
     # - *install_docker_compose
     - make setup
@@ -136,7 +136,7 @@ run basic:
   <<: *test_run
 
 run advanced:
-  image: docker/compose:latest
+  image: docker/compose:1.24.1
   before_script:
     # - *install_docker_compose
     - make setup
@@ -144,7 +144,7 @@ run advanced:
   <<: *test_run
 
 run AP9P:
-  image: docker/compose:latest
+  image: docker/compose:1.24.1
   before_script:
     # - *install_docker_compose
     - make setup
@@ -152,7 +152,7 @@ run AP9P:
   <<: *test_run
 
 test:
-  image: docker/compose:latest
+  image: docker/compose:1.24.1
   before_script:
     # - *install_docker_compose
     - make setup
