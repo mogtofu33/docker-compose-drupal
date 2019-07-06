@@ -310,7 +310,7 @@ _download_composer() {
   _ensure_download
 
   # Setup Drupal 8 composer project.
-  if [ -x "$(command -v composer1)" ]; then
+  if [ -x "$(command -v composer)" ]; then
     if [[ ${__quiet} == "" ]]
     then
       log_info "Found composer installed locally"
@@ -574,7 +574,7 @@ _ensure_drush() {
 # Description:
 #   Helper to run composer command, need the command and parameters as first argument.
 _composer_cmd() {
-  if [ -x "$(command -v composer1)" ]; then
+  if [ -x "$(command -v composer)" ]; then
     if [[ ${__quiet} == "" ]]
     then
       log_info "Found composer installed locally"
