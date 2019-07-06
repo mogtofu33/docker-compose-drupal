@@ -51,9 +51,9 @@ variables:
     - docker push $RELEASE_IMAGE/$IMAGE
 
 # https://github.com/docker/compose/issues/6617
-.install_docker_compose:
-    - &install_docker_compose
-      apk add --quiet --no-cache bash make py-pip && pip install --quiet docker-compose==$DOCKER_COMPOSE_VERSION
+# .install_docker_compose:
+#     - &install_docker_compose
+#       apk add --quiet --no-cache bash make py-pip && pip install --quiet docker-compose==$DOCKER_COMPOSE_VERSION
 
 .test_run: &test_run
   stage: run
@@ -73,7 +73,7 @@ variables:
     - apk --no-cache add git
     - scripts/get-tools.sh test
     - scripts/composer
-    - scripts/install-drupal.sh test
+    # - scripts/install-drupal.sh test
     - scripts/mysql test
     - scripts/pgsql test
 
@@ -112,42 +112,48 @@ release:dashboard:
     - master
 
 build:
+  image: docker/compose:latest
   stage: build
-  before_script:
-    - *install_docker_compose
+#  before_script:
+#    - *install_docker_compose
   script:
     - make setup
     - docker-compose config
 
 run:
+  image: docker/compose:latest
   before_script:
-    - *install_docker_compose
+    # - *install_docker_compose
     - make setup
   <<: *test_run
 
 run basic:
+  image: docker/compose:latest
   before_script:
-    - *install_docker_compose
+    # - *install_docker_compose
     - make setup
     - cp samples/apache_mysql_php.yml docker-compose.yml
   <<: *test_run
 
 run advanced:
+  image: docker/compose:latest
   before_script:
-    - *install_docker_compose
+    # - *install_docker_compose
     - make setup
     - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
   <<: *test_run
 
 run AP9P:
+  image: docker/compose:latest
   before_script:
-    - *install_docker_compose
+    # - *install_docker_compose
     - make setup
     - cp samples/apache_postgres9_php.yml docker-compose.yml
   <<: *test_run
 
 test:
+  image: docker/compose:latest
   before_script:
-    - *install_docker_compose
+    # - *install_docker_compose
     - make setup
   <<: *test
