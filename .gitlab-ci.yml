@@ -73,8 +73,7 @@ variables:
     - apk --no-cache add git
     - scripts/get-tools.sh test
     - scripts/composer
-    # - scripts/install-drupal.sh test
-     scripts/install-drupal.sh install -p drupal-min -d mysql -f -q
+    - scripts/install-drupal.sh install -p drupal-min -d mysql -f -q
     - scripts/mysql test
     - scripts/pgsql test
 
