@@ -274,7 +274,7 @@ _ensure_download() {
     then
       _prompt_yn "Drupal already exist, do you want to continue and DELETE?"
     fi
-    _stack_down
+    #_stack_down
     ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
   fi
 }
@@ -310,16 +310,16 @@ _download_composer() {
   _ensure_download
 
   # Setup Drupal 8 composer project.
-  if [ -x "$(command -v composer)" ]; then
+  if [ -x "$(command -v composer1)" ]; then
     if [[ ${__quiet} == "" ]]
     then
       log_info "Found composer installed locally"
     fi
     debug "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
     bash -c "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
-    _stack_up
+    #_stack_up
   else
-    _stack_up
+    #_stack_up
     if [[ ${__quiet} == "" ]]
     then
       log_info "No local composer found, using composer from the stack"
@@ -392,7 +392,7 @@ _download_curl() {
 
   mv /tmp/drupal-composer-advanced-template-8.x-dev ${STACK_DRUPAL_ROOT}
 
-  _stack_up
+  #_stack_up
 
   _docker_exec_root \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
@@ -413,7 +413,7 @@ _download_curl() {
 #   Setup dispatcher depending Drupal profile name.
 _setup_dispatch() {
 
-  _stack_up
+  #_stack_up
 
   log_info "Install ${__DID} with profile ${__INSTALL_PROFILE} on db ${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 
@@ -574,7 +574,7 @@ _ensure_drush() {
 # Description:
 #   Helper to run composer command, need the command and parameters as first argument.
 _composer_cmd() {
-  if [ -x "$(command -v composer)" ]; then
+  if [ -x "$(command -v composer1)" ]; then
     if [[ ${__quiet} == "" ]]
     then
       log_info "Found composer installed locally"
@@ -630,7 +630,7 @@ _select_db() {
   _DB=0
   _DB_LIST=0
 
-  _stack_up
+  #_stack_up
 
   # Check if any mysql container is running.
   RUNNING=$(docker ps -f "name=mariadb" -f "status=running" -q | head -1 2> /dev/null)
@@ -702,6 +702,11 @@ _select_db() {
     DB_DRIVER=pgsql
     DB_HOST=pgsql
   fi
+
+  if [[ $_DB == 0 ]]
+  then
+    die "Cannot found a valid database, is a Mysql/Postgres container running ?"
+  fi
 }
 
 # _list()
@@ -768,7 +773,7 @@ _delete() {
     log_warn "Deletion is permanent and can not be recovered!"
     _prompt_yn "Do you want to proceed?"
   fi
-  _stack_down
+  #_stack_down
   ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
 }
 
@@ -784,6 +789,7 @@ _test() {
   _DB="mysql"
 
   __force=1
+  __quiet="--quiet"
 
   __COUNT=${#DRUPAL_DISTRIBUTIONS[@]}
 
@@ -795,7 +801,6 @@ _test() {
 
     log_warn ">>>>>>>>>>>>> TEST install $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
 
-    # __DESC=${!DRUPAL_DISTRIBUTIONS[i]:1:1}
     __INSTALL_PROFILE=${!DRUPAL_DISTRIBUTIONS[i]:2:1}
     __WEBROOT=${!DRUPAL_DISTRIBUTIONS[i]:3:1}
     __DOWNLOAD_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:4:1}
@@ -806,7 +811,9 @@ _test() {
 
     _setup_dispatch "$__SETUP_TYPE"
 
-    _docker_exec_noi "${DRUSH_BIN}" core:status --fields=drupal-version,db-status
+    if ! [ ${__DID} == "varbase" ]; then
+      _docker_exec_noi "${DRUSH_BIN}" core:status --fields=drupal-version,db-status
+    fi
 
   done
 }
@@ -832,7 +839,8 @@ _main() {
     if ! [ -x "$(command -v sudo)" ]; then
       SUDO=""
     else
-      SUDO="sudo"
+      #SUDO="sudo"
+      SUDO=""
     fi
 
     # Run command if exist.
