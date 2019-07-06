@@ -17,6 +17,7 @@ variables:
   LOCAL_IMAGE: registry.gitlab.com/mog33/docker-compose-drupal
   RELEASE_REGISTRY: docker.io
   RELEASE_IMAGE: index.docker.io/$RELEASE_USER
+  DOCKER_COMPOSE_VERSION: 1.23.2
 
 ################################################################################
 # Templates to avoid repeat.
@@ -52,7 +53,7 @@ variables:
 # https://github.com/docker/compose/issues/6617
 .install_docker_compose:
     - &install_docker_compose
-      apk add --quiet --no-cache bash make py-pip && pip install --quiet docker-compose==1.24.1
+      apk add --quiet --no-cache bash make py-pip && pip install --quiet docker-compose==$DOCKER_COMPOSE_VERSION
 
 .test_run: &test_run
   stage: run
