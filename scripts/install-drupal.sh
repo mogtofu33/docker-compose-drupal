@@ -66,6 +66,7 @@ Options with argument:
 Options:
   -f --force        Force prompt with Yes if any.
   -v --verbose      More messages with this scripts.
+  -q --quiet        Produce less messages.
   --debug           Debug messages.
   -h --help         Show this screen.
 
@@ -85,6 +86,7 @@ _DEFAULT_DB="mysql"
 
 __force=0
 __verbose=""
+__quiet=""
 __do_download=0
 __do_setup=0
 __login_help=1
@@ -127,6 +129,10 @@ do
     -v|--verbose)
       __verbose="-vvv"
       debug "-v specified: Verbose mode"
+      ;;
+    -q|--quiet)
+      __quiet="--quiet"
+      debug "-q specified: Quiet mode"
       ;;
     --debug)
       _USE_DEBUG=1
@@ -292,7 +298,7 @@ _download_dispatch() {
 _download_composer() {
 
   # Set and extend composer options.
-  __composer_options="--ignore-platform-reqs --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__verbose}"
+  __composer_options="--ignore-platform-reqs --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__quiet} ${__verbose}"
   __composer_options_local="${__composer_options} --ignore-platform-reqs"
   if [[ ! -z ${1+x} ]]
   then
@@ -305,13 +311,19 @@ _download_composer() {
 
   # Setup Drupal 8 composer project.
   if [ -x "$(command -v composer)" ]; then
-    log_info "Found composer installed locally"
+    if [[ ${__quiet} == "" ]]
+    then
+      log_info "Found composer installed locally"
+    fi
     debug "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
     bash -c "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
     _stack_up
   else
     _stack_up
-    log_info "No local composer found, using composer from the stack"
+    if [[ ${__quiet} == "" ]]
+    then
+      log_info "No local composer found, using composer from the stack"
+    fi
     debug "docker exec ... composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
     _docker_exec_noi \
       bash -c "composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
@@ -342,7 +354,8 @@ _download_composer_contenta() {
   if [ -f "download-contenta.sh" ]; then
     rm -f "download-contenta.sh"
   fi
-  if [ ${__verbose} == "" ]; then
+  if [[ ${__verbose} == "" ]] || [[ ${__quiet} == "--quiet" ]]
+  then
     curl --silent --output download-contenta.sh "https://raw.githubusercontent.com/contentacms/contenta_jsonapi_project/8.x-2.x/scripts/download.sh"
   else
     curl --output download-contenta.sh "https://raw.githubusercontent.com/contentacms/contenta_jsonapi_project/8.x-2.x/scripts/download.sh"
@@ -413,7 +426,7 @@ _setup_dispatch() {
 
   _fix_files_perm
 
-  if [[ ${__login_help} == 1 ]]
+  if [[ ${__login_help} == 1 ]] && [[ ${__quiet} == "" ]]
   then
     printf "\\n >> Access %s on\\nhttp://${PROJECT_BASE_URL}\\n >> Log-in with: admin / password\\n\\n" "${__DID}"
   fi
@@ -444,7 +457,7 @@ _clean_setup() {
 #   Setup with Drush for a specific profile.
 _setup_standard() {
   # Install this profile.
-  _docker_exec_noi "${DRUSH_BIN}" -y site:install ${__INSTALL_PROFILE} \
+  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y site:install ${__INSTALL_PROFILE} \
     --root="${DRUPAL_DOCROOT}" \
     --account-pass="password" \
     --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}" \
@@ -457,8 +470,11 @@ _setup_standard() {
 #   Specific Varbase setup, can not be done with Drush, but add Drush for dev.
 #   The problem is the Varbase install form with many options.
 _setup_varbase() {
-  log_warn "Varbase profile has too many options and can not be installed with this script"
-  printf "Please install from \\nhttp://%s\\n" "${PROJECT_BASE_URL}"
+  if [[ ${__quiet} == "" ]]
+  then
+    log_warn "Varbase profile has too many options and can not be installed with this script"
+    printf "Please install from \\nhttp://%s\\n" "${PROJECT_BASE_URL}"
+  fi
   __login_help=0
 }
 
@@ -489,7 +505,7 @@ _setup_contenta() {
   echo "ACCOUNT_PASS=password" >> "${STACK_DRUPAL_ROOT}/.env.local"
 
   _docker_exec_noi \
-    composer --working-dir="${WEB_ROOT}" run-script install:with-mysql ${__verbose}
+    composer --working-dir="${WEB_ROOT}" run-script install:with-mysql ${__verbose} ${__quiet}
 }
 
 # _setup_advanced()
@@ -515,7 +531,7 @@ _setup_advanced() {
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${DRUPAL_DOCROOT}/sites/default/
 
   # Install this profile with config_installer
-  _docker_exec_noi "${DRUSH_BIN}" -y site:install "${__INSTALL_PROFILE}" \
+  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y site:install "${__INSTALL_PROFILE}" \
     config_installer_sync_configure_form.sync_directory="../config/sync" \
     --root="${DRUPAL_DOCROOT}" \
     --account-pass="password" \
@@ -534,10 +550,10 @@ _setup_commerce_demo() {
   log_info "Extend commerce with commerce_demo"
   _composer_cmd "require drupal/commerce_demo bower-asset/jquery-simple-color drupal/belgrade"
 
-  _docker_exec_noi "${DRUSH_BIN}" -y pm:enable commerce_demo
-  _docker_exec_noi "${DRUSH_BIN}" -y theme:enable belgrade
-  _docker_exec_noi "${DRUSH_BIN}" -y config-set system.theme default belgrade
-  _docker_exec_noi "${DRUSH_BIN}" -y config-set system.site page.front /products
+  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y pm:enable commerce_demo
+  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y theme:enable belgrade
+  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y config-set system.theme default belgrade
+  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y config-set system.site page.front /products
 }
 
 # _ensure_drush()
@@ -559,10 +575,16 @@ _ensure_drush() {
 #   Helper to run composer command, need the command and parameters as first argument.
 _composer_cmd() {
   if [ -x "$(command -v composer)" ]; then
-    log_info "Found composer installed locally"
+    if [[ ${__quiet} == "" ]]
+    then
+      log_info "Found composer installed locally"
+    fi
     bash -c "composer ${1} --working-dir=${STACK_DRUPAL_ROOT} --ignore-platform-reqs"
   else
-    log_info "No local composer found, using composer from the stack"
+    if [[ ${__quiet} == "" ]]
+    then
+      log_info "No local composer found, using composer from the stack"
+    fi
     _docker_exec_noi \
       bash -c "composer ${1} --working-dir=${WEB_ROOT}"
   fi
@@ -771,7 +793,7 @@ _test() {
     __DID=${!DRUPAL_DISTRIBUTIONS[i]:0:1}
     _SELECTED_PROJECT=${__DID}
 
-    log_info "TEST install $_SELECTED_PROJECT"
+    log_warn ">>>>>>>>>>>>> TEST install $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
 
     # __DESC=${!DRUPAL_DISTRIBUTIONS[i]:1:1}
     __INSTALL_PROFILE=${!DRUPAL_DISTRIBUTIONS[i]:2:1}
@@ -784,7 +806,7 @@ _test() {
 
     _setup_dispatch "$__SETUP_TYPE"
 
-    _docker_exec_noi "${DRUSH_BIN}" status
+    _docker_exec_noi "${DRUSH_BIN}" core:status --fields=drupal-version,db-status
 
   done
 }
