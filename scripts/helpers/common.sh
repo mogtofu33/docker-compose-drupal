@@ -255,6 +255,11 @@ function log_error {
   _log "ERROR" "$message" '\e[0;31m'
 }
 
+function log_success {
+  local -r message="$1"
+  _log "SUCCESS" "$message" '\e[0;32m'
+}
+
 ###############################################################################
 # _prompt_yn()
 #
