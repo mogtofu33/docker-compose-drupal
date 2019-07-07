@@ -33,7 +33,7 @@ services:
     image: mogtofu33/php:${PHP_VERSION:-7.2}
     volumes:
       ## If you have composer set locally, share cache to speed up.
-      # - ${HOME:-}/.composer/cache:/composer/cache
+      # - ${HOME:-}/.composer/cache:/var/www/.composer/cache
       - ${HOST_WEB_ROOT:-./drupal}:/var/www/localhost
       - ./config/php/${PHP_VERSION:-7.2}/php.ini:/etc/php7/php.ini:ro
       - ./config/php/${PHP_VERSION:-7.2}/php-fpm.conf:/etc/php7/php-fpm.conf:ro
