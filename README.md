@@ -324,3 +324,6 @@ $Env:COMPOSE_CONVERT_WINDOWS_PATHS=1
 Some permissions and privileged problems:
 
 - [This issue](https://github.com/docker/for-win/issues/1829)
+
+----
+Want some help implementing this on your project? I provide Drupal 8 expertise as a freelance, just [contact me](https://developpeur-drupal.com/en).
