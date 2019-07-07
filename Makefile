@@ -31,7 +31,7 @@ demo: setup
 
 nuke:
 	@docker-compose down;
-	@sudo rm -rf drupal;
+	@rm -rf drupal;
 
 st: status
 status:
