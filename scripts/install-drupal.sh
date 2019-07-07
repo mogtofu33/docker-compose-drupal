@@ -303,7 +303,7 @@ _download_composer() {
   fi
 
   # Setup Drupal 8 composer project.
-  if [ -x "$(command -v composer1)" ]; then
+  if [ -x "$(command -v composer)" ]; then
     if [[ ${__quiet} == "" ]]
     then
       log_info "Found composer installed locally"
