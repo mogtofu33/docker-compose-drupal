@@ -244,11 +244,13 @@ _install_dispatch() {
 
       if [[ $__do_download == 1 ]]
       then
+        debug "_download_dispatch $__DOWNLOAD_TYPE"
         _download_dispatch "$__DOWNLOAD_TYPE"
       fi
 
       if [[ $__do_setup == 1 ]]
       then
+        debug "_setup_dispatch $__SETUP_TYPE"
         _setup_dispatch "$__SETUP_TYPE"
       fi
     fi
@@ -258,25 +260,9 @@ _install_dispatch() {
   then
     log_error "Unknown project: ${_SELECTED_PROJECT}"
     printf "\\nTo have a list of available projects run:\\n%s list\\n\\n" "${_ME}"
-    exit
+    exit 1
   fi
 
-}
-
-# _ensure_download()
-#
-# Description:
-#   Check if Drupal already here, stop stack if running.
-_ensure_download() {
-  if [[ -d ${STACK_DRUPAL_ROOT} ]]
-  then
-    if [[ -f ${STACK_DRUPAL_ROOT}/web/index.php ]] && [[ ${__force} == 0 ]]
-    then
-      _prompt_yn "Drupal already exist, do you want to continue and DELETE?"
-    fi
-    #_stack_down
-    ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
-  fi
 }
 
 # _download_dispatch()
@@ -284,9 +270,18 @@ _ensure_download() {
 # Description:
 #   Download dispatcher depending download type of the project (composer or git).
 _download_dispatch() {
+  # Delete any existing codebase.
+  _delete
+
   log_info "Start downloading ${__PROJECT}"
   __call="_download_${1}"
+  debug "call $__call"
   $__call
+  log_success "Finished downloading ${__PROJECT}"
+
+  # Restart container with web access.
+  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" restart php apache
+
   _fix_docroot
 }
 
@@ -298,41 +293,45 @@ _download_dispatch() {
 _download_composer() {
 
   # Set and extend composer options.
-  __composer_options="--ignore-platform-reqs --no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__quiet} ${__verbose}"
+  __composer_options="--no-interaction --no-ansi --remove-vcs --no-progress --prefer-dist ${__quiet} ${__verbose}"
   __composer_options_local="${__composer_options} --ignore-platform-reqs"
+
   if [[ ! -z ${1+x} ]]
   then
     __composer_options="${__composer_options} ${1}"
     __composer_options_local="${__composer_options_local} ${1}"
   fi
 
-  # Delete any existing codebase.
-  _ensure_download
-
   # Setup Drupal 8 composer project.
-  if [ -x "$(command -v composer)" ]; then
+  if [ -x "$(command -v composer1)" ]; then
     if [[ ${__quiet} == "" ]]
     then
       log_info "Found composer installed locally"
     fi
     debug "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
     bash -c "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
-    #_stack_up
   else
-    #_stack_up
     if [[ ${__quiet} == "" ]]
     then
       log_info "No local composer found, using composer from the stack"
     fi
+
+    # Delete existing tmp.
+    _docker_exec_root \
+      rm -Rf /tmp/drupal
+
     debug "docker exec ... composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
+
+    # Download and move as create-project needs a new folder.
     _docker_exec_noi \
       bash -c "composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
+
     _docker_exec_root \
       chown apache:www-data ${WEB_ROOT}
     _docker_exec_noi \
       cp -Rp /tmp/drupal/. ${WEB_ROOT}
     _docker_exec_root \
-      rm -rf /tmp/drupal
+      rm -Rf /tmp/drupal
   fi
 }
 
@@ -354,6 +353,9 @@ _download_composer_contenta() {
   if [ -f "download-contenta.sh" ]; then
     rm -f "download-contenta.sh"
   fi
+
+  debug "Get Contenta download script: https://raw.githubusercontent.com/contentacms/contenta_jsonapi_project/8.x-2.x/scripts/download.sh"
+
   if [[ ${__verbose} == "" ]] || [[ ${__quiet} == "--quiet" ]]
   then
     curl --silent --output download-contenta.sh "https://raw.githubusercontent.com/contentacms/contenta_jsonapi_project/8.x-2.x/scripts/download.sh"
@@ -366,15 +368,24 @@ _download_composer_contenta() {
   _docker_exec_root \
     chmod a+x /tmp/download-contenta.sh
 
+  debug "Run script and move downloaded files"
+
   # Contenta script require a new folder.
   _docker_exec_noi \
     sh -c 'exec '"/tmp/download-contenta.sh"' '"/tmp/contenta"''
+
+  _docker_exec_root \
+    chown apache:www-data ${WEB_ROOT}
   _docker_exec_noi \
     cp -Rp /tmp/contenta/. ${WEB_ROOT}
 
+  # Re-install for patches.
+  _composer_cmd "install --no-suggest --no-interaction"
+
   # Cleanup.
-  _docker_exec_noi \
+  _docker_exec_root \
     rm -Rf /tmp/contenta /tmp/download-contenta.sh
+
   rm -f "download-contenta.sh"
 }
 
@@ -384,28 +395,22 @@ _download_composer_contenta() {
 #   Download with curl based on an url with a tar.gz archive.
 _download_curl() {
 
-  _ensure_download
-
   # Download the archive and extract.
   curl -fsSL "${__PROJECT}" -o /tmp/drupal.tar.gz
   tar -xzf /tmp/drupal.tar.gz -C /tmp/
 
   mv /tmp/drupal-composer-advanced-template-8.x-dev ${STACK_DRUPAL_ROOT}
 
-  #_stack_up
-
   _docker_exec_root \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
 
   # Cleanup.
   rm -f /tmp/drupal.tar.gz
+  rm -Rf /tmp/drupal-composer-advanced-template-8.x-dev
+
 
   # Setup Drupal 8 composer project.
   _composer_cmd "install --no-suggest --no-interaction"
-
-  _docker_exec_noi \
-    composer install-bootstrap-sass --working-dir="${WEB_ROOT}" ${__verbose}
-
 }
 
 #
@@ -413,18 +418,17 @@ _download_curl() {
 #   Setup dispatcher depending Drupal profile name.
 _setup_dispatch() {
 
-  #_stack_up
-
-  log_info "Install ${__DID} with profile ${__INSTALL_PROFILE} on db ${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
+  log_info "Setup ${__DID} with profile \e[3m\e[1m${__INSTALL_PROFILE}\e[0m on db ${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 
   _clean_setup
-
   _ensure_drush
-
   __call="_setup_${1}"
   $__call
-
   _fix_files_perm
+
+  # $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" restart apache php
+
+  log_success "Profile ${__INSTALL_PROFILE} with ${__DID} installed"
 
   if [[ ${__login_help} == 1 ]] && [[ ${__quiet} == "" ]]
   then
@@ -437,14 +441,15 @@ _setup_dispatch() {
 # Description:
 #   Helper to ensure we don't have an existing setup.
 _clean_setup() {
-  if [[ -f ${STACK_DRUPAL_ROOT}/web/sites/default/settings.php ]] && [[ ${__force} == 0 ]]
+  if [[ -f ${STACK_DRUPAL_ROOT}/web/sites/default/settings.php ]]
   then
-    log_warn "settings.php already exist, mean Drupal is already installed"
-    _prompt_yn "Do you want to install over?"
+    log_warn "settings.php already exist, probably means Drupal is already installed, replacing"
+    _docker_exec_root \
+      mv "${DRUPAL_DOCROOT}/sites/default/settings.php" "${DRUPAL_DOCROOT}/sites/default/settings.php.bak"
   fi
 
-  _docker_exec_root \
-    rm -f "${DRUPAL_DOCROOT}/sites/default/settings.php"
+  debug "Prepare settings.php"
+
   _docker_exec_root \
     cp -f "${DRUPAL_DOCROOT}/sites/default/default.settings.php" "${DRUPAL_DOCROOT}/sites/default/settings.php"
   _docker_exec_root \
@@ -456,6 +461,9 @@ _clean_setup() {
 # Description:
 #   Setup with Drush for a specific profile.
 _setup_standard() {
+
+  debug "Install profile with generic setup"
+
   # Install this profile.
   _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y site:install ${__INSTALL_PROFILE} \
     --root="${DRUPAL_DOCROOT}" \
@@ -483,6 +491,9 @@ _setup_varbase() {
 # Description:
 #   Specific Contenta setup, use .env and drush.
 _setup_contenta() {
+
+  debug "Populate Contenta .env"
+
   # http://www.contentacms.org/#install
   if [ -f "${STACK_DRUPAL_ROOT}/.env" ]; then
     rm -f "${STACK_DRUPAL_ROOT}/.env"
@@ -504,6 +515,8 @@ _setup_contenta() {
   echo "MYSQL_PASSWORD=$DB_PASSWORD" >> "${STACK_DRUPAL_ROOT}/.env.local"
   echo "ACCOUNT_PASS=password" >> "${STACK_DRUPAL_ROOT}/.env.local"
 
+  debug "Install Contenta with included script"
+
   _docker_exec_noi \
     composer --working-dir="${WEB_ROOT}" run-script install:with-mysql ${__verbose} ${__quiet}
 }
@@ -513,6 +526,21 @@ _setup_contenta() {
 # Description:
 #   Specific install for advanced template with .env and drush.
 _setup_advanced() {
+
+  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" restart php apache
+
+  debug "Prepare and generate Bootstrap sub theme"
+
+  if [[ -f ${STACK_DRUPAL_ROOT}/web/themes/custom/bootstrap_sass ]] && [[ ${__force} == 0 ]]
+  then
+    _prompt_yn "Drupal Bootstrap subtheme already exist, do you want to continue and DELETE?"
+  fi
+  _docker_exec_root \
+      rm -Rf ${DRUPAL_DOCROOT}/themes/custom/bootstrap_sass
+  _docker_exec_noi \
+    composer install-bootstrap-sass --working-dir="${WEB_ROOT}" ${__verbose}
+
+  debug "Populate .env file and copy settings"
 
   cp "${STACK_DRUPAL_ROOT}/.env.example" "${STACK_DRUPAL_ROOT}/.env"
 
@@ -529,6 +557,8 @@ _setup_advanced() {
   # Fix permission.
   _docker_exec_root \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${DRUPAL_DOCROOT}/sites/default/
+
+  debug "Install this profile with config_installer"
 
   # Install this profile with config_installer
   _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y site:install "${__INSTALL_PROFILE}" \
@@ -549,6 +579,8 @@ _setup_commerce_demo() {
   # Add commerce demo module.
   log_info "Extend commerce with commerce_demo"
   _composer_cmd "require drupal/commerce_demo bower-asset/jquery-simple-color drupal/belgrade"
+
+  debug "${DRUSH_BIN} ${__quiet} -y pm:enable commerce_demo"
 
   _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y pm:enable commerce_demo
   _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y theme:enable belgrade
@@ -630,8 +662,6 @@ _select_db() {
   _DB=0
   _DB_LIST=0
 
-  #_stack_up
-
   # Check if any mysql container is running.
   RUNNING=$(docker ps -f "name=mariadb" -f "status=running" -q | head -1 2> /dev/null)
   if [[ -n "$RUNNING" ]]
@@ -655,7 +685,7 @@ _select_db() {
 
   if [[ ${_DB_LIST} == 0 ]]
   then
-    if [[ -z ${_DB_ERROR+x} ]]
+    if [[ ! -z ${_DB_ERROR+x} ]]
     then
       log_error "No database container found, ensure stack is running and a MySQL / MariaDB / Postgres container is running properly."
     else
@@ -693,7 +723,7 @@ _select_db() {
   else
     if [[ -z ${_DB_ERROR+x} ]]
     then
-      log_info "Found database ${_DB}"
+      log_info "Using database \e[3m\e[1m${_DB}\e[0m"
     fi
   fi
 
@@ -769,17 +799,53 @@ _fix_files_perm() {
 # Description:
 #   Delete a previous downloaded Drupal.
 _delete() {
-  if [ ${__force} == 0 ]; then
-    log_warn "Deletion is permanent and can not be recovered!"
-    _prompt_yn "Do you want to proceed?"
+  if [[ -d ${STACK_DRUPAL_ROOT} ]]
+  then
+    if [[ ${__force} == 0 ]]
+    then
+      log_warn "Deletion is permanent and can not be recovered!"
+      _prompt_yn "Do you want to proceed?"
+    fi
+
+    debug "Deleting codebase"
+
+    _docker_exec_root \
+      chown -R $LOCAL_UID:$LOCAL_GID "${WEB_ROOT}"
+
+    $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" stop php apache
+
+    chmod -R 777 "${STACK_DRUPAL_ROOT}"
+    rm -Rf "${STACK_DRUPAL_ROOT}"
+
+    $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" start php apache
+    sleep 5s
+
+    debug "...Done"
   fi
-  #_stack_down
-  ${SUDO} rm -rf "${STACK_DRUPAL_ROOT}"
+
+  if [[ -d /tmp/drupal ]]
+  then
+    rm -Rf /tmp/drupal
+  fi
 }
 
 ###############################################################################
 # Tests
 ###############################################################################
+
+test_single() {
+
+  _CMD="test"
+  _SELECTED_PROJECT="drupal-min"
+  _DEFAULT_DB="mysql"
+  _DB="mysql"
+
+  __force=1
+  __quiet="--quiet"
+
+  _install
+  _docker_exec_noi "${DRUSH_BIN}" core:status --fields=drupal-version,db-status
+}
 
 _test() {
 
@@ -836,17 +902,15 @@ _main() {
     _print_help
   else
 
-    if ! [ -x "$(command -v sudo)" ]; then
-      SUDO=""
-    else
-      #SUDO="sudo"
-      SUDO=""
-    fi
-
     # Run command if exist.
     __call="_${_CMD}"
     if [ "$(type -t "${__call}")" == 'function' ]; then
+      __start=`date +%s`
+      debug "call $__call"
       $__call
+      __end=`date +%s`
+      __runtime=$((__end-__start))
+      debug "Finished in ${__runtime} seconds"
     else
       log_error "Unknown command: ${_CMD}"
     fi
