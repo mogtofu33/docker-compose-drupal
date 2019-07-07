@@ -280,7 +280,10 @@ _download_dispatch() {
   log_success "Finished downloading ${__PROJECT}"
 
   # Restart container with web access.
-  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" restart php apache
+  debug "Restart php, apache"
+  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR restart php apache
+  sleep 10s
+  debug "...Done"
 
   _fix_docroot
 }
@@ -420,13 +423,10 @@ _setup_dispatch() {
 
   log_info "Setup ${__DID} with profile \e[3m\e[1m${__INSTALL_PROFILE}\e[0m on db ${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
 
-  _clean_setup
   _ensure_drush
   __call="_setup_${1}"
   $__call
   _fix_files_perm
-
-  # $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" restart apache php
 
   log_success "Profile ${__INSTALL_PROFILE} with ${__DID} installed"
 
@@ -434,26 +434,6 @@ _setup_dispatch() {
   then
     printf "\\n >> Access %s on\\nhttp://${PROJECT_BASE_URL}\\n >> Log-in with: admin / password\\n\\n" "${__DID}"
   fi
-}
-
-# _clean_setup()
-#
-# Description:
-#   Helper to ensure we don't have an existing setup.
-_clean_setup() {
-  if [[ -f ${STACK_DRUPAL_ROOT}/web/sites/default/settings.php ]]
-  then
-    log_warn "settings.php already exist, probably means Drupal is already installed, replacing"
-    _docker_exec_root \
-      mv "${DRUPAL_DOCROOT}/sites/default/settings.php" "${DRUPAL_DOCROOT}/sites/default/settings.php.bak"
-  fi
-
-  debug "Prepare settings.php"
-
-  _docker_exec_root \
-    cp -f "${DRUPAL_DOCROOT}/sites/default/default.settings.php" "${DRUPAL_DOCROOT}/sites/default/settings.php"
-  _docker_exec_root \
-    chown ${LOCAL_UID}:${LOCAL_GID} "${DRUPAL_DOCROOT}/sites/default/settings.php"
 }
 
 # _setup_standard()
@@ -527,11 +507,14 @@ _setup_contenta() {
 #   Specific install for advanced template with .env and drush.
 _setup_advanced() {
 
-  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" restart php apache
+  debug "Restart php, apache"
+  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR restart php apache
+  sleep 10s
+  debug "...Done"
 
   debug "Prepare and generate Bootstrap sub theme"
 
-  if [[ -f ${STACK_DRUPAL_ROOT}/web/themes/custom/bootstrap_sass ]] && [[ ${__force} == 0 ]]
+  if [[ -f ${STACK_DRUPAL_ROOT}/web/themes/custom/bootstrap_sass/bootstrap_sass.theme ]] && [[ ${__force} == 0 ]]
   then
     _prompt_yn "Drupal Bootstrap subtheme already exist, do you want to continue and DELETE?"
   fi
@@ -549,7 +532,6 @@ _setup_advanced() {
   echo "MYSQL_USER=$DB_USER" >> "${STACK_DRUPAL_ROOT}/.env"
   echo "MYSQL_PASSWORD=$DB_PASSWORD" >> "${STACK_DRUPAL_ROOT}/.env"
 
-  cp ${STACK_DRUPAL_ROOT}/example.settings.php ${STACK_DRUPAL_ROOT}/web/sites/default/settings.php
   cp ${STACK_DRUPAL_ROOT}/example.settings.local.php ${STACK_DRUPAL_ROOT}/web/sites/default/settings.local.php
   cp ${STACK_DRUPAL_ROOT}/example.settings.dev.php ${STACK_DRUPAL_ROOT}/web/sites/default/settings.dev.php
   cp ${STACK_DRUPAL_ROOT}/example.settings.prod.php ${STACK_DRUPAL_ROOT}/web/sites/default/settings.prod.php
@@ -566,6 +548,15 @@ _setup_advanced() {
     --root="${DRUPAL_DOCROOT}" \
     --account-pass="password" \
     --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
+
+  # After installation copy our settings file.
+  _docker_exec_root \
+    chmod 777 ${DRUPAL_DOCROOT}/sites/default/settings.php
+  _docker_exec_root \
+    chmod 750 ${DRUPAL_DOCROOT}/sites/default
+  echo 'include $app_root . "/" . $site_path . "/settings.local.php";' >> ${STACK_DRUPAL_ROOT}/web/sites/default/settings.php
+
+  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y csim config_split.config_split.config_dev
 }
 
 # _setup_commerce_demo()
@@ -596,7 +587,7 @@ _setup_commerce_demo() {
 _ensure_drush() {
   if ! [ -f "${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush" ]; then
     log_info "Install drush"
-    # Drush is not included in varbase distribution.
+    # Drush is not included in all distributions.
     _composer_cmd "require drush/drush"
   fi
 }
@@ -666,6 +657,7 @@ _select_db() {
   RUNNING=$(docker ps -f "name=mariadb" -f "status=running" -q | head -1 2> /dev/null)
   if [[ -n "$RUNNING" ]]
   then
+    debug "Found container mariadb running."
     _DB_LIST[0]="mariadb"
   fi
 
@@ -673,6 +665,7 @@ _select_db() {
   RUNNING=$(docker ps -f "name=mysql" -f "status=running" -q | head -1 2> /dev/null)
   if [[ -n "$RUNNING" ]]
   then
+    debug "Found container mysql running."
     _DB_LIST[0]="mysql"
   fi
 
@@ -680,6 +673,7 @@ _select_db() {
   RUNNING=$(docker ps -f "name=pgsql" -f "status=running" -q | head -1 2> /dev/null)
   if [[ -n "$RUNNING" ]]
   then
+    debug "Found container postgres running."
     _DB_LIST[1]="postgres"
   fi
 
@@ -812,13 +806,16 @@ _delete() {
     _docker_exec_root \
       chown -R $LOCAL_UID:$LOCAL_GID "${WEB_ROOT}"
 
-    $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" stop php apache
+    debug "Stop php, apache"
+    $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR stop php apache
+    debug "...Done"
 
     chmod -R 777 "${STACK_DRUPAL_ROOT}"
     rm -Rf "${STACK_DRUPAL_ROOT}"
 
-    $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" start php apache
-    sleep 5s
+    debug "Start php, apache"
+    $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR start php apache
+    sleep 20s
 
     debug "...Done"
   fi
@@ -833,26 +830,13 @@ _delete() {
 # Tests
 ###############################################################################
 
-test_single() {
-
-  _CMD="test"
-  _SELECTED_PROJECT="drupal-min"
-  _DEFAULT_DB="mysql"
-  _DB="mysql"
-
-  __force=1
-  __quiet="--quiet"
-
-  _install
-  _docker_exec_noi "${DRUSH_BIN}" core:status --fields=drupal-version,db-status
-}
-
 _test() {
 
   _CMD="test"
   _SELECTED_PROJECT=""
   _DEFAULT_DB="mysql"
   _DB="mysql"
+  _USE_DEBUG=0
 
   __force=1
   __quiet="--quiet"
@@ -865,7 +849,7 @@ _test() {
     __DID=${!DRUPAL_DISTRIBUTIONS[i]:0:1}
     _SELECTED_PROJECT=${__DID}
 
-    log_warn ">>>>>>>>>>>>> TEST install $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
+    log_warn ">>>>>>>>>>>>> START TEST install $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
 
     __INSTALL_PROFILE=${!DRUPAL_DISTRIBUTIONS[i]:2:1}
     __WEBROOT=${!DRUPAL_DISTRIBUTIONS[i]:3:1}
@@ -880,6 +864,8 @@ _test() {
     if ! [ ${__DID} == "varbase" ]; then
       _docker_exec_noi "${DRUSH_BIN}" core:status --fields=drupal-version,db-status
     fi
+
+    log_success ">>>>>>>>>>>>> END TEST $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
 
   done
 }
