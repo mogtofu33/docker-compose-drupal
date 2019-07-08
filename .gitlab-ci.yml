@@ -70,7 +70,7 @@ variables:
   script:
     - chmod -R 600 config/mysql
     - docker-compose up -d --build &> /dev/null
-    - apk --no-cache add git
+    - apk --no-cache add git curl
     - scripts/get-tools.sh test
     - scripts/composer -V
     - scripts/install-drupal.sh install -p drupal-min --force --quiet
