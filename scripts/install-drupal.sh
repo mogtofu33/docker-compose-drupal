@@ -848,24 +848,21 @@ _test() {
 
     __DID=${!DRUPAL_DISTRIBUTIONS[i]:0:1}
     _SELECTED_PROJECT=${__DID}
-
-    log_warn ">>>>>>>>>>>>> START TEST install $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
-
     __INSTALL_PROFILE=${!DRUPAL_DISTRIBUTIONS[i]:2:1}
     __WEBROOT=${!DRUPAL_DISTRIBUTIONS[i]:3:1}
     __DOWNLOAD_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:4:1}
     __PROJECT=${!DRUPAL_DISTRIBUTIONS[i]:5:1}
     __SETUP_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:6:1}
 
-    _download_dispatch "$__DOWNLOAD_TYPE"
-
-    _setup_dispatch "$__SETUP_TYPE"
-
-    if ! [ ${__DID} == "varbase" ]; then
+    if [ ${__DID} == "varbase" ]; then
+      log_success ">>>>>>>>>>>>> SKIPPING $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
+    else
+      log_warn ">>>>>>>>>>>>> START TEST install $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
+      _download_dispatch "$__DOWNLOAD_TYPE"
+      _setup_dispatch "$__SETUP_TYPE"
       _docker_exec_noi "${DRUSH_BIN}" core:status --fields=drupal-version,db-status
+      log_success ">>>>>>>>>>>>> END TEST $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
     fi
-
-    log_success ">>>>>>>>>>>>> END TEST $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
 
   done
 }
