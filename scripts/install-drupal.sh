@@ -280,10 +280,7 @@ _download_dispatch() {
   log_success "Finished downloading ${__PROJECT}"
 
   # Restart container with web access.
-  debug "Restart php, apache"
-  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR restart php apache
-  sleep 10s
-  debug "...Done"
+  _restart
 
   _fix_docroot
 }
@@ -404,6 +401,8 @@ _download_curl() {
 
   mv /tmp/drupal-composer-advanced-template-8.x-dev ${STACK_DRUPAL_ROOT}
 
+  _restart
+
   _docker_exec_root \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
 
@@ -507,9 +506,6 @@ _setup_contenta() {
 #   Specific install for advanced template with .env and drush.
 _setup_advanced() {
 
-  debug "Restart php, apache"
-  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR restart php apache
-  sleep 10s
   debug "...Done"
 
   debug "Prepare and generate Bootstrap sub theme"
@@ -824,6 +820,13 @@ _delete() {
   then
     rm -Rf /tmp/drupal
   fi
+}
+
+_restart() {
+  debug "Restart php, apache"
+  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR restart php apache
+  sleep 10s
+  debug "...Done"
 }
 
 ###############################################################################
