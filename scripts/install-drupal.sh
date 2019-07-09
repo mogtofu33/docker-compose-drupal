@@ -280,7 +280,7 @@ _download_dispatch() {
   log_success "Finished downloading ${__PROJECT}"
 
   # Restart container with web access.
-  _restart
+  _stack_restart
 
   _fix_docroot
 }
@@ -395,21 +395,26 @@ _download_composer_contenta() {
 #   Download with curl based on an url with a tar.gz archive.
 _download_curl() {
 
+  debug "_download_curl ${__PROJECT}"
+
   # Download the archive and extract.
-  curl -fsSL "${__PROJECT}" -o /tmp/drupal.tar.gz
-  tar -xzf /tmp/drupal.tar.gz -C /tmp/
+  curl -fsSL "${__PROJECT}" -o ${STACK_ROOT}/drupal.tar.gz
 
-  mv /tmp/drupal-composer-advanced-template-8.x-dev ${STACK_DRUPAL_ROOT}
+  _stack_stop
 
-  _restart
+  debug "Delete drupal folder"
+  rm -Rf "${STACK_DRUPAL_ROOT}"
+  mkdir -p "${STACK_DRUPAL_ROOT}"
 
-  _docker_exec_root \
-    chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
+  tar -xz --strip-components=1 -C ${STACK_DRUPAL_ROOT} -f ${STACK_ROOT}/drupal.tar.gz
+
+  _stack_start
+
+  # _docker_exec_root \
+  #   chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
 
   # Cleanup.
-  rm -f /tmp/drupal.tar.gz
-  rm -Rf /tmp/drupal-composer-advanced-template-8.x-dev
-
+  rm -f ${STACK_ROOT}/drupal.tar.gz
 
   # Setup Drupal 8 composer project.
   _composer_cmd "install --no-suggest --no-interaction"
@@ -774,12 +779,14 @@ _fix_files_perm() {
     chmod -R 777 ${DRUPAL_DOCROOT}/sites/default/files
   _docker_exec_root \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${DRUPAL_DOCROOT}/sites/default/files
+
   # contenta specific.
   if [[ ${__DID} == "contenta" ]]
   then
     _docker_exec_root \
       chmod -R 660 ${WEB_ROOT}/keys/public.key
   fi
+
   _docker_exec_root \
     chmod -R 777 /tmp
 }
@@ -802,16 +809,13 @@ _delete() {
     _docker_exec_root \
       chown -R $LOCAL_UID:$LOCAL_GID "${WEB_ROOT}"
 
-    debug "Stop php, apache"
-    $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR stop php apache
-    debug "...Done"
+    _stack_stop
 
+    debug "Delete drupal folder"
     chmod -R 777 "${STACK_DRUPAL_ROOT}"
     rm -Rf "${STACK_DRUPAL_ROOT}"
 
-    debug "Start php, apache"
-    $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR start php apache
-    sleep 20s
+    _stack_start
 
     debug "...Done"
   fi
@@ -822,10 +826,24 @@ _delete() {
   fi
 }
 
-_restart() {
+_stack_restart() {
   debug "Restart php, apache"
   $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR restart php apache
-  sleep 10s
+  sleep 15s
+  debug "...Done"
+}
+
+_stack_stop() {
+  debug "Stop php, apache"
+  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR stop php apache
+  debug "...Done"
+}
+
+_stack_start() {
+  debug "Start php, apache"
+  $DOCKER_COMPOSE --file "${STACK_ROOT}/docker-compose.yml" --log-level ERROR start php apache
+  debug "Let stack script run..."
+  sleep 15s
   debug "...Done"
 }
 
