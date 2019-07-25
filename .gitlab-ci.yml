@@ -92,9 +92,11 @@ build:dashboard:
     - dashboard
     - master
   cache:
-    - build/dashboard/node_modules
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - build/dashboard/node_modules
   artifacts:
-    - build/dashboard/app/
+    - build/dashboard/app
 
 dashboard:
   <<: *build_image
