@@ -88,10 +88,13 @@ build:dashboard:
   script:
     - npm install --prefix build/dashboard build/dashboard --save
     - npm run build --prefix build/dashboard
-    - ls -lAh app/static
   only:
     - dashboard
     - master
+  cache:
+    - build/dashboard/node_modules
+  artifacts:
+    - build/dashboard/app/
 
 dashboard:
   <<: *build_image
