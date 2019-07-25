@@ -13,6 +13,10 @@ WORKDIR /app
 RUN pip install --upgrade pip \
   && pip install -r requirements.txt
 
+RUN ls -lAh /app \
+  && ls -lAh /app/static \
+  && ls -lAh /app/static/assets
+
 EXPOSE 5000
 
 ENTRYPOINT ["python"]
