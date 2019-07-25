@@ -138,7 +138,7 @@ run:
     - make setup
   <<: *test_run
   except:
-    - dashboard
+    - dashboard*
 
 run basic:
   before_script:
@@ -147,7 +147,7 @@ run basic:
     - cp samples/apache_mysql_php.yml docker-compose.yml
   <<: *test_run
   except:
-    - dashboard
+    - dashboard*
 
 run advanced:
   before_script:
@@ -156,7 +156,7 @@ run advanced:
     - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
   <<: *test_run
   except:
-    - dashboard
+    - dashboard*
 
 run AP9P:
   before_script:
@@ -165,7 +165,7 @@ run AP9P:
     - cp samples/apache_postgres9_php.yml docker-compose.yml
   <<: *test_run
   except:
-    - dashboard
+    - dashboard*
 
 test:
   before_script:
@@ -173,4 +173,4 @@ test:
     - make setup
   <<: *test
   except:
-    - dashboard
+    - dashboard*
