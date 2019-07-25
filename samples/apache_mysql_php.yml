@@ -92,7 +92,6 @@ services:
     ports:
       - "${HOST_DASHBORAD_PORT:-8181}:5000"
     volumes:
-      - ./build/dashboard/app:/app
       # Share configs for reading on the dashboard.
       - ./config/apache/vhost.conf:/config/vhost.conf:ro
       - ./config/nginx/default.conf:/config/default.conf:ro
