@@ -107,6 +107,7 @@ dashboard:
     - ls -lAh build/dashboard/app
     - ls -lAh build/dashboard/app/static
     - ls -lAh build/dashboard/app/static/assets
+    - *docker_login_gitlab
   variables:
     IMAGE: dashboard:latest
     DIR: build/dashboard
