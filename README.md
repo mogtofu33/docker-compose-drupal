@@ -2,15 +2,29 @@
 
 [![pipeline status](https://gitlab.com/mog33/docker-compose-drupal/badges/master/pipeline.svg)](https://gitlab.com/mog33/docker-compose-drupal/commits/master)
 
-- [Require](#require)
-- [Introduction](#introduction)
-- [Quick demo (Ubuntu)](quick-demo-ubuntu)
-- [Install with an existing Drupal 8 project](#install-with-an-existing-drupal-8-project)
+- [Requirements](#requirements)
+- [Description](#description)
+  - [What's this?](#whats-this)
+  - [Services included](#services-included)
+- [Quick demo (Ubuntu)](#quick-demo-ubuntu)
+- [Installation and configuration](#installation-and-configuration)
+  - [Project installation](#project-installation)
+  - [Option 1: existing Drupal 8 project](#option-1-existing-drupal-8-project)
+  - [Option 2: setup Vanilla Drupal 8 with Composer](#option-2-setup-vanilla-drupal-8-with-composer)
+- [Daily usage](#daily-usage)
+  - [Add some modules](#add-some-modules)
+  - [Enable some modules](#enable-some-modules)
+  - [Run a command on the server](#run-a-command-on-the-server)
 - [Reset the stack](#reset-the-stack)
+  - [Destroy containers](#destroy-containers)
+  - [Remove your persistent data (and lost everything!)](#remove-your-persistent-data-and-lost-everything)
 - [Linux helpers](#linux-helpers)
 - [Upgrade](#upgrade)
 - [Suggested tools](#suggested-tools)
 - [Troubleshooting](#troubleshooting)
+  - [General problem](#general-problem)
+  - [Port 80](#port-80)
+  - [Windows](#windows)
 
 **Full** Linux support. Tested daily on Ubuntu 16+.
 
@@ -18,23 +32,25 @@
 
 **Mac** support is **very limited** due to the fact that I don't have a Mac!
 
-## Require
+## Requirements
 
 - [Docker engine 18+](https://docs.docker.com/install)
-- [Docker compose 1.23+](https://docs.docker.com/compose/install)
+- [Docker compose 1.24+](https://docs.docker.com/compose/install)
 
-### Recommended
+**Recommended**
 
 - [Composer](https://getcomposer.org)
 
-## Introduction
+## Description
 
-Based mostly on Docker official images and lightweight [Alpine Linux](https://alpinelinux.org/) to ease maintenance.
+### What's this?
 
-This stack is meant to be used as a one Drupal 8 project only quick setup and run.
+Based mostly on [Docker official images](https://hub.docker.com/search/?type=image&image_filter=official) and lightweight [Alpine Linux](https://alpinelinux.org/) to ease maintenance and size.
+
+This stack is meant to be used as a single [Drupal 8](https://www.drupal.org/8) project only with quick setup, run and destroy workflow.
 
 The purpose is to give flexibility in management, try to rely as much as possible on official tools to avoid any new custom patterns.
-If you have to learn the meta tool instead of the tool, then it's not a good one...
+
 This stack is not a one line command but more for users with a good dev-op level and knowledge on each technology used.
 
 See other great project for a Docker based development:
@@ -44,32 +60,34 @@ See other great project for a Docker based development:
 - [ddev](https://github.com/drud/ddev)
 - [docker4drupal](https://github.com/wodby/docker4drupal)
 
-### Include
+### Services included
 
 _Every service is optional as declared in the yml file._
 
 - Apache
 - Nginx
-- Php 7.1/7.2 fpm with Xdebug
-- MySQL/MariaDB
+- Php 7 fpm with Xdebug
+- MariaDB
 - PostgreSQL
 - [Memcache](https://hub.docker.com/_/memcached)
 - [Redis](https://redis.io/)
 - [Mailhog](https://github.com/mailhog/MailHog)
 - [Solr](http://lucene.apache.org/solr)
-- [Portainer](https://github.com/portainer/portainer)
+- [Dashboard](https://cloud.docker.com/u/mogtofu33/repository/docker/mogtofu33/dashboard): a very minimal docker dashboard for this stack
+- [Portainer](https://github.com/portainer/portainer): (Optional) a full Docker dashboard / manager
 
-### Database management
+#### Database management
 
 - [Adminer](https://www.adminer.org)
 
 ## Quick demo (Ubuntu)
 
-Clone this project
+Get this project
 
 ```bash
-git clone https://gitlab.com/mog33/docker-compose-drupal.git
-cd docker-compose-drupal
+wget https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz
+tar -xzf docker-compose-drupal-master.tar.gz
+cd docker-compose-drupal-master
 ```
 
 Install this stack with minimal services, download and install Drupal 8 with
@@ -79,23 +97,26 @@ profile [Demo Umami](https://www.drupal.org/project/demo_umami)
 make demo
 ```
 
-## Install with an existing Drupal 8 project
+## Installation and configuration
 
-### Get this project
+### Project installation
+
+Grab this project:
 
 ```bash
-git clone https://gitlab.com/mog33/docker-compose-drupal.git
-cd docker-compose-drupal
+wget https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz
+tar -xzf docker-compose-drupal-master.tar.gz
+cd docker-compose-drupal-master
 ```
 
-### Create your docker compose file from template
+Create your docker compose file from template
 
 ```bash
 cp docker-compose.tpl.yml docker-compose.yml
 cp default.env .env
 ```
 
-### (Optional) Edit configuration
+(Optional) Edit configuration
 
 Recommended on Unix add your local uid/gid.
 
@@ -103,22 +124,22 @@ Recommended on Unix add your local uid/gid.
 vi .env
 ```
 
-### (Optional) Customize the stack
+(Optional) Customize the stack
 
-Choose a database, remove or add services, add your composer cache folder if needed.
+Choose a database, remove or add services, add your composer cache folder if needed on service `php`.
 Do not touch for a default quick stack.
 
 ```bash
 vi docker-compose.yml
 ```
 
-### Check the yml file and fix if there is an error message
+Check the yml file and fix if there is an error message
 
 ```bash
 docker-compose config
 ```
 
-### Existing Drupal 8 project
+### Option 1: existing Drupal 8 project
 
 #### Copy codebase
 
@@ -144,23 +165,23 @@ scripts/mysql import
 scripts/pgsql import
 ```
 
-### Launch the stack
+#### Launch the stack
 
 ```bash
 docker-compose up --build -d
 ```
 
-### Access the minimal dashboard
+#### Access the minimal dashboard
 
 - [http://localhost:8181](http://localhost:8181)
 
 You can import the database from the adminer link in the dashboard.
 
-### Setup Vanilla Drupal 8 with Composer
+### Option 2: setup Vanilla Drupal 8 with Composer
 
 #### Code download
 
-Setup a new Drupal 8 based on a Composer project with user Apache.
+Setup a new Drupal 8 based on a Composer project.
 
 Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project), include [Drush](http://www.drush.org) and [Drupal console](https://drupalconsole.com/), using [Composer](https://getcomposer.org) locally:
 
@@ -191,7 +212,9 @@ Login with _admin_ / _password_:
 
 - [http://localhost/user/login](http://localhost/user/login)
 
-#### Daily usage, add some modules
+## Daily usage
+
+### Add some modules
 
 ```bash
 docker exec -it -u apache dcd-php \
@@ -199,13 +222,13 @@ docker exec -it -u apache dcd-php \
     drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 ```
 
-With _Linux_, you can use included helper script
+With _Linux_, you can use included helper script:
 
 ```bash
 scripts/composer require drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 ```
 
-#### Enable some modules
+### Enable some modules
 
 ```bash
 docker exec -it -u apache dcd-php \
@@ -214,13 +237,13 @@ docker exec -it -u apache dcd-php \
     admin_toolbar ctools ctools_block ctools_views panels token pathauto
 ```
 
-With _Linux_, you can use included helper script
+With _Linux_, you can use included helper script:
 
 ```bash
 scripts/drush -y en admin_toolbar ctools ctools_block ctools_views panels token pathauto
 ```
 
-#### Run a command on the server
+### Run a command on the server
 
 ```bash
 docker exec -it -u apache dcd-php \
@@ -229,8 +252,9 @@ docker exec -it -u apache dcd-php \
 
 ## Reset the stack
 
-### Destroy containers (./drupal/ is persistent but NOT the database files)
+### Destroy containers 
 
+_Note:_ `./drupal/` is persistent but NOT the database files!
 Save your database
 
 ```bash
