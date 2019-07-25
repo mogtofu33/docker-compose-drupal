@@ -15,6 +15,7 @@
   - [Add some modules](#add-some-modules)
   - [Enable some modules](#enable-some-modules)
   - [Run a command on the server](#run-a-command-on-the-server)
+  - [Access the server with bash](#access-the-server-with-bash)
 - [Reset the stack](#reset-the-stack)
   - [Destroy containers](#destroy-containers)
   - [Remove your persistent data (and lost everything!)](#remove-your-persistent-data-and-lost-everything)
@@ -53,7 +54,7 @@ The purpose is to give flexibility in management, try to rely as much as possibl
 
 This stack is not a one line command but more for users with a good dev-op level and knowledge on each technology used.
 
-See other great project for a Docker based development:
+See other great project for a Docker based development
 
 - [Lando](https://docs.devwithlando.io/tutorials/drupal8.html)
 - [Docksal](https://docksal.io/)
@@ -101,7 +102,7 @@ make demo
 
 ### Project installation
 
-Grab this project:
+Grab this project
 
 ```bash
 wget https://gitlab.com/mog33/docker-compose-drupal/-/archive/master/docker-compose-drupal-master.tar.gz
@@ -116,7 +117,7 @@ cp docker-compose.tpl.yml docker-compose.yml
 cp default.env .env
 ```
 
-(Optional) Edit configuration
+_Optional:_ Edit configuration
 
 Recommended on Unix add your local uid/gid.
 
@@ -124,7 +125,7 @@ Recommended on Unix add your local uid/gid.
 vi .env
 ```
 
-(Optional) Customize the stack
+_Optional:_ Customize the stack
 
 Choose a database, remove or add services, add your composer cache folder if needed on service `php`.
 Do not touch for a default quick stack.
@@ -143,10 +144,13 @@ docker-compose config
 
 #### Copy codebase
 
-For an existing Drupal 8 project, copy it here and rename in _drupal_
-Note that based on Composer template web root must be under _drupal/web_
+For an existing Drupal 8 project, copy it here in a folder named `drupal`.
+
+So you have your composer.json file in `drupal\composer.json`
+
+Note that based on Composer template web root must be under `drupal/web`
 folder. If not you need to adapt Apache vhost config from
-_config/apache/vhost.conf_
+`config/apache/vhost.conf`
 
 ```bash
 cp -r _YOUR_DRUPAL_ drupal
@@ -154,16 +158,14 @@ cp -r _YOUR_DRUPAL_ drupal
 
 #### Import database
 
-For **MySQL**, copy your database dump uncompressed in _./database-mysql-init/*.sql_, it
-will be automatically imported on the first run of the stack.
+For **MySQL**, copy your database dump **uncompressed** in `./database-mysql-init/*.sql`, it
+will be automatically imported on the first launch of the stack.
 
-**Or** after the containers are up, under _Linux_ you can place your dump in
-_./database-dump_ and use helper scripts:
+For **PostgresSQL**, copy your database dump **uncompressed** in `./database-pgsql-init/*.pg_dump`, it
+will be automatically imported on the first launch of the stack.
 
-```bash
-scripts/mysql import
-scripts/pgsql import
-```
+If you want to manually import your database with adminer or included helper scripts
+with _Linux_you can skip this step.
 
 #### Launch the stack
 
@@ -171,11 +173,15 @@ scripts/pgsql import
 docker-compose up --build -d
 ```
 
+Wait and check the import of your database dump with (change mysql to pgsql if needed)
+
+```bash
+docker-compose logs mysql
+```
+
 #### Access the minimal dashboard
 
 - [http://localhost:8181](http://localhost:8181)
-
-You can import the database from the adminer link in the dashboard.
 
 ### Option 2: setup Vanilla Drupal 8 with Composer
 
@@ -187,6 +193,12 @@ Based on [Drupal 8 template](https://github.com/drupal-composer/drupal-project),
 
 ```bash
 composer create-project drupal-composer/drupal-project:8.x-dev drupal --stability dev --no-interaction
+```
+
+#### Launch the stack
+
+```bash
+docker-compose up --build -d
 ```
 
 #### Install Drupal 8
@@ -222,7 +234,7 @@ docker exec -it -u apache dcd-php \
     drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
 ```
 
-With _Linux_, you can use included helper script:
+With _Linux_, you can use included helper script
 
 ```bash
 scripts/composer require drupal/admin_toolbar drupal/ctools drupal/pathauto drupal/token drupal/panels
@@ -237,7 +249,7 @@ docker exec -it -u apache dcd-php \
     admin_toolbar ctools ctools_block ctools_views panels token pathauto
 ```
 
-With _Linux_, you can use included helper script:
+With _Linux_, you can use included helper script
 
 ```bash
 scripts/drush -y en admin_toolbar ctools ctools_block ctools_views panels token pathauto
@@ -250,12 +262,19 @@ docker exec -it -u apache dcd-php \
     ls -lah /var/www/localhost/web
 ```
 
+### Access the server with bash
+
+```bash
+docker exec -it -w /var/www/localhost -u apache dcd-php bash
+```
+
 ## Reset the stack
 
 ### Destroy containers 
 
 _Note:_ `./drupal/` is persistent but NOT the database files!
-Save your database
+
+Save your database under _Linux_
 
 ```bash
 scripts/mysql dump
@@ -276,7 +295,7 @@ rm -rf data
 
 ## Linux helpers
 
-For Ubuntu (16+) or Linux you can find in _scripts/_ multiple helpers to quickly
+For Ubuntu (16+) or Linux you can find in `./scripts/` multiple helpers to quickly
 run some daily commands from root folder, and drush/drupal links at the root.
 
 ```bash
@@ -291,7 +310,7 @@ scripts/composer --help
 scripts/composer status
 ```
 
-Install Drupal 8 variant helpers (This delete and replace existing Drupal in _./drupal_ folder)
+Install Drupal 8 variant helpers (This delete and replace existing Drupal in `./drupal` folder)
 
 ```bash
 scripts/install-drupal.sh
@@ -302,7 +321,7 @@ scripts/install-drupal.sh install -p drupal-demo
 ## Upgrade
 
 Because this project is mainly focused on a one time usage, there is currently
-no upgrade path and the best way to upgrade is to dump and copy your project to
+**no upgrade path** and the best way to upgrade is to dump and copy your project to
 a new version of this project.
 
 ## Suggested tools
@@ -313,10 +332,9 @@ a new version of this project.
 - [Adminer extended](https://github.com/dg/adminer-custom)
 - [Php Redis Admin](https://github.com/ErikDubbelboer/phpRedisAdmin)
 
-You can find a script for Linux in _scripts/get-tools.sh_ folder to download or update all tools:
+You can find a script for Linux in `scripts/get-tools.sh` folder to download or update all tools
 
 ```bash
-cd THIS_PROJECT
 chmod +x scripts/get-tools.sh
 ./scripts/get-tools.sh install
 ```
@@ -339,13 +357,13 @@ you must stop it or change __APACHE_HOST_HTTP_PORT__ in __.env__
 
 ### Windows
 
-Windows support very partial, before running docker-compose you must run in Powershell:
+Windows support very partial, before running docker-compose you must run in Powershell
 
 ```powershell
 $Env:COMPOSE_CONVERT_WINDOWS_PATHS=1
 ```
 
-Some permissions and privileged problems:
+Some permissions and privileged problems
 
 - [This issue](https://github.com/docker/for-win/issues/1829)
 
