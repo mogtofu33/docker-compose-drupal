@@ -96,7 +96,9 @@ build:dashboard:
     paths:
       - build/dashboard/node_modules
   artifacts:
-    - build/dashboard/app
+    paths:
+      - build/dashboard/app
+    expire_in: 1 day
 
 dashboard:
   <<: *build_image
