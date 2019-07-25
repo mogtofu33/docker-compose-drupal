@@ -89,8 +89,7 @@ build:dashboard:
     - npm install --prefix build/dashboard build/dashboard --save
     - npm run build --prefix build/dashboard
   only:
-    - dashboard-dev
-    - dashboard-release
+    - /^dashboard-.*$/
     - master
   cache:
     key: ${CI_COMMIT_REF_SLUG}
@@ -109,8 +108,7 @@ dashboard:
   dependencies:
     - build:dashboard
   only:
-    - dashboard-dev
-    - dashboard-release
+    - /^dashboard-.*$/
     - master
 
 release:dashboard:
@@ -131,7 +129,8 @@ build:
     - make setup
     - docker-compose config
   except:
-    - dashboard
+    - /^dashboard-.*$/
+
 run:
   before_script:
     - *install_docker_compose
