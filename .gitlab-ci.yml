@@ -35,13 +35,13 @@ variables:
 .docker_pull:
   - &docker_pull docker pull $LOCAL_IMAGE/$IMAGE
 
-.build_image: &build_image
+.build_image:
   stage: build image
   before_script:
     - *docker_login_gitlab
   script: *docker_build_push
 
-.release: &release
+.release:
   stage: release image
   before_script:
     - docker login -u $RELEASE_USER -p $RELEASE_PASSWORD $RELEASE_REGISTRY
@@ -55,7 +55,7 @@ variables:
     - &install_docker_compose
       apk add --quiet --no-cache bash make py-pip && pip install --quiet docker-compose==$DOCKER_COMPOSE_VERSION
 
-.test_run: &test_run
+.test_run:
   stage: run
   script:
     - docker-compose build &> /dev/null
@@ -65,7 +65,7 @@ variables:
     - sleep 5s && docker-compose logs
     - docker exec dcd-php php -v
 
-.test: &test
+.test:
   stage: tests
   script:
     - chmod -R 600 config/mysql
@@ -102,7 +102,7 @@ build:dashboard:
     expire_in: 1 day
 
 dashboard:
-  <<: *build_image
+  extends: .build_image
   variables:
     IMAGE: dashboard:latest
     DIR: build/dashboard
@@ -114,7 +114,7 @@ dashboard:
     - master
 
 release:dashboard:
-  <<: *release
+  extends: .release
   variables:
     IMAGE: dashboard:latest
   dependencies:
@@ -136,41 +136,41 @@ run:
   before_script:
     - *install_docker_compose
     - make setup
-  <<: *test_run
+  extends: .test_run
   except:
-    - dashboard*
+    - /^dashboard-.*$/
 
 run basic:
   before_script:
     - *install_docker_compose
     - make setup
     - cp samples/apache_mysql_php.yml docker-compose.yml
-  <<: *test_run
+  extends: .test_run
   except:
-    - dashboard*
+    - /^dashboard-.*$/
 
 run advanced:
   before_script:
     - *install_docker_compose
     - make setup
     - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
-  <<: *test_run
+  extends: .test_run
   except:
-    - dashboard*
+    - /^dashboard-.*$/
 
 run AP9P:
   before_script:
     - *install_docker_compose
     - make setup
     - cp samples/apache_postgres9_php.yml docker-compose.yml
-  <<: *test_run
+  extends: .test_run
   except:
-    - dashboard*
+    - /^dashboard-.*$/
 
 test:
   before_script:
     - *install_docker_compose
     - make setup
-  <<: *test
+  extends: .test
   except:
-    - dashboard*
+    - /^dashboard-.*$/
