@@ -90,6 +90,7 @@ build:dashboard:
     - npm run build --prefix build/dashboard
   only:
     - dashboard
+    - dashboard-release
     - master
   cache:
     key: ${CI_COMMIT_REF_SLUG}
@@ -109,6 +110,7 @@ dashboard:
     - build:dashboard
   only:
     - dashboard
+    - dashboard-release
     - master
 
 release:dashboard:
@@ -118,6 +120,7 @@ release:dashboard:
   dependencies:
     - dashboard
   only:
+    - dashboard-release
     - master
 
 build:
@@ -127,12 +130,15 @@ build:
   script:
     - make setup
     - docker-compose config
-
+  except:
+    - dashboard
 run:
   before_script:
     - *install_docker_compose
     - make setup
   <<: *test_run
+  except:
+    - dashboard
 
 run basic:
   before_script:
@@ -140,6 +146,8 @@ run basic:
     - make setup
     - cp samples/apache_mysql_php.yml docker-compose.yml
   <<: *test_run
+  except:
+    - dashboard
 
 run advanced:
   before_script:
@@ -147,6 +155,8 @@ run advanced:
     - make setup
     - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
   <<: *test_run
+  except:
+    - dashboard
 
 run AP9P:
   before_script:
@@ -154,9 +164,13 @@ run AP9P:
     - make setup
     - cp samples/apache_postgres9_php.yml docker-compose.yml
   <<: *test_run
+  except:
+    - dashboard
 
 test:
   before_script:
     - *install_docker_compose
     - make setup
   <<: *test
+  except:
+    - dashboard
