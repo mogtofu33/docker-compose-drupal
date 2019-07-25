@@ -89,7 +89,7 @@ build:dashboard:
     - npm install --prefix build/dashboard build/dashboard --save
     - npm run build --prefix build/dashboard
   only:
-    - dashboard
+    - dashboard-dev
     - dashboard-release
     - master
   cache:
@@ -109,7 +109,7 @@ dashboard:
   dependencies:
     - build:dashboard
   only:
-    - dashboard
+    - dashboard-dev
     - dashboard-release
     - master
 
