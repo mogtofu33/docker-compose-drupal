@@ -61,7 +61,7 @@ services:
       # Used by dashboard for accessing tools.
       - ./tools:/tools:ro
       # Share db dump folder.
-      - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
+      - ${HOST_DATABASE_DUMP:-./database/dump}:/dump
       # Php FPM socket
       - php-sock:/sock
       ## If PgSQL, ease drush pgsql access.
@@ -84,9 +84,9 @@ services:
     expose:
       - "3306"
     volumes:
-      - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
+      - ${HOST_DATABASE_DUMP:-./database/dump}:/dump
       # All .sql files will be imported on first start by order.
-      - ./database-mysql-init:/docker-entrypoint-initdb.d
+      - ./database/mysql-init:/docker-entrypoint-initdb.d
       - ./config/mysql:/etc/mysql:ro
     env_file: .env
     restart: unless-stopped
@@ -96,9 +96,9 @@ services:
     expose:
       - "5432"
     volumes:
-      - ${HOST_DATABASE_DUMP:-./database-dump}:/dump
+      - ${HOST_DATABASE_DUMP:-./database/dump}:/dump
       # A dump.pg_dump file will be imported from here on first start.
-      - ./database-pgsql-init:/docker-entrypoint-initdb.d
+      - ./database/pgsql-init:/docker-entrypoint-initdb.d
       # Add pg_pass to ease drush access.
       - ./config/pgsql/.pg_pass:/home/postgres/.pg_pass
     env_file: .env

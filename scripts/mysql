@@ -62,7 +62,7 @@ in Drupal temporary tables like watchdog, cache*...
 
 'create' use mysql client to create and grant a database DB_NAME, default to 'drupal'.
 
-dumps are located in the ./database-dump folder of Docker compose Drupal.
+dumps are located in the ./database/dump folder of Docker compose Drupal.
 
 Options:
   -h --help         Show this screen.

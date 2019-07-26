@@ -5,13 +5,13 @@ docker-compose.test*
 !scripts/.env
 !openstack/.env
 # ignore static files
-database-dump/*
-!database-dump/README.md
-database-mysql-init/*
-!database-mysql-init/README.md
-database-pgsql-init/*
-!database-pgsql-init/README.md
-!database-pgsql-init/init.sh
+database/dump/*
+!database/dump/README.md
+database/mysql-init/*
+!database/mysql-init/README.md
+database/pgsql-init/*
+!database/pgsql-init/README.md
+!database/pgsql-init/init.sh
 drupal
 build/dashboard/app/vendor
 build/dashboard/tools/
