@@ -67,7 +67,7 @@ _Every service is optional as declared in the yml file._
 
 - Apache
 - Nginx
-- Php 7 fpm with Xdebug
+- Php 7.2 / 7.3 fpm with Xdebug
 - MariaDB
 - PostgreSQL
 - [Memcache](https://hub.docker.com/_/memcached)
@@ -158,10 +158,10 @@ cp -r _YOUR_DRUPAL_ drupal
 
 #### Import database
 
-For **MySQL**, copy your database dump **uncompressed** in `./database-mysql-init/*.sql`, it
+For **MySQL**, copy your database dump **uncompressed** in `./database/mysql-init/*.sql`, it
 will be automatically imported on the first launch of the stack.
 
-For **PostgresSQL**, copy your database dump **uncompressed** in `./database-pgsql-init/*.pg_dump`, it
+For **PostgresSQL**, copy your database dump **uncompressed** in `./database/pgsql-init/*.pg_dump`, it
 will be automatically imported on the first launch of the stack.
 
 If you want to manually import your database with adminer or included helper scripts
