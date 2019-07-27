@@ -64,6 +64,7 @@ Options with argument:
   -d --database     Database service: postgres or mysql, default "mysql"
 
 Options:
+  -dp --profile     Force Drupal profile installation.
   -f --force        Force prompt with Yes if any.
   -v --verbose      More messages with this scripts.
   -q --quiet        Produce less messages.
@@ -82,10 +83,12 @@ _PRINT_HELP=0
 # Initialize additional expected option variables.
 _CMD="print_help"
 _SELECTED_PROJECT=0
+_DRUPAL_PROFILE=0
 _DEFAULT_DB="mysql"
 
 __force=0
 __verbose=""
+__verbose_drush=""
 __quiet=""
 __do_download=0
 __do_setup=0
@@ -128,6 +131,7 @@ do
       ;;
     -v|--verbose)
       __verbose="-vvv"
+      __verbose_drush="-v"
       debug "-v specified: Verbose mode"
       ;;
     -q|--quiet)
@@ -141,6 +145,11 @@ do
     -p|--project)
       _require_argument "${__option}" "${__maybe_param}"
       _SELECTED_PROJECT="${__maybe_param}"
+      shift
+      ;;
+    -dp|--profile)
+      _require_argument "${__option}" "${__maybe_param}"
+      _DRUPAL_PROFILE="${__maybe_param}"
       shift
       ;;
     -d|--database)
@@ -241,6 +250,12 @@ _install_dispatch() {
       __DOWNLOAD_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:4:1}
       __PROJECT=${!DRUPAL_DISTRIBUTIONS[i]:5:1}
       __SETUP_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:6:1}
+
+      # Force profile.
+      if [[ ${_DRUPAL_PROFILE} != 0 ]]
+      then
+        __INSTALL_PROFILE=${_DRUPAL_PROFILE}
+      fi
 
       if [[ $__do_download == 1 ]]
       then
@@ -398,17 +413,35 @@ _download_curl() {
   debug "_download_curl ${__PROJECT}"
 
   # Download the archive and extract.
-  curl -fsSL "${__PROJECT}" -o ${STACK_ROOT}/drupal.tar.gz
+  if [[ ${__quiet} == "" ]]
+  then
+    curl -fSL "${__PROJECT}" -o ${STACK_ROOT}/drupal.tar.gz
+  else
+    curl -fsSL "${__PROJECT}" -o ${STACK_ROOT}/drupal.tar.gz
+  fi
 
-  _stack_stop
+  if [[ -d ${STACK_DRUPAL_ROOT}/web ]] || [[ -f ${STACK_DRUPAL_ROOT}/composer.json ]] || [[ -f ${STACK_DRUPAL_ROOT}/index.php ]]
+  then
+    debug "Stop call from _download_curl"
+    _stack_stop
 
-  debug "Delete drupal folder"
-  rm -Rf "${STACK_DRUPAL_ROOT}"
-  mkdir -p "${STACK_DRUPAL_ROOT}"
+    debug "Delete drupal folder"
+    rm -Rf "${STACK_DRUPAL_ROOT}"
+    mkdir -p "${STACK_DRUPAL_ROOT}"
+  fi
 
   tar -xz --strip-components=1 -C ${STACK_DRUPAL_ROOT} -f ${STACK_ROOT}/drupal.tar.gz
 
+  debug "Start call from _download_curl"
   _stack_start
+
+  # If no web root, symlink.
+  if [[ ${__WEBROOT} == "" ]]
+  then
+    debug "Webroot not here, create symlink"
+    _docker_exec_root \
+      ln -s ${WEB_ROOT} ${DRUPAL_DOCROOT}
+  fi
 
   # _docker_exec_root \
   #   chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
@@ -417,7 +450,10 @@ _download_curl() {
   rm -f ${STACK_ROOT}/drupal.tar.gz
 
   # Setup Drupal 8 composer project.
-  _composer_cmd "install --no-suggest --no-interaction"
+  if [[ -f ${STACK_ROOT}/composer.json ]]
+  then
+    _composer_cmd "install --no-suggest --no-interaction"
+  fi
 }
 
 #
@@ -446,10 +482,10 @@ _setup_dispatch() {
 #   Setup with Drush for a specific profile.
 _setup_standard() {
 
-  debug "Install profile with generic setup"
+  debug "Install profile ${__INSTALL_PROFILE} with generic setup"
 
   # Install this profile.
-  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y site:install ${__INSTALL_PROFILE} \
+  _docker_exec_noi "${DRUSH_BIN}" ${__verbose_drush} ${__quiet} -y site:install ${__INSTALL_PROFILE} \
     --root="${DRUPAL_DOCROOT}" \
     --account-pass="password" \
     --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}" \
@@ -511,19 +547,6 @@ _setup_contenta() {
 #   Specific install for advanced template with .env and drush.
 _setup_advanced() {
 
-  debug "...Done"
-
-  debug "Prepare and generate Bootstrap sub theme"
-
-  if [[ -f ${STACK_DRUPAL_ROOT}/web/themes/custom/bootstrap_sass/bootstrap_sass.theme ]] && [[ ${__force} == 0 ]]
-  then
-    _prompt_yn "Drupal Bootstrap subtheme already exist, do you want to continue and DELETE?"
-  fi
-  _docker_exec_root \
-      rm -Rf ${DRUPAL_DOCROOT}/themes/custom/bootstrap_sass
-  _docker_exec_noi \
-    composer install-bootstrap-sass --working-dir="${WEB_ROOT}" ${__verbose}
-
   debug "Populate .env file and copy settings"
 
   cp "${STACK_DRUPAL_ROOT}/.env.example" "${STACK_DRUPAL_ROOT}/.env"
@@ -541,10 +564,10 @@ _setup_advanced() {
   _docker_exec_root \
     chown -R ${LOCAL_UID}:${LOCAL_GID} ${DRUPAL_DOCROOT}/sites/default/
 
-  debug "Install this profile with config_installer"
+  debug "Install this profile with ${__INSTALL_PROFILE}"
 
   # Install this profile with config_installer
-  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y site:install "${__INSTALL_PROFILE}" \
+  _docker_exec_noi "${DRUSH_BIN}" ${__verbose_drush} ${__quiet} -y site:install "${__INSTALL_PROFILE}" \
     config_installer_sync_configure_form.sync_directory="../config/sync" \
     --root="${DRUPAL_DOCROOT}" \
     --account-pass="password" \
@@ -557,7 +580,7 @@ _setup_advanced() {
     chmod 750 ${DRUPAL_DOCROOT}/sites/default
   echo 'include $app_root . "/" . $site_path . "/settings.local.php";' >> ${STACK_DRUPAL_ROOT}/web/sites/default/settings.php
 
-  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y csim config_split.config_split.config_dev
+  _docker_exec_noi "${DRUSH_BIN}" ${__verbose_drush} ${__quiet} -y csim config_split.config_split.config_dev
 }
 
 # _setup_commerce_demo()
@@ -572,12 +595,12 @@ _setup_commerce_demo() {
   log_info "Extend commerce with commerce_demo"
   _composer_cmd "require drupal/commerce_demo bower-asset/jquery-simple-color drupal/belgrade"
 
-  debug "${DRUSH_BIN} ${__quiet} -y pm:enable commerce_demo"
+  debug "${DRUSH_BIN} ${__verbose_drush} ${__quiet} -y pm:enable commerce_demo"
 
-  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y pm:enable commerce_demo
-  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y theme:enable belgrade
-  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y config-set system.theme default belgrade
-  _docker_exec_noi "${DRUSH_BIN}" ${__quiet} -y config-set system.site page.front /products
+  _docker_exec_noi "${DRUSH_BIN}" ${__verbose_drush} ${__quiet} -y pm:enable commerce_demo
+  _docker_exec_noi "${DRUSH_BIN}" ${__verbose_drush} ${__quiet} -y theme:enable belgrade
+  _docker_exec_noi "${DRUSH_BIN}" ${__verbose_drush} ${__quiet} -y config-set system.theme default belgrade
+  _docker_exec_noi "${DRUSH_BIN}" ${__verbose_drush} ${__quiet} -y config-set system.site page.front /products
 }
 
 # _ensure_drush()
@@ -586,6 +609,7 @@ _setup_commerce_demo() {
 #   Helper to detect and add Drush if needed as it's not included in some
 #   projects.
 _ensure_drush() {
+  debug "Check and ensure Drush"
   if ! [ -f "${STACK_DRUPAL_ROOT}/vendor/drush/drush/drush" ]; then
     log_info "Install drush"
     # Drush is not included in all distributions.
@@ -758,9 +782,10 @@ _l() {
 # Description:
 #   Helper to fix Drupal web root, some projects use docroot, other web...
 _fix_docroot() {
-  if [[ ${__WEBROOT} != "web" ]]
+  debug "Fix docroot..."
+  if [[ ${__WEBROOT} != "web" ]] && [[ ${__WEBROOT} != "" ]]
   then
-    log_info "Fix Drupal ${__WEBROOT} to web"
+    log_info "Fix Drupal ${WEB_ROOT}/${__WEBROOT} to ${DRUPAL_DOCROOT}"
     _docker_exec_noi \
       ln -s ${WEB_ROOT}/${__WEBROOT} ${DRUPAL_DOCROOT}
   fi
@@ -771,14 +796,25 @@ _fix_docroot() {
 # Description:
 #   Helper to fix Drupal permission hardly.
 _fix_files_perm() {
+  debug "Fix files permissions..."
+
+  if [[ ${__WEBROOT} == "" ]]
+  then
+    __DRUPAL_DOCROOT="${WEB_ROOT}"
+  else
+    __DRUPAL_DOCROOT="${DRUPAL_DOCROOT}"
+  fi
+
+  debug "Docroot is ${__DRUPAL_DOCROOT}"
+
   _docker_exec_root \
-    mkdir -p ${DRUPAL_DOCROOT}/sites/default/files/tmp
+    mkdir -p ${__DRUPAL_DOCROOT}/sites/default/files/tmp
   _docker_exec_root \
-    mkdir -p ${DRUPAL_DOCROOT}/sites/default/files/private
+    mkdir -p ${__DRUPAL_DOCROOT}/sites/default/files/private
   _docker_exec_root \
-    chmod -R 777 ${DRUPAL_DOCROOT}/sites/default/files
+    chmod -R 777 ${__DRUPAL_DOCROOT}/sites/default/files
   _docker_exec_root \
-    chown -R ${LOCAL_UID}:${LOCAL_GID} ${DRUPAL_DOCROOT}/sites/default/files
+    chown -R ${LOCAL_UID}:${LOCAL_GID} ${__DRUPAL_DOCROOT}/sites/default/files
 
   # contenta specific.
   if [[ ${__DID} == "contenta" ]]
@@ -796,7 +832,7 @@ _fix_files_perm() {
 # Description:
 #   Delete a previous downloaded Drupal.
 _delete() {
-  if [[ -d ${STACK_DRUPAL_ROOT} ]]
+  if [[ -f ${STACK_DRUPAL_ROOT}/composer.json ]] || [[ -f ${STACK_DRUPAL_ROOT}/index.php ]]
   then
     if [[ ${__force} == 0 ]]
     then
@@ -809,12 +845,14 @@ _delete() {
     _docker_exec_root \
       chown -R $LOCAL_UID:$LOCAL_GID "${WEB_ROOT}"
 
+    debug "Stop call from _delete"
     _stack_stop
 
     debug "Delete drupal folder"
     chmod -R 777 "${STACK_DRUPAL_ROOT}"
     rm -Rf "${STACK_DRUPAL_ROOT}"
 
+    debug "Start call from _delete"
     _stack_start
 
     debug "...Done"
@@ -881,7 +919,7 @@ _test() {
       log_warn ">>>>>>>>>>>>> START TEST install $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
       _download_dispatch "$__DOWNLOAD_TYPE"
       _setup_dispatch "$__SETUP_TYPE"
-      _docker_exec_noi "${DRUSH_BIN}" core:status --fields=drupal-version,db-status
+      _docker_exec_noi "${DRUSH_BIN}" ${__verbose_drush} core:status --fields=drupal-version,db-status
       log_success ">>>>>>>>>>>>> END TEST $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
     fi
 
