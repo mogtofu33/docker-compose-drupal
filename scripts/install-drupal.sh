@@ -342,7 +342,7 @@ _download_composer() {
       bash -c "composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
 
     _docker_exec_root \
-      chown apache:www-data ${WEB_ROOT}
+      chown $LOCAL_UID:$LOCAL_GID ${WEB_ROOT}
     _docker_exec_noi \
       cp -Rp /tmp/drupal/. ${WEB_ROOT}
     _docker_exec_root \
@@ -390,7 +390,7 @@ _download_composer_contenta() {
     sh -c 'exec '"/tmp/download-contenta.sh"' '"/tmp/contenta"''
 
   _docker_exec_root \
-    chown apache:www-data ${WEB_ROOT}
+    chown $LOCAL_UID:$LOCAL_GID ${WEB_ROOT}
   _docker_exec_noi \
     cp -Rp /tmp/contenta/. ${WEB_ROOT}
 
@@ -420,20 +420,15 @@ _download_curl() {
     curl -fsSL "${__PROJECT}" -o ${STACK_ROOT}/drupal.tar.gz
   fi
 
-  if [[ -d ${STACK_DRUPAL_ROOT}/web ]] || [[ -f ${STACK_DRUPAL_ROOT}/composer.json ]] || [[ -f ${STACK_DRUPAL_ROOT}/index.php ]]
-  then
-    debug "Stop call from _download_curl"
-    _stack_stop
+  _delete
 
-    debug "Delete drupal folder"
-    rm -Rf "${STACK_DRUPAL_ROOT}"
-    mkdir -p "${STACK_DRUPAL_ROOT}"
-  fi
+  docker cp ${STACK_ROOT}/drupal.tar.gz ${PROJECT_CONTAINER_PHP}:/tmp
 
-  tar -xz --strip-components=1 -C ${STACK_DRUPAL_ROOT} -f ${STACK_ROOT}/drupal.tar.gz
+  _docker_exec_root \
+    tar -xz --strip-components=1 -C ${WEB_ROOT} -f /tmp/drupal.tar.gz
 
-  debug "Start call from _download_curl"
-  _stack_start
+  _docker_exec_root \
+    chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
 
   # If no web root, symlink.
   if [[ ${__WEBROOT} == "" ]]
@@ -442,9 +437,6 @@ _download_curl() {
     _docker_exec_root \
       ln -s ${WEB_ROOT} ${DRUPAL_DOCROOT}
   fi
-
-  # _docker_exec_root \
-  #   chown -R ${LOCAL_UID}:${LOCAL_GID} ${WEB_ROOT}
 
   # Cleanup.
   rm -f ${STACK_ROOT}/drupal.tar.gz
@@ -832,7 +824,7 @@ _fix_files_perm() {
 # Description:
 #   Delete a previous downloaded Drupal.
 _delete() {
-  if [[ -f ${STACK_DRUPAL_ROOT}/composer.json ]] || [[ -f ${STACK_DRUPAL_ROOT}/index.php ]]
+  if [[ -d ${STACK_DRUPAL_ROOT}/web ]] || [[ -f ${STACK_DRUPAL_ROOT}/composer.json ]] || [[ -f ${STACK_DRUPAL_ROOT}/index.php ]]
   then
     if [[ ${__force} == 0 ]]
     then

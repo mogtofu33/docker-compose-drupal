@@ -74,7 +74,7 @@ variables:
     - apk --no-cache add git curl
     - scripts/get-tools.sh test
     - scripts/composer -V
-    - scripts/install-drupal.sh install -p drupal-min --force --quiet
+    - scripts/install-drupal.sh install -p drupal-archive --profile minimal --force --quiet
     - scripts/mysql test
     - scripts/pgsql test
     - scripts/install-drupal.sh test
