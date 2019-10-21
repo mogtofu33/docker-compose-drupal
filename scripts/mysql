@@ -44,30 +44,95 @@ _print_help() {
 Helper to dump, drop and restore MYSQL/MariaDB.
 
 Usage:
-  ${_ME} [ (import | restore) ] [ (optional) Dump filename ]
-  ${_ME} [ dump | dump_native | drop | drop_native | create ]
-  ${_ME} list | l
-    List all available dumps.
+  ${_ME} restore
+  ${_ME} restore -f my-dump.sql
+  ${_ME} dump
+  ${_ME} list
 
-'dump' and 'drop' is performed with Drush, dump ignore common cache, search,
-stats and sessions tables from Drupal.
+Arguments: 
+  import | restore    Restore from a db dump.
+  dump_native         Use mysql client for dump a database.
+  drop_native         Use mysql client for drop a database.
+  create              Use mysql client to create and grant a database, default
+                      to 'drupal'.
+  dump                Dump with drush, need an installed Drupal, ignore cache
+                      tables, search, stats and sessions tables from Drupal.
+  drop                Drop with drush, need an installed Drupal.
 
-'dump' append the current timestamp.
+Options with argument:
+  -f --file         Optional dump filename from dump folder.
+  -d --database     Optional database name, default 'drupal'.
 
-But if Drush is not found fallback is to use mysql client and do not ignore data
-in Drupal temporary tables like watchdog, cache*...
-
-'dump_native' Use mysql client.
-'drop_native' Use mysql client.
-
-'create' use mysql client to create and grant a database DB_NAME, default to 'drupal'.
-
-dumps are located in the ./database/dump folder of Docker compose Drupal.
+Dumps are located in the ./database/dump folder of Docker compose Drupal.
 
 Options:
   -h --help         Show this screen.
 HEREDOC
 }
+
+# Parse Options ###############################################################
+
+# Initialize program option variables.
+_PRINT_HELP=0
+
+# Initialize additional expected option variables.
+_CMD="list"
+_DB_NAME="drupal"
+_DUMP_FILE="dump.sql"
+
+# _require_argument()
+#
+# Usage:
+#   _require_argument <option> <argument>
+#
+# If <argument> is blank or another option, print an error message and  exit
+# with status 1.
+_require_argument() {
+  # Set local variables from arguments.
+  #
+  # NOTE: 'local' is a non-POSIX bash feature and keeps the variable local to
+  # the block of code, as defined by curly braces. It's easiest to just think
+  # of them as local to a function.
+  local _option="${1:-}"
+  local _argument="${2:-}"
+
+  if [[ -z "${_argument}" ]] || [[ "${_argument}" =~ ^- ]]
+  then
+    _die printf "Option requires a argument: %s\\n" "${_option}"
+  fi
+}
+
+while [[ ${#} -gt 0 ]]
+do
+  __option="${1:-}"
+  __maybe_param="${2:-}"
+  case "${__option}" in
+    -h|--help)
+      _PRINT_HELP=1
+      ;;
+    -f|--file)
+      _require_argument "${__option}" "${__maybe_param}"
+      _DUMP_FILE="${__maybe_param}"
+      shift
+      ;;
+    -d|--database)
+      _require_argument "${__option}" "${__maybe_param}"
+      _DB_NAME="${__maybe_param}"
+      shift
+      ;;
+    --endopts)
+      # Terminate option parsing.
+      break
+      ;;
+    -*)
+      _die printf "Unexpected option: %s\\n" "${__option}"
+      ;;
+    *)
+      _CMD=${__option}
+      ;;
+  esac
+  shift
+done
 
 ###############################################################################
 # Program Functions
@@ -111,7 +176,7 @@ _dump() {
 
 _dump_native() {
   _set_dump_file
-  _mysql_exec 'exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > /dump/'"$_DUMP_FILE"''
+  _mysql_exec 'exec mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD "'"$_DB_NAME"'" > /dump/'"$_DUMP_FILE"''
   printf "Database dump saved to %s\\n" ${DUMP_FOLDER}/${_DUMP_FILE}
 }
 
@@ -129,7 +194,7 @@ _restore() {
   printf "Restoring %s...\\n" $_DUMP_FILE
   _drop_native
   _create
-  _mysql_exec 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /dump/'"$_DUMP_FILE"''
+  _mysql_exec 'exec mysql -u$MYSQL_USER -p$MYSQL_PASSWORD "'"$_DB_NAME"'" < /dump/'"$_DUMP_FILE"''
 
   printf "... Done!\n"
 }
@@ -227,19 +292,40 @@ _test() {
 #
 # Description:
 #   Entry point for the program, handling basic option parsing and dispatching.
+# _main() {
+
+#   _set_container_mysql
+#   _ensure_dump_dir
+#   # _DB_NAME=${2:-$MYSQL_DATABASE}
+#   # _DUMP_FILE=${3:-"dump.sql"}
+
+#   # Run command if exist.
+#   __call="_${1:-}"
+#   if [ "$(type -t "${__call}")" == 'function' ]; then
+#     $__call
+#   else
+#     _print_help
+#   fi
+
+# }
 _main() {
 
-  _set_container_mysql
-  _ensure_dump_dir
-  _DB_NAME=$MYSQL_DATABASE
-  _DUMP_FILE=${2:-}
-
-  # Run command if exist.
-  __call="_${1:-}"
-  if [ "$(type -t "${__call}")" == 'function' ]; then
-    $__call
-  else
+  if ((_PRINT_HELP))
+  then
     _print_help
+  else
+
+    _set_container_mysql
+    _ensure_dump_dir
+
+    # Run command if exist.
+    __call="_${_CMD}"
+    if [ "$(type -t "${__call}")" == 'function' ]; then
+      $__call
+    else
+      printf "Unknown command: %s" "${_CMD}"
+    fi
+
   fi
 
 }
