@@ -292,22 +292,6 @@ _test() {
 #
 # Description:
 #   Entry point for the program, handling basic option parsing and dispatching.
-# _main() {
-
-#   _set_container_mysql
-#   _ensure_dump_dir
-#   # _DB_NAME=${2:-$MYSQL_DATABASE}
-#   # _DUMP_FILE=${3:-"dump.sql"}
-
-#   # Run command if exist.
-#   __call="_${1:-}"
-#   if [ "$(type -t "${__call}")" == 'function' ]; then
-#     $__call
-#   else
-#     _print_help
-#   fi
-
-# }
 _main() {
 
   if ((_PRINT_HELP))
