@@ -905,7 +905,7 @@ _test() {
     __PROJECT=${!DRUPAL_DISTRIBUTIONS[i]:5:1}
     __SETUP_TYPE=${!DRUPAL_DISTRIBUTIONS[i]:6:1}
 
-    if [ ${__DID} == "varbase" ] || [ ${__DID} == "social" ] || [ ${__DID} == "lightning" ]; then
+    if [ ${__DID} == "varbase" ] || [ ${__DID} == "social" ] || [ ${__DID} == "lightning" ] || [ ${__DID} == "thunder" ]; then
       log_success ">>>>>>>>>>>>> SKIPPING $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
     else
       log_warn ">>>>>>>>>>>>> START TEST install $_SELECTED_PROJECT <<<<<<<<<<<<<<<<<<<"
