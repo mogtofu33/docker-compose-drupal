@@ -6,11 +6,20 @@
 - [Description](#description)
   - [What's this?](#whats-this)
   - [Services included](#services-included)
+    - [Database management](#database-management)
 - [Quick demo (Ubuntu)](#quick-demo-ubuntu)
 - [Installation and configuration](#installation-and-configuration)
   - [Project installation](#project-installation)
   - [Option 1: existing Drupal 8 project](#option-1-existing-drupal-8-project)
+    - [Copy codebase](#copy-codebase)
+    - [Import database](#import-database)
+    - [Launch the stack](#launch-the-stack)
+    - [Access the minimal dashboard](#access-the-minimal-dashboard)
   - [Option 2: setup Vanilla Drupal 8 with Composer](#option-2-setup-vanilla-drupal-8-with-composer)
+    - [Code download](#code-download)
+    - [Launch the stack](#launch-the-stack-1)
+    - [Install Drupal 8](#install-drupal-8)
+    - [Access your Drupal 8](#access-your-drupal-8)
 - [Daily usage](#daily-usage)
   - [Add some modules](#add-some-modules)
   - [Enable some modules](#enable-some-modules)
@@ -67,7 +76,7 @@ _Every service is optional as declared in the yml file._
 
 - Apache
 - Nginx
-- Php 7.2 / 7.3 fpm with Xdebug
+- Php 7.3 / 7.4 fpm with Xdebug
 - MariaDB
 - PostgreSQL
 - [Memcache](https://hub.docker.com/_/memcached)
