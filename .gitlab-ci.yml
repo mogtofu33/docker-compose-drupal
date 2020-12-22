@@ -149,24 +149,6 @@ run basic:
   except:
     - /^dashboard-.*$/
 
-run advanced:
-  before_script:
-    - *install_docker_compose
-    - make setup
-    - cp samples/apache_mysql_php_memcache_solr.yml docker-compose.yml
-  extends: .test_run
-  except:
-    - /^dashboard-.*$/
-
-run AP9P:
-  before_script:
-    - *install_docker_compose
-    - make setup
-    - cp samples/apache_postgres9_php.yml docker-compose.yml
-  extends: .test_run
-  except:
-    - /^dashboard-.*$/
-
 test:
   before_script:
     - *install_docker_compose

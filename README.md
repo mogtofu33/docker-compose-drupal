@@ -44,8 +44,8 @@
 
 ## Requirements
 
-- [Docker engine 18+](https://docs.docker.com/install)
-- [Docker compose 1.24+](https://docs.docker.com/compose/install)
+- [Docker engine 19+](https://docs.docker.com/install)
+- [Docker compose 1.26+](https://docs.docker.com/compose/install)
 
 **Recommended**
 
