@@ -323,8 +323,8 @@ _download_composer() {
     then
       log_info "Found composer installed locally"
     fi
-    debug "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
-    bash -c "composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
+    debug "COMPOSER_MEMORY_LIMIT=-1 composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
+    bash -c "COMPOSER_MEMORY_LIMIT=-1 composer create-project $__PROJECT $STACK_DRUPAL_ROOT $__composer_options_local"
   else
     if [[ ${__quiet} == "" ]]
     then
@@ -335,11 +335,11 @@ _download_composer() {
     _docker_exec_root \
       rm -Rf /tmp/drupal
 
-    debug "docker exec ... composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
+    debug "docker exec ... COMPOSER_MEMORY_LIMIT=-1 composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
 
     # Download and move as create-project needs a new folder.
     _docker_exec_noi \
-      bash -c "composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
+      bash -c "COMPOSER_MEMORY_LIMIT=-1 composer create-project ${__PROJECT} /tmp/drupal $__composer_options"
 
     _docker_exec_root \
       chown $LOCAL_UID:$LOCAL_GID ${WEB_ROOT}
@@ -619,14 +619,14 @@ _composer_cmd() {
     then
       log_info "Found composer installed locally"
     fi
-    bash -c "composer ${1} --working-dir=${STACK_DRUPAL_ROOT} --ignore-platform-reqs"
+    bash -c "COMPOSER_MEMORY_LIMIT=-1 composer ${1} --working-dir=${STACK_DRUPAL_ROOT} --ignore-platform-reqs"
   else
     if [[ ${__quiet} == "" ]]
     then
       log_info "No local composer found, using composer from the stack"
     fi
     _docker_exec_noi \
-      bash -c "composer ${1} --working-dir=${WEB_ROOT}"
+      bash -c "COMPOSER_MEMORY_LIMIT=-1 composer ${1} --working-dir=${WEB_ROOT}"
   fi
 }
 
