@@ -209,6 +209,13 @@ composer create-project drupal-composer/drupal-project:8.x-dev drupal --stabilit
 ```bash
 docker-compose up --build -d
 ```
+#### Ready the database
+The following will use the **helper scripts** to generate the database from your .env
+
+```bash
+./scripts/mysql create
+```
+
 
 #### Install Drupal 8
 
